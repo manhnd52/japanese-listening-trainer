@@ -1,65 +1,129 @@
-import Image from "next/image";
+"use client";
+
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { setTrack, playPause, toggleExpanded, toggleFavoriteOptimistic } from "@/store/features/player/playerSlice";
+import { AudioStatus } from "@/types/types";
+import { AudioTrack } from "@/store/features/player/playerSlice";
+
+const DUMMY_TRACKS: AudioTrack[] = [
+  {
+    id: "1",
+    title: "Lesson 1: Introduction",
+    url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/2.mp3",
+    duration: 300,
+    folderId: "folder-1",
+    status: AudioStatus.NEW,
+    isFavorite: false,
+  },
+  {
+    id: "2",
+    title: "Lesson 2: Basic Grammar",
+    url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/3.mp3",
+    duration: 450,
+    folderId: "folder-1",
+    status: AudioStatus.IN_PROGRESS,
+    isFavorite: true,
+  },
+  {
+    id: "3",
+    title: "Lesson 3: Vocabulary",
+    url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/4.mp3",
+    duration: 200,
+    folderId: "folder-2",
+    status: AudioStatus.COMPLETED,
+    isFavorite: false,
+  }
+];
 
 export default function Home() {
+  const dispatch = useAppDispatch();
+  const playerState = useAppSelector((state) => state.player);
+
+  const handlePlayTrack = (track: AudioTrack) => {
+    dispatch(setTrack(track));
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="p-8 space-y-8 min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
+      <h1 className="text-3xl font-bold">Player Store Demo</h1>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Track List */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Available Tracks</h2>
+          <div className="flex flex-col gap-3">
+            {DUMMY_TRACKS.map((track) => (
+              <div
+                key={track.id}
+                className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${playerState.currentAudio?.id === track.id
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                  : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900'
+                  }`}
+                onClick={() => handlePlayTrack(track)}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="font-medium text-lg">{track.title}</p>
+                    <div className="flex gap-2 text-sm text-gray-500 dark:text-gray-400">
+                      <span>{Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}</span>
+                      <span>•</span>
+                      <span>{track.status}</span>
+                    </div>
+                  </div>
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePlayTrack(track);
+                    }}
+                  >
+                    Load Track
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Player State Visualization */}
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">Current Store State</h2>
+
+          {/* Controls */}
+          <div className="flex gap-3 flex-wrap mb-4">
+            <button
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${playerState.isPlaying
+                ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
+                : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              onClick={() => dispatch(playPause())}
+            >
+              {playerState.isPlaying ? 'Pause' : 'Play'}
+            </button>
+            <button
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${playerState.currentAudio?.isFavorite
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700'
+                }`}
+              onClick={() => dispatch(toggleFavoriteOptimistic())}
+            >
+              {playerState.currentAudio?.isFavorite ? '♥ Favorited' : '♡ Favorite'}
+            </button>
+            <button
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-colors"
+              onClick={() => dispatch(toggleExpanded())}
+            >
+              {playerState.isExpanded ? 'Collapse Player' : 'Expand Player'}
+            </button>
+          </div>
+
+          <div className="p-4 bg-gray-900 text-green-400 rounded-lg overflow-auto max-h-[600px] font-mono text-sm shadow-inner">
+            <pre>
+              {JSON.stringify(playerState, null, 2)}
+            </pre>
+          </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
