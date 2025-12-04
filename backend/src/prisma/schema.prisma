@@ -34,6 +34,7 @@ model User {
   quizAttemptLog      QuizAttemptLog[]
   quizStats           QuizStats[]
   mistakeQuiz         MistakeQuiz[]
+  sharedFolder        FolderShare[]
 
   @@map("users")
 }
@@ -100,9 +101,24 @@ model Folder {
   
   user         User          @relation(fields: [createdBy], references: [id])
   audios       Audio[]
+  shares       FolderShare[]
 
   @@index([createdBy])
   @@map("folders")
+}
+
+model FolderShare {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  folderId  Int      @map("folder_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User    @relation(fields: [userId], references: [id])
+  folder    Folder  @relation(fields: [folderId], references: [id])
+
+  @@index([userId])
+  @@index([folderId])
+  @@map("folder_shares")
 }
 
 model Reminder {
