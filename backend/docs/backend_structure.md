@@ -20,5 +20,3 @@ src/
 - `dotenv`: Load environment variables from .env file
 - `helmet`: Security middleware
 - `morgan`: HTTP request logger
-
-3. Prisma: 
