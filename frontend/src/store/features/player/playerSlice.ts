@@ -1,36 +1,47 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AudioStatus, AudioTrack } from "@/types/types";
+import { AudioStatus, Quiz } from "@/types/types";
+import { RootState } from "@/store";
 
 /**
  * Player Redux Slice
  * Following recommended pattern: State management ONLY, NO async logic
  * Async logic is handled in custom hooks (features/player/hooks/usePlayer.ts)
  */
+export interface AudioTrack {
+  id: string | null | undefined;
+  title: string;
+  url: string; // Mock URL or base64
+  duration: number; // in seconds
+  folderId: string;
+  status: AudioStatus;
+  isFavorite: boolean;
+  lastPlayed?: Date;
+}
+
+interface Playlist {
+  id: string;
+  name: string;
+  description: string;
+  audioTracks: AudioTrack[];
+}
 
 interface PlayerState {
-  currentAudio: AudioTrack;
+  currentAudio: AudioTrack | null;
+  currentPlaylist: Playlist | null;
   isPlaying: boolean;
-  progress: number; // 0 - 100
+  progress: number;
   isExpanded: boolean;
+  volume: number;
   error: string | null;
 }
 
 const initialState: PlayerState = {
-  currentAudio: {
-    id: null,
-    title: '',
-    url: '',
-    duration: 0,
-    folderId: '',
-    status: AudioStatus.NEW,
-    isFavorite: false,
-    playCount: 0,
-    script: '',
-    quizzes: []
-  },
+  currentAudio: null,
+  currentPlaylist: null,
   isPlaying: false,
   progress: 0,
   isExpanded: false,
+  volume: 50,
   error: null
 };
 
@@ -40,9 +51,14 @@ const playerSlice = createSlice({
   reducers: {
     // Track management
     setTrack(state, action: PayloadAction<AudioTrack>) {
+      state.isPlaying = true;
       state.currentAudio = action.payload;
       state.progress = 0;
       state.error = null;
+    },
+
+    setPlaylist(state, action: PayloadAction<Playlist>) {
+      state.currentPlaylist = action.payload;
     },
 
     // Playback controls
@@ -62,6 +78,9 @@ const playerSlice = createSlice({
       state.progress = action.payload >= 100 ? 0 : action.payload;
     },
 
+    incrementProgress(state) {
+      state.progress += 1;
+    },
     // Favorite management - Sync actions only
     /**
      * Optimistic update - Toggle favorite immediately for instant UI feedback
@@ -100,6 +119,10 @@ const playerSlice = createSlice({
 
     clearError(state) {
       state.error = null;
+    },
+
+    setVolume(state, action: PayloadAction<number>) {
+      state.volume = action.payload;
     }
   }
 });
@@ -110,12 +133,16 @@ export const {
   nextTrack,
   prevTrack,
   updateProgress,
+  incrementProgress,
   toggleFavoriteOptimistic,
   updateFavoriteStatus,
   setExpanded,
   toggleExpanded,
   setError,
+  setVolume,
   clearError
 } = playerSlice.actions;
+
+export const playerSelector = (state: RootState) => state.player;
 
 export default playerSlice.reducer;

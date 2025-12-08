@@ -1,8 +1,7 @@
 import TopHeader from '@/components/layout/TopHeader'
 import MiniPlayer from '@/features/miniplayer/components/MiniPlayer'
+import Player from '@/features/player/Player'
 
-const mockUser = { name: 'John Doe', email: 'john@example.com' }
-const mockStat = { streak: 5, level: 3, exp: 45 }
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -12,6 +11,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <MiniPlayer />
+      <Player />
     </>
   )
 }

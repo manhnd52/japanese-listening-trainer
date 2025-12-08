@@ -14,7 +14,295 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id                  Int                 @id @default(autoincrement()) @map("user_id")
+  fullname            String
+  email               String              @unique
+  password            String
+  avatarUrl           String?             @map("avatar_url")
+  refreshTokens       RefreshToken[]
+  audios              Audio[]
+  audioStats          AudioStats[]
+  folders             Folder[]
+  reminders           Reminder[]
+  userSetting         UserSetting?
+  userDailyActivity   UserDailyActivity[]
+  userExp             UserExp?
+  streak              Streak?
+  leaderboardPoint    LeaderboardPoint?
+  userAchievement     UserAchievement[]
+  quiz                Quiz[]
+  quizAttemptLog      QuizAttemptLog[]
+  quizStats           QuizStats[]
+  mistakeQuiz         MistakeQuiz[]
+  sharedFolder        FolderShare[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  expireTime DateTime @map("expire_time")
+  revoked    Boolean  @default(false)
+  userId     Int      @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Audio {
+  id        Int      @id @default(autoincrement())
+  folderId  Int      @map("folder_id")
+  createdBy Int      @map("created_by")
+  title     String
+  overview  String?
+  script    String?
+  fileUrl   String   @map("file_url")
+  duration  Int
+  isSuspend Boolean  @default(false) @map("is_suspend")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  user      User     @relation(fields: [createdBy], references: [id])
+  audioStats      AudioStats[]
+  quizzes         Quiz[]
+  quizAttemptLogs QuizAttemptLog[]
+
+  @@index([createdBy])
+  @@index([folderId])
+  @@map("audios")
+}
+
+model AudioStats {
+  userId          Int       @map("user_id")
+  audioId         Int       @map("audio_id")
+  isFavorite      Boolean   @default(false) @map("is_favorite")
+  lastListenTime  DateTime? @map("last_listen_time")
+  listenCount     Int       @default(0) @map("listen_count")
+  firstListenDone Boolean   @default(false) @map("first_listen_done")
+
+  user  User  @relation(fields: [userId], references: [id])
+  audio Audio @relation(fields: [audioId], references: [id])
+
+  @@id([userId, audioId])
+  @@index([audioId])
+  @@map("audio_stats")
+}
+
+model Folder {
+  id        Int      @id @default(autoincrement()) @map("folder_id")
+  createdBy Int      @map("created_by")
+  name      String
+  isPublic  Boolean  @default(false) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user         User          @relation(fields: [createdBy], references: [id])
+  audios       Audio[]
+  shares       FolderShare[]
+
+  @@index([createdBy])
+  @@map("folders")
+}
+
+model FolderShare {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  folderId  Int      @map("folder_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User    @relation(fields: [userId], references: [id])
+  folder    Folder  @relation(fields: [folderId], references: [id])
+
+  @@index([userId])
+  @@index([folderId])
+  @@map("folder_shares")
+}
+
+model Reminder {
+  id     Int      @id @default(autoincrement())
+  userId Int      @map("user_id")
+  time   DateTime
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("reminders")
+}
+
+model UserSetting {
+  userId                 Int     @id @map("user_id")
+  allowEmailNotification Boolean @default(true) @map("allow_email_notification")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_settings")
+}
+
+enum NotificationType {
+  reminder
+}
+
+model Notification {
+  id      Int    @id @default(autoincrement())
+  type    NotificationType
+  title   String
+  message String
+
+  @@map("notifications")
+}
+
+model UserDailyActivity {
+  userId          Int      @map("user_id")
+  date            DateTime @map("date")
+  didListen       Boolean  @default(false) @map("did_listen")
+  didQuiz         Boolean  @default(false) @map("did_quiz")
+  totalListenTime Int      @default(0) @map("total_listen_time") // tính bằng giây
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId, date])
+  @@index([date])
+  @@map("user_daily_activities")
+}
+
+model UserExp {
+  userId    Int      @id @map("user_id")
+  exp       Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_exp")
+}
+
+model Streak {
+  userId         Int       @id @map("user_id")
+  currentStreak  Int       @default(0) @map("current_streak")
+  lastActiveDate DateTime? @map("last_active_date")
+  longestStreak  Int       @default(0) @map("longest_streak")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("streaks")
+}
+
+model LeaderboardPoint {
+  userId    Int      @id @map("user_id")
+  weeklyExp Int      @default(0) @map("weekly_exp")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("leaderboard_points")
+}
+
+enum AchievementConditionType {
+  streak
+  audio_count
+  exp
+  listening_time
+}
+
+model Achievement {
+  id               Int                      @id @default(autoincrement())
+  name             String
+  description      String?
+  iconUrl          String                   @map("icon_url")
+  conditionType    AchievementConditionType @map("condition_type")
+  conditionValue   Int                      @map("condition_value")
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId        Int      @map("user_id")
+  achievementId Int      @map("achievement_id")
+  unlockAt      DateTime @default(now()) @map("unlock_at")
+
+  user        User        @relation(fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@id([userId, achievementId])
+  @@index([achievementId])
+  @@map("user_achievements")
+}
+
+enum QuizOption {
+  A
+  B
+  C
+  D
+}
+
+model Quiz {
+  id            Int        @id @default(autoincrement())
+  userId        Int        @map("user_id")
+  audioId       Int        @map("audio_id")
+  questionText  String     @map("question_text")
+  optionA       String     @map("option_a")
+  optionB       String     @map("option_b")
+  optionC       String     @map("option_c")
+  optionD       String     @map("option_d")
+  correctOption QuizOption @map("correct_option")
+  explanation   String?    @map("explanation")
+
+  user            User             @relation(fields: [userId], references: [id])
+  audio           Audio            @relation(fields: [audioId], references: [id])
+  quizAttemptLogs QuizAttemptLog[]
+  quizStats       QuizStats[]
+  mistakeQuizs    MistakeQuiz[]
+
+  @@index([userId])
+  @@index([audioId])
+  @@map("quizzes")
+}
+
+model QuizAttemptLog {
+  id             Int        @id @default(autoincrement())
+  quizId         Int        @map("quiz_id")
+  userId         Int        @map("user_id")
+  audioId        Int        @map("audio_id")
+  selectedOption QuizOption @map("selected_option")
+  isCorrect      Boolean    @map("is_correct")
+  attemptAt      DateTime   @default(now()) @map("attempt_at")
+
+  quiz  Quiz  @relation(fields: [quizId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  audio Audio @relation(fields: [audioId], references: [id])
+
+  @@index([quizId])
+  @@index([userId])
+  @@index([audioId])
+  @@map("quiz_attempt_logs")
+}
+
+model QuizStats {
+  userId       Int @map("user_id")
+  quizId       Int @map("quiz_id")
+  correctCount Int @default(0) @map("correct_count")
+  wrongCount   Int @default(0) @map("wrong_count")
+
+  user User @relation(fields: [userId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id])
+
+  @@id([userId, quizId])
+  @@index([quizId])
+  @@map("quiz_stats")
+}
+
+model MistakeQuiz {
+  userId  Int      @map("user_id")
+  quizId  Int      @map("quiz_id")
+  wrongAt DateTime @default(now()) @map("wrong_at")
+
+  user User @relation(fields: [userId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id])
+
+  @@id([userId, quizId, wrongAt])
+  @@index([quizId])
+  @@map("mistake_quizzes")
 }
