@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Server - Public Directory</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .link-list {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .link-list a {
+            display: block;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f8f9fa;
+            color: #667eea;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .link-list a:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(10px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <h1>🚀 Backend Server</h1>
+        <p style="color: #666;">Public folder is working!</p>
+
+        <div class="link-list">
+            <a href="/test.html">📄 Test Page</a>
+            <a href="/api/health">🏥 Health Check API</a>
+        </div>
+    </div>
+</body>
+
+</html>

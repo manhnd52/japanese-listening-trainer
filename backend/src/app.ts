@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
 import { config } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
@@ -16,6 +17,9 @@ app.use(cors());
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static files
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Logging middleware
 if (config.nodeEnv === 'development') {

@@ -1,0 +1,38 @@
+model Audio {
+  id        Int      @id @default(autoincrement())
+  folderId  Int      @map("folder_id")
+  createdBy Int      @map("created_by")
+  title     String
+  overview  String?
+  script    String?
+  fileUrl   String   @map("file_url")
+  duration  Int
+  isSuspend Boolean  @default(false) @map("is_suspend")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  folder    Folder   @relation(fields: [folderId], references: [id])
+  user      User     @relation(fields: [createdBy], references: [id])
+  audioStats      AudioStats[]
+  quizzes         Quiz[]
+  quizAttemptLogs QuizAttemptLog[]
+
+  @@index([createdBy])
+  @@index([folderId])
+  @@map("audios")
+}
+
+model AudioStats {
+  userId          Int       @map("user_id")
+  audioId         Int       @map("audio_id")
+  isFavorite      Boolean   @default(false) @map("is_favorite")
+  lastListenTime  DateTime? @map("last_listen_time")
+  listenCount     Int       @default(0) @map("listen_count")
+  firstListenDone Boolean   @default(false) @map("first_listen_done")
+
+  user  User  @relation(fields: [userId], references: [id])
+  audio Audio @relation(fields: [audioId], references: [id])
+
+  @@id([userId, audioId])
+  @@index([audioId])
+  @@map("audio_stats")
+}

@@ -1,0 +1,12 @@
+enum NotificationType {
+  reminder
+}
+
+model Notification {
+  id      Int              @id @default(autoincrement())
+  type    NotificationType
+  title   String
+  message String
+
+  @@map("notifications")
+}
