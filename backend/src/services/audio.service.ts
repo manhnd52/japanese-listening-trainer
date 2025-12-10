@@ -1,10 +1,20 @@
 import { prisma } from '../prisma';
-import { Prisma } from 'prisma';
+import type { Prisma } from '../generated/prisma/client';
 
 export class AudioService {
   async createAudio(data: Prisma.AudioCreateInput) {
     return await prisma.audio.create({
       data,
+      include: {
+        folder: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullname: true,
+          },
+        },
+      },
     });
   }
 
@@ -17,10 +27,10 @@ export class AudioService {
           select: {
             id: true,
             email: true,
-            fullname: true
-          }
-        }
-      }
+            fullname: true,
+          },
+        },
+      },
     });
   }
 
@@ -29,8 +39,15 @@ export class AudioService {
       where: filter,
       orderBy: { createdAt: 'desc' },
       include: {
-        folder: true
-      }
+        folder: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullname: true,
+          },
+        },
+      },
     });
   }
 

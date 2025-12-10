@@ -62,4 +62,18 @@ export interface Mistake {
   timestamp: number;
 }
 
+export interface AudioTrack {
+  id: string;
+  title: string;
+  overview?: string;
+  fileUrl: string;
+  duration: number;
+  folderId: string;
+  folder?: Folder;
+  status?: AudioStatus;
+  isFavorite?: boolean;
+  isSuspend?: boolean;
+  // Thêm các trường khác nếu cần
+}
+
 export type ThemeMode = 'dark' | 'light';
