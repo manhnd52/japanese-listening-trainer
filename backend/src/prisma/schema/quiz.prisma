@@ -1,0 +1,75 @@
+enum QuizOption {
+  A
+  B
+  C
+  D
+}
+
+model Quiz {
+  id            Int        @id @default(autoincrement())
+  userId        Int        @map("user_id")
+  audioId       Int        @map("audio_id")
+  questionText  String     @map("question_text")
+  optionA       String     @map("option_a")
+  optionB       String     @map("option_b")
+  optionC       String     @map("option_c")
+  optionD       String     @map("option_d")
+  correctOption QuizOption @map("correct_option")
+  explanation   String?    @map("explanation")
+
+  user            User             @relation(fields: [userId], references: [id])
+  audio           Audio            @relation(fields: [audioId], references: [id])
+  quizAttemptLogs QuizAttemptLog[]
+  quizStats       QuizStats[]
+  mistakeQuizs    MistakeQuiz[]
+
+  @@index([userId])
+  @@index([audioId])
+  @@map("quizzes")
+}
+
+model QuizAttemptLog {
+  id             Int        @id @default(autoincrement())
+  quizId         Int        @map("quiz_id")
+  userId         Int        @map("user_id")
+  audioId        Int        @map("audio_id")
+  selectedOption QuizOption @map("selected_option")
+  isCorrect      Boolean    @map("is_correct")
+  attemptAt      DateTime   @default(now()) @map("attempt_at")
+
+  quiz  Quiz  @relation(fields: [quizId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+  audio Audio @relation(fields: [audioId], references: [id])
+
+  @@index([quizId])
+  @@index([userId])
+  @@index([audioId])
+  @@map("quiz_attempt_logs")
+}
+
+model QuizStats {
+  userId       Int @map("user_id")
+  quizId       Int @map("quiz_id")
+  correctCount Int @default(0) @map("correct_count")
+  wrongCount   Int @default(0) @map("wrong_count")
+
+  user User @relation(fields: [userId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id])
+
+  @@id([userId, quizId])
+  @@index([quizId])
+  @@map("quiz_stats")
+}
+
+model MistakeQuiz {
+  userId  Int      @map("user_id")
+  quizId  Int      @map("quiz_id")
+  wrongAt DateTime @default(now()) @map("wrong_at")
+
+  user User @relation(fields: [userId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id])
+
+  @@id([userId, quizId, wrongAt])
+  @@index([quizId])
+  @@map("mistake_quizzes")
+}

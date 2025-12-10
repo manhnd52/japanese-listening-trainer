@@ -1,0 +1,5 @@
+# Khởi chạy dự án
+1. Seed database: cd backend; npm run seed
+2. Chạy compose:
+- Quay về thư mục chính: cd ..
+- Chạy compose: docker compose up

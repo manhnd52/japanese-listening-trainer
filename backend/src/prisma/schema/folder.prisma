@@ -1,0 +1,28 @@
+model Folder {
+  id        Int      @id @default(autoincrement()) @map("folder_id")
+  createdBy Int      @map("created_by")
+  name      String
+  isPublic  Boolean  @default(false) @map("is_public")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user          User          @relation(fields: [createdBy], references: [id])
+  audios        Audio[]
+  folderShares  FolderShare[]
+
+  @@index([createdBy])
+  @@map("folders")
+}
+
+model FolderShare {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  folderId  Int      @map("folder_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id])
+  folder Folder @relation(fields: [folderId], references: [id])
+
+  @@index([userId])
+  @@index([folderId])
+  @@map("folder_shares")
+}

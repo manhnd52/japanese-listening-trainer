@@ -1,0 +1,62 @@
+model UserExp {
+  userId    Int      @id @map("user_id")
+  exp       Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_exp")
+}
+
+model Streak {
+  userId         Int       @id @map("user_id")
+  currentStreak  Int       @default(0) @map("current_streak")
+  lastActiveDate DateTime? @map("last_active_date")
+  longestStreak  Int       @default(0) @map("longest_streak")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("streaks")
+}
+
+model LeaderboardPoint {
+  userId    Int      @id @map("user_id")
+  weeklyExp Int      @default(0) @map("weekly_exp")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("leaderboard_points")
+}
+
+enum AchievementConditionType {
+  streak
+  audio_count
+  exp
+  listening_time
+}
+
+model Achievement {
+  id               Int                      @id @default(autoincrement())
+  name             String
+  description      String?
+  iconUrl          String                   @map("icon_url")
+  conditionType    AchievementConditionType @map("condition_type")
+  conditionValue   Int                      @map("condition_value")
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId        Int      @map("user_id")
+  achievementId Int      @map("achievement_id")
+  unlockAt      DateTime @default(now()) @map("unlock_at")
+
+  user        User        @relation(fields: [userId], references: [id])
+  achievement Achievement @relation(fields: [achievementId], references: [id])
+
+  @@id([userId, achievementId])
+  @@index([achievementId])
+  @@map("user_achievements")
+}
