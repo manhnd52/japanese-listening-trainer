@@ -1,11 +1,24 @@
 import { Router } from 'express';
-import { getAudioList, createAudio } from '../controllers/audio.controller';
+import { 
+  getAudioList, 
+  createAudio,
+  getAudioById,
+  updateAudio,
+  deleteAudio,
+  moveAudio
+} from '../controllers/audio.controller';
 import { uploadMiddleware } from '../middlewares/upload';
 import { prisma } from '../prisma'; 
+
 const router = Router();
 
+// GET /api/audios - Get all audios
 router.get('/', getAudioList);
+
+// POST /api/audios - Upload new audio
 router.post('/', uploadMiddleware.single('file'), createAudio);
+
+// GET /api/audios/folders - Get folders by userId
 router.get('/folders', async (req, res, next) => {
   try {
     const { userId } = req.query;
@@ -34,4 +47,19 @@ router.get('/folders', async (req, res, next) => {
     next(error);
   }
 });
+
+// PATCH /api/audios/:id/move - Move audio to another folder
+router.patch('/:id/move', moveAudio);
+
+// GET /api/audios/:id - Get audio by ID
+router.get('/:id', getAudioById);
+
+// PUT /api/audios/:id - Update audio
+router.put('/:id', updateAudio);
+
+// DELETE /api/audios/:id - Delete audio
+router.delete('/:id', deleteAudio);
+
+
+
 export default router;
