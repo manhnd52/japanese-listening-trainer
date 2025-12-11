@@ -226,9 +226,7 @@ const AudioList: React.FC<AudioListProps> = ({
                         <button
                           onClick={e =>
                             handleActionClick(e, () => {
-                              if (window.confirm('Are you sure you want to delete this audio?')) {
-                                onDelete(audio.id);
-                              }
+                              onDelete(audio.id);
                             })
                           }
                           className="w-full px-4 py-3 text-left text-rose-500 hover:bg-rose-50 hover:text-rose-700 flex items-center gap-3 font-bold text-sm"

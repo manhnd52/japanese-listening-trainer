@@ -73,6 +73,7 @@ export interface AudioTrack {
   status?: AudioStatus;
   isFavorite?: boolean;
   isSuspend?: boolean;
+  script?: string;
   // Thêm các trường khác nếu cần
 }
 
