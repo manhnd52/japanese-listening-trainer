@@ -42,7 +42,6 @@ export async function getUserByIdController(
 ) {
     try {
         const { id } = req.params;
-        console.log(`::fetching user id ${id}`);
 
         const user = await userService.getUserById(parseInt(id, 10));
         if (!user) {
