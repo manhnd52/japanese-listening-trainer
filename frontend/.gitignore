@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dictionary data (large files - download separately)
+/public/jmdict-eng-*.json
+/src/assets/jmdict-eng-*.json
