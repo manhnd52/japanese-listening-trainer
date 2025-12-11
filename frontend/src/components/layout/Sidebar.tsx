@@ -1,0 +1,47 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { Home, FolderOpen, Music, User, Settings } from 'lucide-react';
+
+const menuItems = [
+  { icon: Home, label: 'Home', path: '/' },
+  { icon: FolderOpen, label: 'Folders', path: '/folder' },
+  { icon: Music, label: 'Library', path: '/library' },
+  { icon: User, label: 'Profile', path: '/profile' },
+  { icon: Settings, label: 'Settings', path: '/settings' },
+];
+
+export default function Sidebar() {
+  const pathname = usePathname();
+
+  return (
+    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-brand-200 h-screen sticky top-0">
+      <div className="p-6">
+        <h2 className="text-xl font-extrabold text-brand-900">JLT</h2>
+      </div>
+      
+      <nav className="flex-1 px-4">
+        {menuItems.map((item) => {
+          const isActive = pathname === item.path;
+          const Icon = item.icon;
+          
+          return (
+            <Link
+              key={item.path}
+              href={item.path}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${
+                isActive
+                  ? 'bg-brand-500 text-white font-bold'
+                  : 'text-brand-600 hover:bg-brand-50 hover:text-brand-900'
+              }`}
+            >
+              <Icon size={20} />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}

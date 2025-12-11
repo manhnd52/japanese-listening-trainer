@@ -1,10 +1,17 @@
+import { Prisma } from '../generated/prisma/client';
 import { prisma } from '../prisma';
-import type { Prisma } from '../generated/prisma/client';
 
 export class AudioService {
-  async createAudio(data: Prisma.AudioCreateInput) {
+  async createAudio(data: any) { // Dùng any tạm thời để tránh lỗi type
     return await prisma.audio.create({
-      data,
+      data: {
+        title: data.title,
+        script: data.script,
+        fileUrl: data.fileUrl,
+        duration: data.duration,
+        folderId: data.folderId,
+        createdBy: data.createdBy,
+      },
       include: {
         folder: true,
         user: {
@@ -37,7 +44,6 @@ export class AudioService {
   async getAllAudios(filter?: Prisma.AudioWhereInput) {
     return await prisma.audio.findMany({
       where: filter,
-      orderBy: { createdAt: 'desc' },
       include: {
         folder: true,
         user: {
@@ -48,19 +54,7 @@ export class AudioService {
           },
         },
       },
-    });
-  }
-
-  async updateAudio(id: number, data: Prisma.AudioUpdateInput) {
-    return await prisma.audio.update({
-      where: { id },
-      data,
-    });
-  }
-
-  async deleteAudio(id: number) {
-    return await prisma.audio.delete({
-      where: { id },
+      orderBy: { id: 'desc' },
     });
   }
 }
