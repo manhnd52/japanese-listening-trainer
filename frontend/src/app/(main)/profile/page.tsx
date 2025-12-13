@@ -5,9 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useProfile } from '@/features/auth/hooks/useProfile';
 
 // --- ICONS (SVG Thuần) ---
-const IconArrowLeft = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-);
 const IconUser = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
 );
@@ -20,13 +17,10 @@ const IconLock = () => (
 const IconSave = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
 );
-const IconBell = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-);
 
 export default function ProfilePage() {
   const { user, updateProfile, isLoading, error, successMessage } = useProfile();
-  const router = useRouter();
+  // const router = useRouter(); // Không dùng router nữa vì đã bỏ nút Back
 
   const [fullname, setFullname] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -52,15 +46,9 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-white p-4 md:p-8 font-sans">
       <div className="max-w-6xl mx-auto">
         
-        {/* Header: Back Button & Title */}
-        <div className="flex items-center mb-8">
-          <button 
-            onClick={() => router.back()} 
-            className="flex items-center text-gray-700 hover:text-green-700 font-medium mr-4"
-          >
-            <div className="mr-2"><IconArrowLeft /></div> Back
-          </button>
-          <h1 className="flex-1 text-center text-2xl font-bold text-green-900 pr-16">My Profile</h1>
+        {/* Header: Đổi thành "Profile" và dùng màu xanh đậm giống chữ "Library" */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-brand-900">Profile</h1>
         </div>
 
         <div className="flex flex-col md:flex-row gap-8">
@@ -74,7 +62,6 @@ export default function ProfilePage() {
                 {user.avatarUrl ? (
                   <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
-                   // Icon User lớn hơn chút cho avatar mặc định
                   <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 )}
               </div>
@@ -87,10 +74,6 @@ export default function ProfilePage() {
               <div className="flex items-center px-6 py-4 bg-[#F0FDF4] text-green-800 border-l-4 border-green-700 font-medium">
                 <div className="mr-3"><IconUser /></div>
                 Personal Info
-              </div>
-              <div className="flex items-center px-6 py-4 text-green-600/70 hover:bg-gray-50 cursor-pointer transition-colors font-medium">
-                <div className="mr-3"><IconBell /></div>
-                Reminder Settings
               </div>
             </div>
           </div>
@@ -172,7 +155,6 @@ export default function ProfilePage() {
                       ${isLoading 
                         ? 'bg-green-800/70 cursor-not-allowed' 
                         : 'bg-[#3F6212] hover:bg-[#365314] hover:shadow-lg' 
-                        // #3F6212 tương đương green-800/900 đậm như ảnh
                       }`}
                   >
                     <div className="mr-2"><IconSave /></div>
