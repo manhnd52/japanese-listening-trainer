@@ -32,8 +32,15 @@ const authSlice = createSlice({
       state.accessToken = null;
       state.isAuthenticated = false;
     },
+    // Action: Cập nhật thông tin người dùng
+    updateUser: (state, action: PayloadAction<User>) => {
+      if (state.user) {
+        state.user = action.payload;
+        state.isAuthenticated = true;
+      }
+    },
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logout, updateUser} = authSlice.actions;
 export default authSlice.reducer;

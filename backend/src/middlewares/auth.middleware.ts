@@ -9,6 +9,9 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
+    console.log("👉 [Middleware] Header nhận được:", authHeader); // Log 1
+    console.log("👉 [Middleware] Token tách được:", token);      // Log 2
+
     if (!token) {
         res.status(401).json({ success: false, error: { message: 'Access token required' } });
         return; 
@@ -16,11 +19,11 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
     try {
         const decoded = verifyToken(token) as { userId: number };
-        
         req.userId = decoded.userId;
-        
         next();
     } catch (error) {
+        // 🔥 QUAN TRỌNG: Log lỗi cụ thể ra terminal
+        console.error("❌ [Middleware] Verify thất bại:", error); 
         res.status(403).json({ success: false, error: { message: 'Invalid or expired token' } });
     }
 };

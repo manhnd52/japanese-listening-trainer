@@ -21,18 +21,17 @@ export const useLogin = () => {
     try {
       // 1. Gọi API
       const response = await authApi.login(credentials);
+
+      const { user, accessToken, refreshToken } = response.data;
       
       // 2. Lưu token vào LocalStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('token', accessToken); 
+        localStorage.setItem('refreshToken', refreshToken);
       }
 
       // 3. Lưu vào Redux Store
-      dispatch(setCredentials({
-        user: response.data.user,
-        accessToken: response.data.accessToken
-      }));
+      dispatch(setCredentials({ user, accessToken }));
 
       // 4. Chuyển hướng về trang chủ
       router.push('/');
