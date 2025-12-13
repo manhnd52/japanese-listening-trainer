@@ -18,6 +18,12 @@ export interface LoginInput {
     password: string;
 }
 
+export interface UpdateProfileInput {
+    userId: number;
+    fullname?: string;
+    newPassword?: string;
+}
+
 class AuthService {
     /**
      * Đăng ký người dùng mới
@@ -101,6 +107,53 @@ class AuthService {
             accessToken,
             refreshToken
         };
+    }
+
+    /**
+     * Update profile
+     */
+    async updateProfile(data: UpdateProfileInput) {
+        const { userId, fullname, newPassword } = data;
+        const updateData: any = {};
+
+        if (fullname) {
+            updateData.fullname = fullname;
+        }
+
+        if (newPassword && newPassword.trim() !== '') {
+            updateData.password = await hashPassword(newPassword);
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: updateData,
+            select: {
+                id: true,
+                fullname: true,
+                email: true,
+                avatarUrl: true
+            }
+        });
+
+        return updatedUser;
+    }
+
+    /**
+     * Lấy thông tin người dùng theo ID
+     */
+    async getMe(userId: number) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                fullname: true,
+                email: true,
+                avatarUrl: true
+            }
+        });
+
+        if (!user) throw new Error('User not found');
+        return user;
     }
 }
 
