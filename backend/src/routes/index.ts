@@ -3,6 +3,7 @@ import healthRoutes from './health.route';
 import userRoutes from './user.route';
 import folderRoutes from './folder.route';
 import audioRoutes from './audio.route';
+import sharringRoutes from './sharing.route';
 
 import authRoute from './auth.route';
 import statsRoutes from './stats.route';
@@ -15,5 +16,5 @@ router.use('/users', userRoutes);
 router.use('/folders', folderRoutes);
 router.use('/audios', audioRoutes);
 router.use('/auth', authRoute);
-
+router.use('/folders', sharringRoutes);
 export default router;
