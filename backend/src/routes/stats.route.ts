@@ -1,9 +1,9 @@
-// import { Router } from 'express';
-// import { getStats } from '../controllers/stats.controller';
-// import { authenticateToken } from '../middlewares/auth.middleware';
+import { Router } from 'express';
+import { getStats } from '../controllers/stats.controller';
+import { authenticateToken } from '../middlewares/auth.middleware';
 
-// const router = Router();
+const router = Router();
 
-// router.get('/', authenticateToken, getStats);
+router.get('/', authenticateToken, getStats);
 
-// export default router;
+export default router;

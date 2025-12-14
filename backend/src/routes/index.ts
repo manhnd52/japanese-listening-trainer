@@ -11,7 +11,6 @@ const router = Router();
 
 // Mount routes
 router.use('/stats', statsRoutes);
-router.use('/health', healthRoutes);
 router.use('/folders', sharringRoutes);
 router.use('/users', authenticateToken, userRoutes);
 router.use('/folders', authenticateToken, folderRoutes);
