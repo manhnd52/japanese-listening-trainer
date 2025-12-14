@@ -5,14 +5,15 @@ import { AudioTrack, AudioStatus, Folder as FolderType } from '@/types/types';
 import { Search, Play, MoreVertical, Plus, Folder, Heart, Pencil, FolderInput, Trash2, X } from 'lucide-react';
 
 interface AudioListProps {
-  audios?: AudioTrack[]; 
-  folders?: FolderType[]; 
-  onPlay: (track: AudioTrack) => void;
-  onSelect: (track: AudioTrack) => void;
+  audios: AudioTrack[];
+  folders: FolderType[];
+  onPlay: (audio: AudioTrack) => void;
+  onSelect: (audio: AudioTrack) => void;
   onAddAudio: () => void;
-  onDelete: (id: string) => void;
-  onMove: (id: string, folderId: string) => void;
-  onEdit: (track: AudioTrack) => void;
+  onDelete: (id: string) => void | Promise<void>;
+  onMove: (id: string, folderId: string) => void | Promise<void>;
+  onEdit: (audio: AudioTrack) => void;
+  onToggleFavorite: (audio: AudioTrack) => void;
 }
 
 const FILTERS = [
@@ -23,14 +24,15 @@ const FILTERS = [
 ];
 
 const AudioList: React.FC<AudioListProps> = ({
-  audios = [], 
-  folders = [], 
+  audios = [],
+  folders = [],
   onPlay,
   onSelect,
   onAddAudio,
   onDelete,
   onMove,
   onEdit,
+  onToggleFavorite, // <-- Thêm dòng này
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -66,10 +68,10 @@ const AudioList: React.FC<AudioListProps> = ({
   };
 
   const handleActionClick = async (e: React.MouseEvent, action: () => void | Promise<void>) => {
-  e.stopPropagation();
-  await action(); // ← Thêm await
-  setActiveMenuId(null);
-};
+    e.stopPropagation();
+    await action();
+    setActiveMenuId(null);
+  };
 
   const openMoveModal = (audio: AudioTrack) => {
     setAudioToMove(audio);
@@ -180,7 +182,7 @@ const AudioList: React.FC<AudioListProps> = ({
                   <div className="flex items-center gap-2 text-xs text-brand-600 font-medium mt-0.5">
                     <span className="flex items-center gap-1">
                       <Folder size={12} /> 
-{folders.find(f => String(f.id) === String(audio.folderId))?.name || 'Uncategorized'}
+                      {folders.find(f => String(f.id) === String(audio.folderId))?.name || 'Uncategorized'}
                     </span>
                   </div>
                 </div>
@@ -192,7 +194,7 @@ const AudioList: React.FC<AudioListProps> = ({
                   )}
 
                   {/* Heart Icon */}
-                  <button className={`${audio.isFavorite ? 'text-brand-600' : 'text-brand-400 hover:text-brand-600'}`}>
+                  <button onClick={() => onToggleFavorite(audio)} className={`${audio.isFavorite ? 'text-brand-600' : 'text-brand-400 hover:text-brand-600'}`}>
                     <Heart size={20} fill={audio.isFavorite ? 'currentColor' : 'none'} strokeWidth={2.5} />
                   </button>
 

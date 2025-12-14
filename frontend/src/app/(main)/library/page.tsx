@@ -17,7 +17,7 @@ import {
 } from "@/store/features/player/playerSlice"; 
 import { AudioStatus } from "@/store/features/player/playerSlice";
 import { AudioTrack as RawAudioTrack } from "@/types/types";
-
+import { toggleFavorite } from "@/store/features/audio/audioSlice";
 const LibraryPage = () => {
   const dispatch = useAppDispatch();
   const { audios, folders, loading } = useAppSelector((state) => state.audio);
@@ -68,6 +68,7 @@ const LibraryPage = () => {
     setUploadModalOpen(true);
   };
 
+
   const handleDelete = async (id: string) => {
     if (!user?.id) {
       alert("User not authenticated");
@@ -105,6 +106,14 @@ const LibraryPage = () => {
     setEditModalOpen(true);
   };
 
+  const handleToggleFavorite = async (audio: RawAudioTrack) => {
+  if (!user?.id) {
+    alert("User not authenticated");
+    return;
+  }
+  dispatch(toggleFavorite({ id: audio.id, userId: user.id, isFavorite: !audio.isFavorite }));
+};
+
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
@@ -118,6 +127,7 @@ const LibraryPage = () => {
         onDelete={handleDelete}
         onMove={handleMove}
         onEdit={handleEdit}
+        onToggleFavorite={handleToggleFavorite}
       />
       <UploadAudioModal
         isOpen={uploadModalOpen}
