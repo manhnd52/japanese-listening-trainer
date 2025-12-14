@@ -11,14 +11,18 @@ import { AudioTrack } from '@/types/types';
 const LibraryPage = () => {
   const dispatch = useAppDispatch();
   const { audios, folders, loading } = useAppSelector(state => state.audio);
+  const { user } = useAppSelector(state => state.auth); // ✅ Lấy user từ Redux
+  
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(null);
 
   useEffect(() => {
-    dispatch(fetchAudios());
-    dispatch(fetchFolders(8)); // TODO: lấy userId từ auth
-  }, [dispatch]);
+    if (user?.id) { // ✅ Kiểm tra user.id tồn tại
+      dispatch(fetchAudios(user.id)); // ✅ Truyền userId từ Redux
+      dispatch(fetchFolders(user.id)); // ✅ Truyền userId từ Redux
+    }
+  }, [dispatch, user?.id]);
 
   const handlePlay = (audio: AudioTrack) => {
     console.log('Play:', audio);
@@ -34,8 +38,13 @@ const LibraryPage = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
+
     if (window.confirm('Are you sure you want to delete this audio?')) {
-      const result = await dispatch(deleteAudio(id));
+      const result = await dispatch(deleteAudio({ id, userId: user.id })); // ✅ Truyền userId
       if (deleteAudio.fulfilled.match(result)) {
         alert('Audio deleted successfully!');
       } else {
@@ -45,7 +54,12 @@ const LibraryPage = () => {
   };
 
   const handleMove = async (id: string, folderId: string) => {
-    const result = await dispatch(moveAudio({ id, folderId }));
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
+
+    const result = await dispatch(moveAudio({ id, folderId, userId: user.id })); // ✅ Truyền userId
     if (moveAudio.fulfilled.match(result)) {
       alert('Audio moved successfully!');
     } else {

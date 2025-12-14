@@ -26,26 +26,43 @@ const initialState: AudioState = {
 // Async thunks
 export const fetchAudios = createAsyncThunk(
   'audio/fetchAudios',
-  async () => {
-    const response = await fetch('http://localhost:5000/api/audios');
-    const data = await response.json();
-    return data.data;
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/audios?userId=${userId}`);
+      const data = await response.json();
+      if (!data.success) {
+        return rejectWithValue(data.message || 'Failed to fetch audios');
+      }
+      return data.data;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch audios');
+    }
   }
 );
 
 export const fetchFolders = createAsyncThunk(
   'audio/fetchFolders',
-  async (userId: number) => {
-    const response = await fetch(`http://localhost:5000/api/audios/folders?userId=${userId}`);
-    const data = await response.json();
-    return data.data;
+  async (userId: number, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/audios/folders?userId=${userId}`);
+      const data = await response.json();
+      if (!data.success) {
+        return rejectWithValue(data.message || 'Failed to fetch folders');
+      }
+      return data.data;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch folders');
+    }
   }
 );
 
 export const uploadAudio = createAsyncThunk(
   'audio/uploadAudio',
-  async (formData: FormData, { rejectWithValue }) => {
+  async ({ formData, userId }: { formData: FormData; userId: number }, { rejectWithValue }) => {
     try {
+      // ✅ Thêm userId vào formData
+      formData.append('userId', userId.toString());
+      
       const response = await fetch('http://localhost:5000/api/audios', {
         method: 'POST',
         body: formData,
@@ -55,39 +72,45 @@ export const uploadAudio = createAsyncThunk(
         return rejectWithValue(data.message || 'Upload failed');
       }
       return data.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Upload failed');
     }
   }
 );
 
-// NEW: Update audio
 export const updateAudio = createAsyncThunk(
   'audio/updateAudio',
-  async ({ id, data }: { id: string; data: { title?: string; script?: string; folderId?: string } }, { rejectWithValue }) => {
+  async ({ 
+    id, 
+    data, 
+    userId 
+  }: { 
+    id: string; 
+    data: { title?: string; script?: string; folderId?: string }; 
+    userId: number 
+  }, { rejectWithValue }) => {
     try {
       const response = await fetch(`http://localhost:5000/api/audios/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, userId }), // ✅ Thêm userId vào body
       });
       const result = await response.json();
       if (!result.success) {
         return rejectWithValue(result.message || 'Update failed');
       }
       return result.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Update failed');
     }
   }
 );
 
-// NEW: Delete audio
 export const deleteAudio = createAsyncThunk(
   'audio/deleteAudio',
-  async (id: string, { rejectWithValue }) => {
+  async ({ id, userId }: { id: string; userId: number }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios/${id}`, {
+      const response = await fetch(`http://localhost:5000/api/audios/${id}?userId=${userId}`, {
         method: 'DELETE',
       });
       const data = await response.json();
@@ -95,29 +118,36 @@ export const deleteAudio = createAsyncThunk(
         return rejectWithValue(data.message || 'Delete failed');
       }
       return id;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Delete failed');
     }
   }
 );
 
-// NEW: Move audio to another folder
 export const moveAudio = createAsyncThunk(
   'audio/moveAudio',
-  async ({ id, folderId }: { id: string; folderId: string }, { rejectWithValue }) => {
+  async ({ 
+    id, 
+    folderId, 
+    userId 
+  }: { 
+    id: string; 
+    folderId: string; 
+    userId: number 
+  }, { rejectWithValue }) => {
     try {
       const response = await fetch(`http://localhost:5000/api/audios/${id}/move`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folderId: Number(folderId) }),
+        body: JSON.stringify({ folderId: Number(folderId), userId }), // ✅ Thêm userId vào body
       });
       const data = await response.json();
       if (!data.success) {
         return rejectWithValue(data.message || 'Move failed');
       }
       return data.data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Move failed');
     }
   }
 );
@@ -144,8 +174,9 @@ const audioSlice = createSlice({
         state.audios = action.payload;
         
         // Tính số lượng audio cho mỗi folder
-        const folderCounts = action.payload.reduce((acc: any, audio: AudioTrack) => {
-          acc[audio.folderId] = (acc[audio.folderId] || 0) + 1;
+        const folderCounts = action.payload.reduce((acc: Record<string, number>, audio: AudioTrack) => {
+          const fId = audio.folderId || '';
+          acc[fId] = (acc[fId] || 0) + 1;
           return acc;
         }, {});
         
@@ -157,7 +188,7 @@ const audioSlice = createSlice({
       })
       .addCase(fetchAudios.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || 'Failed to fetch audios';
+        state.error = action.payload as string || 'Failed to fetch audios';
       })
       // Fetch Folders
       .addCase(fetchFolders.fulfilled, (state, action) => {
@@ -165,8 +196,9 @@ const audioSlice = createSlice({
         
         // Nếu đã có audios, tính lại count
         if (state.audios.length > 0) {
-          const folderCounts = state.audios.reduce((acc: any, audio: AudioTrack) => {
-            acc[audio.folderId] = (acc[audio.folderId] || 0) + 1;
+          const folderCounts = state.audios.reduce((acc: Record<string, number>, audio: AudioTrack) => {
+            const fId = audio.folderId || '';
+            acc[fId] = (acc[fId] || 0) + 1;
             return acc;
           }, {});
           
@@ -175,6 +207,9 @@ const audioSlice = createSlice({
             _count: { audios: folderCounts[folder.id] || 0 }
           }));
         }
+      })
+      .addCase(fetchFolders.rejected, (state, action) => {
+        state.error = action.payload as string || 'Failed to fetch folders';
       })
       // Upload Audio
       .addCase(uploadAudio.pending, (state) => {

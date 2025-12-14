@@ -30,7 +30,6 @@ class AuthService {
 
         if (existingUser) {
             throw new Error('Email already exists'); 
-            // Lưu ý: Sau này có thể dùng Custom Error để trả về status code 409
         }
 
         // 2. Mã hóa mật khẩu
@@ -42,15 +41,14 @@ class AuthService {
                 fullname: data.fullname,
                 email: data.email,
                 password: hashedPassword,
-                // avatarUrl để null mặc định
+                // ❌ Xóa role vì không tồn tại trong schema
             },
-            // Chỉ chọn các trường cần thiết để trả về, không trả về password
             select: {
                 id: true,
                 fullname: true,
                 email: true,
                 avatarUrl: true,
-                // createAt không có trong model User hiện tại của bạn, nếu có thì thêm vào
+                // ❌ Xóa role vì không tồn tại trong schema
             }
         });
 
@@ -81,7 +79,6 @@ class AuthService {
         const refreshToken = generateRefreshToken(user.id);
 
         // 4. Lưu Refresh Token vào database
-        // Tính thời gian hết hạn cho refresh token (ví dụ 7 ngày từ giờ)
         const expireDate = new Date();
         expireDate.setDate(expireDate.getDate() + 7); 
 
@@ -93,11 +90,14 @@ class AuthService {
             }
         });
 
-        // 5. Trả về thông tin (loại bỏ password khỏi object user)
-        const { password, ...userInfo } = user;
-
+        // 5. ✅ Trả về format không có role
         return {
-            user: userInfo,
+            user: {
+                id: user.id,
+                email: user.email,
+                fullname: user.fullname,
+                // ❌ Xóa role vì không tồn tại trong schema
+            },
             accessToken,
             refreshToken
         };

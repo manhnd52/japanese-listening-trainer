@@ -6,6 +6,7 @@ import { authApi } from '../api';
 import { LoginInput } from '../types';
 import { useAppDispatch } from '@/hooks/redux';
 import { setCredentials } from '@/store/features/auth/authSlice';
+import { fetchFolders, fetchAudios } from '@/store/features/audio/audioSlice';
 
 export const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -24,23 +25,35 @@ export const useLogin = () => {
       
       // 2. Lưu token vào LocalStorage
       if (typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', response.data.accessToken);
-        localStorage.setItem('refreshToken', response.data.refreshToken);
+        localStorage.setItem('accessToken', response.data.token);
+        localStorage.setItem('refreshToken', response.data.refreshToken || '');
       }
 
-      // 3. Lưu vào Redux Store
+      // 3. Lấy userId từ response
+      const userId = parseInt(response.data.user.id);
+
+      // 4. Lưu vào Redux Store
       dispatch(setCredentials({
-        user: response.data.user,
-        accessToken: response.data.accessToken
+        user: {
+          id: userId,
+          email: response.data.user.email,
+          fullname: response.data.user.name,
+          avatarUrl: '',
+        },
+        accessToken: response.data.token
       }));
 
-      // 4. Chuyển hướng về trang chủ
+      // 5. ✅ Fetch folders và audios với userId từ response
+      await dispatch(fetchFolders(userId));
+      await dispatch(fetchAudios(userId));
+
+      // 6. Chuyển hướng về trang chủ
       router.push('/');
       
       return response;
     } catch (err: any) {
       // Lấy message lỗi từ response backend trả về
-      const message = err.response?.data?.error?.message || 'Đăng nhập thất bại';
+      const message = err.response?.data?.error?.message || err.response?.data?.message || 'Đăng nhập thất bại';
       setError(message);
       throw err;
     } finally {
