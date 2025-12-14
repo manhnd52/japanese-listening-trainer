@@ -27,6 +27,9 @@ export const useLogin = () => {
       if (typeof window !== 'undefined') {
         localStorage.setItem('accessToken', response.data.token);
         localStorage.setItem('refreshToken', response.data.refreshToken || '');
+        
+        // Also save to cookies for middleware
+        document.cookie = `accessToken=${response.data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
       }
 
       // 3. Lấy userId từ response

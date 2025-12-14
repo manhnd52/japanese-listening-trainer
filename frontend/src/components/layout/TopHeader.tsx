@@ -29,7 +29,18 @@ const TopHeader = () => {
   const navigate = (path: string) => router.push(path);
 
   const handleLogout = () => {
+    // Clear Redux state
     dispatch(logout());
+    
+    // Clear localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      
+      // Clear cookie
+      document.cookie = 'accessToken=; path=/; max-age=0';
+    }
+    
     router.push('/login');
   };
 

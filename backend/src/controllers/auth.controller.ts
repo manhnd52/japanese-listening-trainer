@@ -2,6 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import authService from '../services/auth.service';
 
 class AuthController {
+    constructor() {
+        this.register = this.register.bind(this);
+        this.login = this.login.bind(this);
+    }
+
     /**
      * @route POST /api/auth/register
      */
