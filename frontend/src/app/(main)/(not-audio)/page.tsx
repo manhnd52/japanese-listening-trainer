@@ -91,6 +91,12 @@ export default function HomePage() {
           >
             Retry
           </button>
+          <Link 
+            href="/review"
+            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition"
+          >
+            📝 Review Mistakes
+          </Link>
         </div>
       </div>
     );
