@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import authService from '../services/auth.service';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
 class AuthController {
     constructor() {
@@ -82,6 +83,53 @@ class AuthController {
                 message: 'Login successfully'
             });
         } catch (error: any) {
+            next(error);
+        }
+    }
+
+    /**
+     * @route GET /api/auth/me
+     */
+    async getMe(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const userId = req.userId;
+            if (!userId) throw new Error('User ID missing');
+
+            const user = await authService.getMe(userId);
+
+            res.status(200).json({
+                success: true,
+                data: {          
+                    user: user  
+                }
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * @route PUT /api/auth/profile
+     */
+    async updateProfile(req: AuthRequest, res: Response, next: NextFunction) {
+        try {
+            const userId = req.userId;
+            const { fullname, newPassword } = req.body;
+
+            if (!userId) throw new Error('User ID missing');
+
+            const updatedUser = await authService.updateProfile({
+                userId,
+                fullname,
+                newPassword
+            });
+
+            res.status(200).json({
+                success: true,
+                data: updatedUser,
+                message: 'Profile updated successfully'
+            });
+        } catch (error) {
             next(error);
         }
     }
