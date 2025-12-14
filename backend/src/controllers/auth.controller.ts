@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import authService from '../services/auth.service';
-import { AuthRequest } from '../middlewares/auth.middleware';
 
 class AuthController {
     constructor() {
@@ -90,7 +89,7 @@ class AuthController {
     /**
      * @route GET /api/auth/me
      */
-    async getMe(req: AuthRequest, res: Response, next: NextFunction) {
+    async getMe(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = req.userId;
             if (!userId) throw new Error('User ID missing');
@@ -111,7 +110,7 @@ class AuthController {
     /**
      * @route PUT /api/auth/profile
      */
-    async updateProfile(req: AuthRequest, res: Response, next: NextFunction) {
+    async updateProfile(req: Request, res: Response, next: NextFunction) {
         try {
             const userId = req.userId;
             const { fullname, newPassword } = req.body;
