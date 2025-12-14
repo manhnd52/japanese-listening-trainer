@@ -6,7 +6,7 @@ import axios from 'axios';
  */
 export const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
-    timeout: 10000,
+    timeout: 30000, // Increase timeout to 30s
     headers: {
         'Content-Type': 'application/json'
     }
