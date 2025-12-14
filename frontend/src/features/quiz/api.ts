@@ -85,6 +85,8 @@ export const deleteQuiz = async (quizId: number): Promise<void> => {
  * Get mistake quizzes for review
  */
 export const getMistakeQuizzes = async (): Promise<Quiz[]> => {
-  const response = await apiClient.get<Quiz[]>('/mistake-quizzes');
-  return response.data;
+  console.log('[Quiz API] Fetching mistake quizzes');
+  const response = await apiClient.get<{ success: boolean; data: Quiz[] }>('/mistake-quizzes');
+  console.log('[Quiz API] Mistake quizzes response:', response.data);
+  return response.data.data;
 };
