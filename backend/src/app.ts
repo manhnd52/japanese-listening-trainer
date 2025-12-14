@@ -60,7 +60,7 @@ app.use('/auth', authRoute);
 app.use('/health', healthRoute);
 
 // API routes
-app.use('/api', authenticateToken, routes);
+app.use('/api', routes);
 
 // Error handling
 app.use(notFoundHandler);

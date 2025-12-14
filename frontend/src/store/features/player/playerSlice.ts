@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AudioStatus, Quiz } from "@/types/types";
+import { AudioStatus } from "@/types/types";
 import { RootState } from "@/store";
 
 /**

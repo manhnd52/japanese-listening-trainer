@@ -43,7 +43,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 };
 
 // Optional: middleware for routes that can work with or without auth
-export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];

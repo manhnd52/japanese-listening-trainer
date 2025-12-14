@@ -5,27 +5,21 @@ import { Folder as FolderIcon, Plus, MoreVertical, Users, Lock, ArrowRight } fro
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { fetchFolders, fetchAudios } from '@/store/features/audio/audioSlice';
 
-interface Folder {
-  id: number;
-  name: string;
-  isPublic: boolean;
-  createdBy: number;
-  _count?: {
-    audios: number;
-  };
-}
+// Use Folder type from store/types; remove unused local interface
 
 const FolderListPage = () => {
   const dispatch = useAppDispatch();
   const { folders, loading } = useAppSelector(state => state.audio);
+  const userId = useAppSelector(state => state.auth.user?.id);
   const [isCreating, setIsCreating] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [isPublic, setIsPublic] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchAudios()); // Fetch audios để tính count
-    dispatch(fetchFolders(8));
-  }, [dispatch]);
+    if (!userId) return;
+    dispatch(fetchAudios(Number(userId))); // Fetch audios để tính count
+    dispatch(fetchFolders(Number(userId)));
+  }, [dispatch, userId]);
 
   const handleCreateFolder = async (name: string, isPublic: boolean) => {
     try {
