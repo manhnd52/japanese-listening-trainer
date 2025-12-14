@@ -39,9 +39,14 @@ const userSlice = createSlice({
     resetStreak(state) {
       state.stats.streak = 0;
     },
+    updateUserStats: (state, action) => {
+      if (state.stats) {
+        state.stats.streak = action.payload.streak;
+      }
+    },
   },
 });
 
-export const { setStats, addExp, increaseStreak, resetStreak } =
+export const { setStats, addExp, increaseStreak, resetStreak, updateUserStats } =
   userSlice.actions;
 export default userSlice.reducer;

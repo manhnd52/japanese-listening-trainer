@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { userService } from "../services/user.service";
-import { User } from "../prisma";
+import { prisma } from "../prisma";
+import { updateStreak } from '../services/streak.service';
+
 // Controller object
 const UserController = {
     createUser: createUserController,
@@ -55,3 +57,22 @@ export async function getUserByIdController(
     return;
 }
 
+export const checkStreak = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    const streak = await updateStreak(userId);
+
+    res.json({
+      success: true,
+      data: {
+        streak: streak.currentStreak,
+        longestStreak: streak.longestStreak
+      }
+    });
+  } catch (error) {
+    console.error('Check streak error:', error);
+    res.status(500).json({ message: 'Failed to update streak' });
+  }
+};

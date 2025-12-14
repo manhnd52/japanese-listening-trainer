@@ -21,6 +21,7 @@ model User {
   quizAttemptLogs     QuizAttemptLog[]
   quizStats           QuizStats[]
   mistakeQuizs        MistakeQuiz[]
+  notifications       Notification[]
 
   @@map("users")
 }

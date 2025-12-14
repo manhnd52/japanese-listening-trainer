@@ -3,6 +3,7 @@ import healthRoutes from './health.route';
 import userRoutes from './user.route';
 import folderRoutes from './folder.route';
 import audioRoutes from './audio.route';
+import notificationRoutes from './notification.route';
 
 import authRoute from './auth.route';
 const router = Router();
@@ -13,5 +14,6 @@ router.use('/users', userRoutes);
 router.use('/folders', folderRoutes);
 router.use('/audios', audioRoutes);
 router.use('/auth', authRoute);
+router.use('/notifications', notificationRoutes);
 
 export default router;

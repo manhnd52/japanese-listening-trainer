@@ -3,10 +3,15 @@ enum NotificationType {
 }
 
 model Notification {
-  id      Int              @id @default(autoincrement())
-  type    NotificationType
-  title   String
-  message String
+  id        Int              @id @default(autoincrement())
+  type      NotificationType
+  title     String
+  message   String
+
+  userId    Int              @map("user_id")
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+  user User @relation(fields: [userId], references: [id])
 
   @@map("notifications")
 }

@@ -4,7 +4,16 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/store/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
-import { Search, Flame, User as UserIcon, LogOut } from 'lucide-react';
+import { Search, Flame, User as UserIcon, LogOut, Bell } from 'lucide-react';
+import {apiClient} from '@/lib/api';
+
+interface Notification {
+  id: number;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 const TopHeader = () => {
   const router = useRouter();
@@ -16,15 +25,52 @@ const TopHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const [isNotiOpen, setIsNotiOpen] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const notiRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setIsMenuOpen(false);
       }
+      if (notiRef.current && !notiRef.current.contains(event.target as Node)) {
+        setIsNotiOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        if (!user) return;
+        const res = await apiClient.get('/notifications'); 
+        setNotifications(res.data.notifications || []);
+        setUnreadCount(res.data.unreadCount || 0);
+      } catch (error) {
+        console.error("Failed to fetch notifications", error);
+        setNotifications([]);
+      }
+    };
+
+    fetchNotifications();
+  }, [user]); // Chạy lại khi user thay đổi
+
+  const markAsRead = async (id: number) => {
+    try {
+        // Gọi API đánh dấu đã đọc (cần bổ sung API này ở backend nếu chưa có)
+        // await apiClient.put(`/notifications/${id}/read`);
+        
+        // Cập nhật UI tạm thời
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+    } catch (error) {
+        console.error(error);
+    }
+  };
 
   const navigate = (path: string) => router.push(path);
 
@@ -106,6 +152,54 @@ const TopHeader = () => {
           <span className="font-bold text-jlt-peach text-sm">
             {stats?.streak ?? 0}
           </span>
+        </div>
+
+        <div className="relative" ref={notiRef}>
+            <button 
+                onClick={() => setIsNotiOpen(!isNotiOpen)}
+                className="relative p-2 text-brand-100 hover:text-white hover:bg-brand-600 rounded-full transition-colors"
+            >
+                <Bell size={20} />
+                {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 h-4 w-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-brand-500">
+                        {unreadCount}
+                    </span>
+                )}
+            </button>
+
+            {/* Dropdown Thông báo */}
+            {isNotiOpen && (
+                <div className="absolute right-0 top-full mt-3 w-80 bg-white rounded-xl shadow-xl border border-brand-100 overflow-hidden animate-fade-in z-50">
+                    <div className="p-3 bg-brand-50 border-b border-brand-100 flex justify-between items-center">
+                        <h3 className="font-bold text-brand-900 text-sm">Thông báo</h3>
+                        <span className="text-xs text-brand-500 cursor-pointer hover:underline">Đánh dấu tất cả</span>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                        {(notifications?.length || 0) === 0 ? (
+                            <div className="p-8 text-center text-gray-400 text-sm">Không có thông báo mới</div>
+                        ) : (
+                            notifications.map((noti) => (
+                                <div 
+                                    key={noti.id} 
+                                    onClick={() => markAsRead(noti.id)}
+                                    className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${!noti.isRead ? 'bg-blue-50/50' : ''}`}
+                                >
+                                    <div className="flex justify-between items-start mb-1">
+                                        <p className={`text-sm ${!noti.isRead ? 'font-bold text-brand-800' : 'text-gray-600'}`}>
+                                            {noti.title}
+                                        </p>
+                                        {!noti.isRead && <span className="h-2 w-2 rounded-full bg-blue-500 mt-1.5"></span>}
+                                    </div>
+                                    <p className="text-xs text-gray-500 line-clamp-2">{noti.message}</p>
+                                    <p className="text-[10px] text-gray-400 mt-1 text-right">
+                                        {new Date(noti.createdAt).toLocaleDateString('vi-VN')}
+                                    </p>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
 
         {/* Level info */}

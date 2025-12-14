@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react"
 import { useAppDispatch, useAppSelector } from "@/hooks/redux"
-import { incrementProgress } from "@/store/features/player/playerSlice"
+import { incrementProgress, setIsPlaying } from "@/store/features/player/playerSlice"
+import { updateStreak } from '@/features/auth/api';
+import { updateUserStats } from '@/store/features/user/userSlice';
 
 export default function Player() {
     const audioRef = useRef<HTMLAudioElement>(null)
@@ -10,6 +12,25 @@ export default function Player() {
     const audioUrl = useAppSelector(state => state.player.currentAudio?.url)
     const isPlaying = useAppSelector(state => state.player.isPlaying)
     const dispatch = useAppDispatch()
+
+    const handleAudioEnded = async () => {
+        console.log("Audio finished! Updating streak...");
+        
+        dispatch(setIsPlaying(false));
+
+        try {
+            const res = await updateStreak();
+            
+            if (res && res.data) {
+                dispatch(updateUserStats({ 
+                    streak: res.data.streak 
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to update streak", error);
+        }
+
+    };
 
     useEffect(() => {
         let interval: any;

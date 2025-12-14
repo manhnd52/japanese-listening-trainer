@@ -12,3 +12,8 @@ export const authApi = {
     return response.data; // ✅ Extract .data từ axios response
   },
 };
+
+export const updateStreak = async () => {
+  const response = await apiClient.post('/users/streak');
+  return response.data;
+};

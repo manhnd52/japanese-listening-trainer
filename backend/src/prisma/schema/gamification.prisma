@@ -11,6 +11,9 @@ model UserExp {
 model Streak {
   userId         Int       @id @map("user_id")
   currentStreak  Int       @default(0) @map("current_streak")
+  
+  updatedAt      DateTime  @updatedAt @map("update_at")
+
   lastActiveDate DateTime? @map("last_active_date")
   longestStreak  Int       @default(0) @map("longest_streak")
 
