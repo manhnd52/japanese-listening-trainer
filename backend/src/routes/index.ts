@@ -6,7 +6,8 @@ import sharringRoutes from './sharing.route';
 import statsRoutes from './stats.route';
 import authRoutes from './auth.route';
 import healthRoutes from './health.route';
-import quizRoutes, { quizAttemptRouter, mistakeQuizRouter } from './quiz.route';
+// import statsRoutes from './stats.route'; // Stats controller is commented out
+import { quizRouter, quizAttemptRouter, mistakeQuizRouter } from './quiz.route';
 import { authenticateToken } from '@middlewares/auth.middleware';
 
 const router = Router();
@@ -15,11 +16,12 @@ const router = Router();
 router.use('/stats', statsRoutes);
 router.use('/folders', sharringRoutes);
 router.use('/health', healthRoutes);
+// router.use('/stats', authenticateToken, statsRoutes); // Stats controller is commented out
 router.use('/users', authenticateToken, userRoutes);
 router.use('/folders', authenticateToken, folderRoutes);
 router.use('/audios', authenticateToken, audioRoutes);
 router.use('/auth', authRoutes);
-router.use('/quizzes', authenticateToken, quizRoutes);
+router.use('/quizzes', authenticateToken, quizRouter);
 router.use('/quiz-attempts', authenticateToken, quizAttemptRouter);
 router.use('/mistake-quizzes', authenticateToken, mistakeQuizRouter);
 

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuiz } from '@/features/quiz/useQuiz';
 import QuizModal from '@/features/quiz/QuizModal';
 import { Quiz, QuizOption } from '@/features/quiz/types';
@@ -12,8 +13,12 @@ import Link from 'next/link';
 /**
  * Quiz Test & Management Page
  * Access: http://localhost:3000/test-quiz
+ * Access with pre-selected audio: http://localhost:3000/test-quiz?audioId=123
  */
 export default function TestQuizPage() {
+  const searchParams = useSearchParams();
+  const urlAudioId = searchParams.get('audioId');
+  
   const { triggerQuiz, triggerAllQuizzes } = useQuiz();
   const [quizTimeAudioId, setQuizTimeAudioId] = useState(1);
   
@@ -38,18 +43,26 @@ export default function TestQuizPage() {
   const [scriptText, setScriptText] = useState('');
   const [aiQuizCount, setAiQuizCount] = useState(3);
 
-  const handleStartQuizTime = () => {
-    triggerAllQuizzes(quizTimeAudioId);
-  };
+  // Auto-load quizzes if audioId is provided in URL
+  useEffect(() => {
+    if (urlAudioId) {
+      const audioIdNum = parseInt(urlAudioId, 10);
+      if (!isNaN(audioIdNum)) {
+        setQuizTimeAudioId(audioIdNum);
+        setManageAudioId(audioIdNum);
+        // Auto-enter manage mode and load quizzes
+        setIsManageMode(true);
+        loadQuizzesForAudio(audioIdNum);
+      }
+    }
+  }, [urlAudioId]);
 
-  // Load quizzes for management
-  const handleLoadManageQuizzes = async () => {
+  const loadQuizzesForAudio = async (audioId: number) => {
     setIsLoadingQuizzes(true);
     try {
-      const data = await getQuizzesByAudio(manageAudioId);
+      const data = await getQuizzesByAudio(audioId);
       setQuizzes(data);
       setOriginalQuizzes(data);
-      setIsManageMode(true);
     } catch (error) {
       console.error('Failed to load quizzes:', error);
       setQuizzes([]);
@@ -57,6 +70,16 @@ export default function TestQuizPage() {
     } finally {
       setIsLoadingQuizzes(false);
     }
+  };
+
+  const handleStartQuizTime = () => {
+    triggerAllQuizzes(quizTimeAudioId);
+  };
+
+  // Load quizzes for management
+  const handleLoadManageQuizzes = async () => {
+    setIsManageMode(true);
+    await loadQuizzesForAudio(manageAudioId);
   };
 
   // AI Generate Quiz from Script

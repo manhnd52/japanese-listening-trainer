@@ -24,7 +24,7 @@ router.get('/', authenticateToken, getQuizzesByAudio);
 // POST /api/quizzes - Create new quiz
 router.post('/', authenticateToken, createQuiz);
 
-export default router;
+export const quizRouter = router;
 
 // Separate router for quiz-attempts
 export const quizAttemptRouter = Router();

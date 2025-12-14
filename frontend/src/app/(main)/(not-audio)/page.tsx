@@ -11,6 +11,7 @@ import {
 } from "@/store/features/player/playerSlice";
 import { AudioTrack } from "@/store/features/player/playerSlice";
 import { useAudioList } from "@/features/player/hooks/useAudioList";
+import { AudioStatus } from "@/types/types";
 import Link from "next/link";
 
 const DUMMY_TRACKS: AudioTrack[] = [
