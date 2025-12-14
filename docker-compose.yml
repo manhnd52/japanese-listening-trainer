@@ -26,10 +26,11 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: jlt-backend
+    env_file:
+      - ./backend/.env
     environment:
       PORT: ${BACKEND_PORT:-5000}
       NODE_ENV: development
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-japanese_listening_trainer}?schema=public
     ports:
       - "${BACKEND_PORT:-5000}:5000"
     volumes:
@@ -37,9 +38,6 @@ services:
       - /app/node_modules
       - backend_uploads:/app/uploads
       - backend_backups:/app/backups
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - jlt-network
     command: npm run dev 

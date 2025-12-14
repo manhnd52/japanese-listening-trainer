@@ -61,6 +61,7 @@ const TopHeader = () => {
 
       {/* Right section */}
       <div className="flex items-center gap-3 md:gap-6">
+        
 
         {/* Relax btn */}
         <div
@@ -69,6 +70,14 @@ const TopHeader = () => {
             border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
         >
           Relax
+        </div>
+
+        <div
+          onClick={() => navigate('/folders')}
+          className="hidden md:block bg-jlt-peach text-brand-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm 
+            border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
+        >
+          My Folder
         </div>
 
         {/* Add audio */}
