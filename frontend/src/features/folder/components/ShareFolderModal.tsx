@@ -13,6 +13,7 @@ export default function ShareFolderModal({ folderId, isOpen, onClose }: ShareFol
   const { shares = [], loading, error } = useAppSelector(state => state.folder); 
   const [email, setEmail] = useState('');
   const [shareLoading, setShareLoading] = useState(false);
+  const [unsharingUserId, setUnsharingUserId] = useState<number | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -28,17 +29,24 @@ export default function ShareFolderModal({ folderId, isOpen, onClose }: ShareFol
       setEmail('');
       dispatch(fetchFolderShares(folderId)); 
     } catch (err) {
+      // It's better to log the error than to swallow it silently.
+      // The error will also be set in the Redux state by the thunk.
+      console.error("Failed to share folder:", err);
     } finally {
       setShareLoading(false);
     }
   };
 
   const handleUnshare = async (userId: number) => {
+    setUnsharingUserId(userId);
     try {
       await dispatch(unshareFolder({ folderId, userId })).unwrap();
       dispatch(fetchFolderShares(folderId));
     } catch (error) {
       console.error("Failed to unshare", error);
+    } finally {
+      // This will be reset after the re-fetch is complete
+      setUnsharingUserId(null);
     }
   };
 
@@ -78,9 +86,10 @@ export default function ShareFolderModal({ folderId, isOpen, onClose }: ShareFol
                   <span>{s.user.fullname} ({s.user.email})</span>
                   <button
                     onClick={() => handleUnshare(s.user.id)}
-                    className="text-red-500 hover:underline text-sm"
+                    disabled={unsharingUserId === s.user.id}
+                    className="text-red-500 hover:underline text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Remove
+                    {unsharingUserId === s.user.id ? 'Removing...' : 'Remove'}
                   </button>
                 </li>
               ))}

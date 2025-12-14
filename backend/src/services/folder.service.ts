@@ -35,7 +35,10 @@ export class FolderService {
     async getFoldersByUserId(userId?: number) {
         return await prisma.folder.findMany({
             where: userId ? {
-                createdBy: userId,
+                OR: [
+                    { createdBy: userId },
+                    { folderShares: { some: { userId: userId } } }
+                ]
             } : {
                 isPublic: true,
             },
@@ -70,7 +73,8 @@ export class FolderService {
                 id,
                 OR: [
                     { createdBy: userId },
-                    { isPublic: true }
+                    { isPublic: true },
+                    { folderShares: { some: { userId: userId } } }
                 ]
             },
             include: {
@@ -183,52 +187,6 @@ export class FolderService {
         return await prisma.folder.delete({
             where: { id }
         });
-    }
-
-    // Share folder to another user
-    async shareFolder(folderId: number, ownerId: number, userId: number) {
-        // Only owner can share
-        const folder = await prisma.folder.findUnique({ where: { id: folderId } });
-        if (!folder || folder.createdBy !== ownerId) {
-            throw new Error("Only owner can share this folder");
-        }
-        // Prevent sharing to self
-        if (ownerId === userId) {
-            throw new Error("Cannot share folder to yourself");
-        }
-        // Prevent duplicate share
-        const exists = await prisma.folderShare.findFirst({ where: { folderId, userId } });
-        if (exists) {
-            throw new Error("Folder already shared to this user");
-        }
-        const share = await prisma.folderShare.create({
-            data: { folderId, userId },
-            include: { user: { select: { id: true, email: true, fullname: true } } }
-        });
-        return share;
-    }
-
-    // Get all users shared with this folder
-    async getFolderShares(folderId: number, ownerId: number) {
-        const folder = await prisma.folder.findUnique({ where: { id: folderId } });
-        if (!folder || folder.createdBy !== ownerId) {
-            throw new Error("Only owner can view shares");
-        }
-        return await prisma.folderShare.findMany({
-            where: { folderId },
-            include: { user: { select: { id: true, email: true, fullname: true } } },
-            orderBy: { createdAt: 'desc' }
-        });
-    }
-
-    // Remove share
-    async unshareFolder(folderId: number, ownerId: number, userId: number) {
-        const folder = await prisma.folder.findUnique({ where: { id: folderId } });
-        if (!folder || folder.createdBy !== ownerId) {
-            throw new Error("Only owner can unshare");
-        }
-        const deleted = await prisma.folderShare.deleteMany({ where: { folderId, userId } });
-        return { success: true, deleted: deleted.count };
     }
 }
 

@@ -2,53 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { folderService } from "../services/folder.service";
 import { successResponse, errorResponse } from "../utils/response";
 
-// POST /api/folders/:id/share
-export async function shareFolder(req: Request, res: Response, next: NextFunction) {
-    try {
-        const folderId = parseInt(req.params.id, 10);
-        const { userId } = req.body;
-        const ownerId = req.userId!;
-        if (isNaN(folderId) || !userId) {
-            return errorResponse(res, "Invalid folder ID or user ID", 400);
-        }
-        const result = await folderService.shareFolder(folderId, ownerId, userId);
-        return successResponse(res, result);
-    } catch (error) {
-        return next(error);
-    }
-}
-
-// GET /api/folders/:id/shares
-export async function getFolderShares(req: Request, res: Response, next: NextFunction) {
-    try {
-        const folderId = parseInt(req.params.id, 10);
-        const ownerId = req.userId!;
-        if (isNaN(folderId)) {
-            return errorResponse(res, "Invalid folder ID", 400);
-        }
-        const shares = await folderService.getFolderShares(folderId, ownerId);
-        return successResponse(res, shares);
-    } catch (error) {
-        return next(error);
-    }
-}
-
-// DELETE /api/folders/:id/share/:userId
-export async function unshareFolder(req: Request, res: Response, next: NextFunction) {
-    try {
-        const folderId = parseInt(req.params.id, 10);
-        const sharedUserId = parseInt(req.params.userId, 10);
-        const ownerId = req.userId!;
-        if (isNaN(folderId) || isNaN(sharedUserId)) {
-            return errorResponse(res, "Invalid folder ID or user ID", 400);
-        }
-        const result = await folderService.unshareFolder(folderId, ownerId, sharedUserId);
-        return successResponse(res, result);
-    } catch (error) {
-        return next(error);
-    }
-}
-
 async function createFolder(req: Request, res: Response, next: NextFunction) {
     try {
         const { name, isPublic } = req.body;
