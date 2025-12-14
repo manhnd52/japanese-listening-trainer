@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
+import { Play, Pause, SkipForward, SkipBack, Heart, Volume2, Maximize2, X, Settings, ListMusic, HelpCircle } from 'lucide-react';
 
 import {
   playPause,
@@ -19,6 +19,7 @@ import { AudioTrack } from '@/store/features/player/playerSlice';
 
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { usePlayer } from '@/features/miniplayer/hooks/usePlayer';
+import { useQuiz } from '@/features/quiz/useQuiz';
 import VolumeControl from './VolumeControl';
 
 function ProgressBar({ progress, duration }: { progress: number; duration: number }) {
@@ -101,6 +102,7 @@ function Controls({
   onNext,
   showSettings,
   setShowSettings,
+  onQuiz,
 }: {
   isPlaying: boolean;
   isFavorite: () => boolean;
@@ -110,6 +112,7 @@ function Controls({
   onNext: () => void;
   showSettings: boolean;
   setShowSettings: (v: boolean) => void;
+  onQuiz: () => void;
 }) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -141,6 +144,16 @@ function Controls({
           aria-label={isFavorite() ? 'Remove from favorites' : 'Add to favorites'}
         >
           <Heart size={22} fill={isFavorite() ? 'currentColor' : 'none'} strokeWidth={2.5} />
+        </button>
+
+        {/* Quiz Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onQuiz(); }}
+          className="text-brand-400 hover:text-brand-600 transition-all"
+          aria-label="Take quiz"
+          title="Take quiz"
+        >
+          <HelpCircle size={22} strokeWidth={2.5} />
         </button>
 
         <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="text-brand-700 hover:text-brand-900">
@@ -198,6 +211,13 @@ const MiniPlayer = () => {
 
   // Use custom hook for player functionality
   const { toggleFavorite, isFavorite } = usePlayer();
+  const { triggerQuiz } = useQuiz();
+
+  const handleQuizClick = () => {
+    if (currentAudio?.id) {
+      triggerQuiz(Number(currentAudio.id));
+    }
+  };
 
   const handleExpand = () => {
     if (currentAudio?.id) {
@@ -223,6 +243,7 @@ const MiniPlayer = () => {
           onNext={() => dispatch(nextTrack())}
           showSettings={showSettings}
           setShowSettings={setShowSettings}
+          onQuiz={handleQuizClick}
         />
 
         <VolumeSection
