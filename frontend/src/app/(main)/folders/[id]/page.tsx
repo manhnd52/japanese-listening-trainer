@@ -1,17 +1,21 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { ArrowLeft, Music, Play, Clock, Lock, Unlock, Users } from 'lucide-react';
+
+import { ArrowLeft, Music, Play, Clock, Lock, Unlock, Users, Share2 } from 'lucide-react';
+import ShareFolderModal from '@/features/folder/components/ShareFolderModal';
 import { fetchFolderById } from '@/store/features/folder/folderSlice';
 
+
 const FolderDetailPage = () => {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const params = useParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const folderId = parseInt(params.id as string);
-  
+
   const { currentFolder: folder, loading, error } = useAppSelector((state) => state.folder);
   const user = useAppSelector((state) => state.auth.user);
 
@@ -119,9 +123,27 @@ const FolderDetailPage = () => {
                   </div>
                 </div>
               </div>
+              {/* Share button chỉ cho owner */}
+              {user && folder.createdBy === user.id && (
+                <button
+                  onClick={() => setShareModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-brand-500 text-white rounded-lg font-bold hover:bg-brand-600 transition-colors"
+                >
+                  <Share2 size={18} />
+                  <span>Share</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
+      {/* Modal share folder */}
+      {user && folder.createdBy === user.id && (
+        <ShareFolderModal
+          folderId={folder.id}
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+        />
+      )}
 
         {/* Audio List */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200">

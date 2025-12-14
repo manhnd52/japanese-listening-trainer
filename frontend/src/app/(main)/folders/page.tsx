@@ -17,19 +17,11 @@ const FoldersPage = () => {
 
   useEffect(() => {
     if (user) {
-      console.log('📁 Folders page mounted - Fetching folders for user:', user.id);
       dispatch(fetchFolders());
     } else {
-      console.log('⚠️ No user found in state');
+      console.log('No user found in state');
     }
   }, [user, dispatch]);
-
-  console.log('🔍 Folders state:', { 
-    foldersCount: folders.length, 
-    loading, 
-    error,
-    userId: user?.id 
-  });
 
   const handleCreateFolder = async (name: string, isPublic: boolean) => {
     if (!user?.id) return;
