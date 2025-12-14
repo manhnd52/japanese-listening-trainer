@@ -5,7 +5,8 @@ import { useQuiz } from '@/features/quiz/useQuiz';
 import QuizModal from '@/features/quiz/QuizModal';
 import { Quiz, QuizOption } from '@/features/quiz/types';
 import { getQuizzesByAudio, createQuiz, deleteQuiz } from '@/features/quiz/api';
-import { Trash2, Plus, X, Loader2, Sparkles, CheckCircle, Save, HelpCircle, ArrowLeft } from 'lucide-react';
+import { generateQuizFromScript, AIGeneratedQuiz } from '@/features/quiz/geminiService';
+import { Trash2, Plus, X, Loader2, Sparkles, CheckCircle, Save, HelpCircle, ArrowLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 /**
@@ -32,6 +33,11 @@ export default function TestQuizPage() {
   const [manualOptions, setManualOptions] = useState(['', '', '', '']);
   const [manualCorrect, setManualCorrect] = useState(0);
   const [manualExplanation, setManualExplanation] = useState('');
+  
+  // AI Generation State
+  const [showScriptInput, setShowScriptInput] = useState(false);
+  const [scriptText, setScriptText] = useState('');
+  const [aiQuizCount, setAiQuizCount] = useState(3);
 
   const handleRandomQuiz = () => {
     triggerQuiz(randomAudioId);
@@ -58,14 +64,59 @@ export default function TestQuizPage() {
     }
   };
 
-  // AI Generate placeholder
+  // AI Generate Quiz from Script
   const handleGenerateAIQuiz = async () => {
+    if (!scriptText.trim()) {
+      alert('Please enter a script/transcript to generate quizzes from.');
+      return;
+    }
+    
     setIsGeneratingQuiz(true);
-    // TODO: Implement AI generation
-    setTimeout(() => {
-      alert('AI Quiz generation coming soon!');
+    try {
+      const generatedQuizzes = await generateQuizFromScript(scriptText, aiQuizCount);
+      
+      if (generatedQuizzes.length === 0) {
+        alert('No quizzes were generated. Please try with different text.');
+        return;
+      }
+      
+      // Map index to QuizOption enum
+      const optionMap: Record<number, QuizOption> = {
+        0: QuizOption.A,
+        1: QuizOption.B,
+        2: QuizOption.C,
+        3: QuizOption.D,
+      };
+      
+      // Create each quiz via API
+      for (const aiQuiz of generatedQuizzes) {
+        try {
+          const created = await createQuiz({
+            audioId: manageAudioId,
+            questionText: aiQuiz.question,
+            optionA: aiQuiz.options[0] || '',
+            optionB: aiQuiz.options[1] || '',
+            optionC: aiQuiz.options[2] || '',
+            optionD: aiQuiz.options[3] || '',
+            correctOption: optionMap[aiQuiz.correctAnswer] || QuizOption.A,
+            explanation: aiQuiz.explanation || 'AI generated quiz.',
+          });
+          setQuizzes(prev => [...prev, created]);
+        } catch (err) {
+          console.error('Failed to create AI quiz:', err);
+        }
+      }
+      
+      // Clear script input after success
+      setScriptText('');
+      setShowScriptInput(false);
+      alert(`Successfully generated ${generatedQuizzes.length} quizzes!`);
+    } catch (error) {
+      console.error('AI Quiz generation failed:', error);
+      alert('Failed to generate quizzes. Please check your API key and try again.');
+    } finally {
       setIsGeneratingQuiz(false);
-    }, 1000);
+    }
   };
 
   // Handle option change for manual form
@@ -276,7 +327,7 @@ export default function TestQuizPage() {
               {/* Quiz Actions - AI Generate & Add Manual */}
               <div className="grid grid-cols-2 gap-4 mb-8">
                 <button 
-                  onClick={handleGenerateAIQuiz}
+                  onClick={() => setShowScriptInput(true)}
                   disabled={isGeneratingQuiz}
                   className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white py-6 px-4 rounded-2xl font-bold flex flex-col items-center justify-center gap-2 transition-all shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-1"
                 >
@@ -295,6 +346,82 @@ export default function TestQuizPage() {
                   <span className="text-lg">Add Manual</span>
                 </button>
               </div>
+
+              {/* AI Script Input Form */}
+              {showScriptInput && (
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 p-6 rounded-2xl border border-purple-200 dark:border-purple-800 mb-6 shadow-inner animate-in fade-in duration-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-purple-900 dark:text-purple-100 flex items-center gap-2">
+                      <Sparkles size={18} className="text-purple-500" />
+                      AI Quiz Generator
+                    </h4>
+                    <button 
+                      onClick={() => setShowScriptInput(false)} 
+                      className="text-purple-400 hover:text-red-500 transition-colors"
+                    >
+                      <X size={20}/>
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    {/* Script/Transcript Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-purple-700 dark:text-purple-300 mb-2">
+                        <FileText size={14} className="inline mr-1" />
+                        Script / Transcript
+                      </label>
+                      <textarea
+                        className="w-full p-4 rounded-xl border border-purple-200 dark:border-purple-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 outline-none resize-none"
+                        placeholder="Paste the audio transcript or script here... The AI will generate quiz questions based on this text."
+                        value={scriptText}
+                        onChange={(e) => setScriptText(e.target.value)}
+                        rows={6}
+                      />
+                      <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">
+                        Tip: Longer and more detailed scripts produce better quizzes.
+                      </p>
+                    </div>
+                    
+                    {/* Quiz Count */}
+                    <div className="flex items-center gap-4">
+                      <label className="text-sm font-medium text-purple-700 dark:text-purple-300">
+                        Number of quizzes:
+                      </label>
+                      <select
+                        value={aiQuizCount}
+                        onChange={(e) => setAiQuizCount(Number(e.target.value))}
+                        className="px-4 py-2 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:border-purple-500 outline-none"
+                      >
+                        <option value={1}>1 quiz</option>
+                        <option value={2}>2 quizzes</option>
+                        <option value={3}>3 quizzes</option>
+                        <option value={5}>5 quizzes</option>
+                      </select>
+                    </div>
+                    
+                    {/* Generate Button */}
+                    <div className="flex justify-end pt-2">
+                      <button 
+                        onClick={handleGenerateAIQuiz}
+                        disabled={isGeneratingQuiz || !scriptText.trim()}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
+                      >
+                        {isGeneratingQuiz ? (
+                          <>
+                            <Loader2 className="animate-spin" size={18} />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={18} />
+                            Generate {aiQuizCount} Quiz{aiQuizCount > 1 ? 'zes' : ''}
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Manual Quiz Form */}
               {showManualQuizForm && (
@@ -448,6 +575,7 @@ export default function TestQuizPage() {
             <li>Enter an audioId (1-5 have quizzes from seed)</li>
             <li>Use &quot;Random&quot; or &quot;All&quot; panels to test quiz flows</li>
             <li>Use &quot;Load Manage Quizzes&quot; to enter management mode</li>
+            <li>For AI Generation: Set <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-purple-600 dark:text-purple-400">NEXT_PUBLIC_GEMINI_API_KEY</code> in .env</li>
           </ol>
         </div>
       </div>

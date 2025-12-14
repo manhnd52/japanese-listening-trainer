@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@google/genai": "^1.33.0",
     "@reduxjs/toolkit": "^2.10.1",
     "axios": "^1.13.2",
     "kuromoji": "^0.1.2",
