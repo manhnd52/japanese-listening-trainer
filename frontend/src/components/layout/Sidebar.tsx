@@ -17,10 +17,7 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-brand-200 h-screen sticky top-0">
-      <div className="p-6">
-        <h2 className="text-xl font-extrabold text-brand-900">JLT</h2>
-      </div>
+    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-brand-200 h-screen sticky top-0 pt-[10px]">
       
       <nav className="flex-1 px-4">
         {menuItems.map((item) => {

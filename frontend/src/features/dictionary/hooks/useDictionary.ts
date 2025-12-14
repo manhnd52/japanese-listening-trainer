@@ -55,7 +55,7 @@ const readyCallbacks: (() => void)[] = [];
 /**
  * Initialize dictionary worker (singleton)
  */
-function initializeDictionary(): Promise<void> {
+export function initializeDictionary(): Promise<void> {
     // Return existing promise if already initializing
     if (initPromise) {
         return initPromise;

@@ -5,6 +5,8 @@ import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/store/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
 import { Search, Flame, User as UserIcon, LogOut } from 'lucide-react';
+import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
+import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
 
 const TopHeader = () => {
   const router = useRouter();
@@ -14,6 +16,7 @@ const TopHeader = () => {
   const stats = useAppSelector(state => state.user.stats);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRelaxModalOpen, setIsRelaxModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,6 +45,11 @@ const TopHeader = () => {
     }
     
     router.push('/login');
+  };
+
+  const handleRelaxModalSelect = (option: Source) => {
+    dispatch(setRelaxModeSource(option));  
+    setIsRelaxModalOpen(false);
   };
 
   return (
@@ -76,7 +84,7 @@ const TopHeader = () => {
 
         {/* Relax btn */}
         <div
-          onClick={() => navigate('/relax')}
+          onClick={() => setIsRelaxModalOpen(true)}
           className="hidden md:block bg-jlt-peach text-brand-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm 
             border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
         >
@@ -163,6 +171,12 @@ const TopHeader = () => {
         </div>
 
       </div>
+
+      <RelaxModeModal
+        isOpen={isRelaxModalOpen}
+        onClose={() => setIsRelaxModalOpen(false)}
+        onSelectOption={handleRelaxModalSelect}
+      />
     </header>
   );
 };

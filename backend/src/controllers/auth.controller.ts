@@ -5,6 +5,7 @@ class AuthController {
     constructor() {
         this.register = this.register.bind(this);
         this.login = this.login.bind(this);
+        this.getCurrentUser = this.getCurrentUser.bind(this);
     }
 
     /**
@@ -88,48 +89,76 @@ class AuthController {
 
     /**
      * @route GET /api/auth/me
+     * @desc Get current authenticated user
      */
-    async getMe(req: Request, res: Response, next: NextFunction) {
+    async getCurrentUser(req: Request, res: Response, next: NextFunction) {
         try {
+            // userId is attached by authenticateToken middleware
             const userId = req.userId;
-            if (!userId) throw new Error('User ID missing');
 
-            const user = await authService.getMe(userId);
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    error: {
+                        message: 'User not authenticated'
+                    }
+                });
+                return;
+            }
+
+            const user = await authService.getUserById(userId);
+
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    error: {
+                        message: 'User not found'
+                    }
+                });
+                return;
+            }
 
             res.status(200).json({
                 success: true,
-                data: {          
-                    user: user  
+                data: {
+                    id: user.id.toString(),
+                    email: user.email,
+                    name: user.fullname,
+                    avatarUrl: user.avatarUrl || ''
                 }
             });
-        } catch (error) {
+        } catch (error: any) {
             next(error);
         }
     }
 
-    /**
-     * @route PUT /api/auth/profile
-     */
-    async updateProfile(req: Request, res: Response, next: NextFunction) {
+    async updateProfile(req: Request, res: Response, next: NextFunction){
         try {
             const userId = req.userId;
-            const { fullname, newPassword } = req.body;
-
-            if (!userId) throw new Error('User ID missing');
-
-            const updatedUser = await authService.updateProfile({
-                userId,
-                fullname,
-                newPassword
-            });
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    error: { message: 'Unauthorized' }
+                });
+                return; 
+            }
+            const { email, fullname, newPassword } = req.body;
+            const updatedUser = await authService.updateProfile({ userId, email, fullname, newPassword });
 
             res.status(200).json({
                 success: true,
-                data: updatedUser,
+                data: {
+                    id: updatedUser.id.toString(),
+                    email: updatedUser.email,
+                    name: updatedUser.fullname,
+                    avatarUrl: updatedUser.avatarUrl || ''
+                },
                 message: 'Profile updated successfully'
             });
-        } catch (error) {
+            return;
+        } catch (error: any) {
             next(error);
+
         }
     }
 }
