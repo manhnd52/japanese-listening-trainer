@@ -1,13 +1,14 @@
 'use client';
 
 import { ChevronDown, Pencil, PlusCircle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { playPause, setTrack, toggleFavoriteOptimistic } from '@/store/features/player/playerSlice';
-import { useAudioDetail, useQuiz } from '../hooks';
+import { useAudioDetail } from '../hooks';
+import { useQuiz } from '@/features/quiz/useQuiz'; // Use global quiz system (same as MiniPlayer)
 import { AudioStatus } from '@/types/types';
 import AudioDetailInfo from './AudioDetailInfo';
 import AudioScript from './AudioScript';
-import QuizModal from './QuizModal';
 import { AudioTrack } from '@/types/types';
 
 interface AudioDetailContainerProps {
@@ -24,6 +25,7 @@ interface AudioDetailContainerProps {
 
 export default function AudioDetailContainer({ audioId, onBack }: AudioDetailContainerProps) {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   
   // Redux state
   const { currentAudio, isPlaying } = useAppSelector((state) => state.player);
@@ -31,28 +33,8 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   // Fetch audio details
   const { audio, loading, error } = useAudioDetail(audioId);
   
-  // Quiz hook - mock implementation for mistake tracking
-  const handleMistake = (quizId: string) => {
-    // TODO: Implement mistake tracking API call
-    console.log('Mistake tracked for quiz:', quizId);
-  };
-  
-  const handleCorrectAnswer = () => {
-    // TODO: Implement EXP gain
-    console.log('Correct answer! Gain EXP');
-  };
-  
-  const {
-    isQuizModalOpen,
-    activeQuizIndex,
-    selectedQuizOption,
-    quizAnswerStatus,
-    currentQuiz,
-    openQuiz,
-    closeQuiz,
-    handleQuizOptionClick,
-    handleNextQuiz,
-  } = useQuiz(audio?.quizzes, handleMistake, handleCorrectAnswer);
+  // Global quiz hook - same as MiniPlayer uses
+  const { triggerQuiz } = useQuiz();
 
   const handlePlay = () => {
     if (audio && currentAudio?.id !== audio.id) {
@@ -79,8 +61,9 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   };
 
   const handleOpenQuiz = () => {
-    handlePause(); 
-    openQuiz();
+    handlePause();
+    // Use global quiz system - same as MiniPlayer
+    triggerQuiz(Number(audioId));
   };
 
   const handleToggleFavorite = () => {
@@ -88,8 +71,8 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   };
 
   const handleEditQuiz = () => {
-    // TODO: Navigate to quiz edit page or open modal
-    console.log('Edit quiz clicked');
+    // Navigate to quiz management page with this audio's ID pre-selected
+    router.push(`/test-quiz?audioId=${audioId}`);
   };
 
   const handleEditAudio = () => {
@@ -138,20 +121,6 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
 
   return (
     <div className="flex flex-col bg-jlt-cream animate-fade-in">
-      {/* Quiz Modal */}
-      <QuizModal
-        isOpen={isQuizModalOpen}
-        onClose={closeQuiz}
-        quizzes={audio.quizzes}
-        activeQuizIndex={activeQuizIndex}
-        selectedQuizOption={selectedQuizOption}
-        quizAnswerStatus={quizAnswerStatus}
-        currentQuiz={currentQuiz}
-        onQuizOptionClick={handleQuizOptionClick}
-        onNextQuiz={handleNextQuiz}
-        onEditQuiz={handleEditQuiz}
-      />
-
       {/* Top Navigation */}
       <div className="px-4 py-4 md:px-8 md:py-6 flex-shrink-0 w-full max-w-7xl mx-auto">
         <div className="flex items-center gap-4 justify-between w-full">

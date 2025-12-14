@@ -10,6 +10,7 @@ import { Music, BarChart3, TrendingUp, RefreshCw } from 'lucide-react';
 import { AudioTrack } from '@/types/types';
 import { useAudioActions } from '@/features/audios/hooks';
 import { Heart } from 'lucide-react';
+import Link from 'next/link';
 
 interface UserStats {
   streak: number;
