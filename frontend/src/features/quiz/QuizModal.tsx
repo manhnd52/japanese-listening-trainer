@@ -1,20 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { closeQuizModal, setLoading, setQuizResult, setError } from '@/store/features/quiz/quizSlice';
+import { closeQuizModal, nextQuiz, setLoading, setQuizResult, setError } from '@/store/features/quiz/quizSlice';
 import { QuizOption } from './types';
 import { submitQuizAnswer } from './api';
-import { X, CheckCircle, XCircle } from 'lucide-react';
+import { X, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
 
 export default function QuizModal() {
   const dispatch = useAppDispatch();
-  const { currentQuiz, result, showModal, isLoading } = useAppSelector((state) => state.quiz);
+  const { currentQuiz, allQuizzes, currentIndex, result, showModal, isLoading, mode } = useAppSelector((state) => state.quiz);
   
   const [selectedOption, setSelectedOption] = useState<QuizOption | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
+  // Reset local state when currentQuiz changes (for "all quizzes" mode)
+  useEffect(() => {
+    setSelectedOption(null);
+    setHasSubmitted(false);
+  }, [currentQuiz?.id]);
+
   if (!showModal || !currentQuiz) return null;
+
+  const isAllMode = mode === 'all';
+  const hasNextQuiz = isAllMode && currentIndex < allQuizzes.length - 1;
+  const quizProgress = isAllMode ? `${currentIndex + 1} / ${allQuizzes.length}` : null;
 
   const handleOptionSelect = (option: QuizOption) => {
     if (!hasSubmitted) {
@@ -36,7 +46,15 @@ export default function QuizModal() {
       dispatch(setQuizResult(result));
     } catch (error: any) {
       dispatch(setError(error.response?.data?.message || 'Failed to submit answer'));
+      setHasSubmitted(false); // Allow retry on error
+    } finally {
+      dispatch(setLoading(false));
     }
+  };
+
+  const handleNext = () => {
+    dispatch(nextQuiz());
+    // Local state will reset via useEffect when currentQuiz changes
   };
 
   const handleClose = () => {
@@ -76,7 +94,14 @@ export default function QuizModal() {
       <div className="bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-xl font-bold text-white">Quiz Time 🎯</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-white">Quiz Time 🎯</h2>
+            {quizProgress && (
+              <span className="px-2 py-1 text-sm bg-blue-600 text-white rounded-full">
+                {quizProgress}
+              </span>
+            )}
+          </div>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-white transition"
@@ -157,13 +182,22 @@ export default function QuizModal() {
                 </div>
               )}
 
-              {/* Continue Button */}
-              <button
-                onClick={handleClose}
-                className="w-full mt-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition"
-              >
-                Continue
-              </button>
+              {/* Continue/Next Button */}
+              {hasNextQuiz ? (
+                <button
+                  onClick={handleNext}
+                  className="w-full mt-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition flex items-center justify-center gap-2"
+                >
+                  Next Quiz <ChevronRight size={20} />
+                </button>
+              ) : (
+                <button
+                  onClick={handleClose}
+                  className="w-full mt-4 py-3 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-lg transition"
+                >
+                  {isAllMode ? 'Finish 🎉' : 'Continue'}
+                </button>
+              )}
             </div>
           )}
         </div>

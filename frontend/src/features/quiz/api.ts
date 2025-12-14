@@ -6,10 +6,21 @@ import { Quiz, QuizAttemptInput, QuizAttemptResult } from './types';
  * Backend should randomly select one quiz by audioId
  */
 export const fetchQuizByAudio = async (audioId: number): Promise<Quiz> => {
-  const response = await apiClient.get<Quiz>(`/quizzes/random`, {
-    params: { audioId },
-  });
-  return response.data;
+  console.log('[Quiz API] Fetching quiz for audioId:', audioId);
+  console.log('[Quiz API] Full URL will be:', `/quizzes/random?audioId=${audioId}`);
+  
+  try {
+    const response = await apiClient.get<{ success: boolean; data: Quiz }>(`/quizzes/random`, {
+      params: { audioId },
+    });
+    console.log('[Quiz API] Response:', response.data);
+    // Backend returns { success: true, data: quiz }
+    return response.data.data;
+  } catch (error: any) {
+    console.error('[Quiz API] Error status:', error.response?.status);
+    console.error('[Quiz API] Error data:', error.response?.data);
+    throw error;
+  }
 };
 
 /**
@@ -19,8 +30,16 @@ export const fetchQuizByAudio = async (audioId: number): Promise<Quiz> => {
 export const submitQuizAnswer = async (
   data: QuizAttemptInput
 ): Promise<QuizAttemptResult> => {
-  const response = await apiClient.post<QuizAttemptResult>('/quiz-attempts', data);
-  return response.data;
+  console.log('[Quiz API] Submitting answer:', data);
+  try {
+    const response = await apiClient.post<{ success: boolean; data: QuizAttemptResult }>('/quiz-attempts', data);
+    console.log('[Quiz API] Submit response:', response.data);
+    // Backend returns { success: true, data: result }
+    return response.data.data;
+  } catch (error: any) {
+    console.error('[Quiz API] Submit error:', error.response?.status, error.response?.data);
+    throw error;
+  }
 };
 
 /**
@@ -35,10 +54,13 @@ export const createQuiz = async (quizData: Omit<Quiz, 'id' | 'createdAt' | 'upda
  * Get all quizzes for a specific audio
  */
 export const getQuizzesByAudio = async (audioId: number): Promise<Quiz[]> => {
-  const response = await apiClient.get<Quiz[]>(`/quizzes`, {
+  console.log('[Quiz API] Fetching all quizzes for audioId:', audioId);
+  const response = await apiClient.get<{ success: boolean; data: Quiz[] }>(`/quizzes`, {
     params: { audioId },
   });
-  return response.data;
+  console.log('[Quiz API] All quizzes response:', response.data);
+  // Backend returns { success: true, data: quizzes[] }
+  return response.data.data;
 };
 
 /**
