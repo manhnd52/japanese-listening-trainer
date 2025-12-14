@@ -27,11 +27,13 @@ async function createFolder(data: CreateFolderDto) {
     }
 }
 
-async function getFoldersByUserId(userId: number) {
+async function getFoldersByUserId(userId?: number) {
     try {
         const folders = await prisma.folder.findMany({
-            where: {
+            where: userId ? {
                 createdBy: userId,
+            } : {
+                isPublic: true, // If no userId, only return public folders
             },
             orderBy: {
                 createdAt: 'desc',

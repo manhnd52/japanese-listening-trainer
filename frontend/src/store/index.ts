@@ -12,7 +12,7 @@ export const makeStore = () => {
       user: userReducer,
       auth: authReducer,
       player: playerReducer,
-      folder: folderReducer
+      folder: folderReducer,
       audio: audioReducer,
     }
   })

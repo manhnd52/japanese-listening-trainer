@@ -12,27 +12,15 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
             return errorResponse(res, "Folder name is required", 400);
         }
 
-        const userIdInput = req.body.userId || req.body.createdBy;
-        if (!userIdInput) {
-            return errorResponse(res, "User ID is required", 400);
-        }
-
-        const createdBy = parseInt(userIdInput);
-
-        const user = await prisma.user.findUnique({
-            where: { id: createdBy },
-        });
-
-        if (!user) {
-            return errorResponse(res, `User with ID ${createdBy} not found`, 404);
-        }
+        // Get userId from JWT token (set by authenticateToken middleware)
+        const userId = req.userId!;
 
         const isPublicBool = isPublic === true || isPublic === 'true';
 
         const folder = await folderService.createFolder({
             name: name.trim(),
             isPublic: isPublicBool,
-            createdBy,
+            createdBy: userId,
         });
 
         return successResponse(res, folder, 201);
@@ -46,7 +34,8 @@ async function createFolder(req: Request, res: Response, next: NextFunction) {
  */
 async function getFolders(req: Request, res: Response, next: NextFunction) {
     try {
-        const userId = req.query.userId ? parseInt(req.query.userId as string) : 1;
+        // Use userId from token if authenticated, otherwise undefined (public only)
+        const userId = req.userId;
 
         const folders = await folderService.getFoldersByUserId(userId);
         return successResponse(res, folders);
@@ -67,7 +56,8 @@ async function getFolderById(req: Request, res: Response, next: NextFunction) {
             return errorResponse(res, "Invalid folder ID", 400);
         }
 
-        const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+        // Use userId from token if authenticated
+        const userId = req.userId;
 
         const folder = await folderService.getFolderById(folderId, userId);
 
@@ -103,7 +93,8 @@ async function updateFolder(req: Request, res: Response, next: NextFunction) {
             return errorResponse(res, "Invalid folder name", 400);
         }
 
-        const userId = req.body.userId || 1;
+        // Get userId from JWT token
+        const userId = req.userId!;
 
         const updateData: any = {};
         if (name !== undefined) updateData.name = name.trim();
@@ -131,7 +122,8 @@ async function deleteFolder(req: Request, res: Response, next: NextFunction) {
             return errorResponse(res, "Invalid folder ID", 400);
         }
 
-        const userId = req.body.userId || 1;
+        // Get userId from JWT token
+        const userId = req.userId!;
 
         const result = await folderService.deleteFolder(folderId, userId);
         return successResponse(res, result);
