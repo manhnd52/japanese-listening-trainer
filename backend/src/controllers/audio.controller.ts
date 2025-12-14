@@ -196,4 +196,28 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
   } catch (error) {
     next(error);
   }
+  
+};
+
+export const toggleFavorite = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { userId, isFavorite } = req.body;
+
+    // Validate
+    if (!userId || typeof isFavorite === 'undefined') {
+      res.status(400).json({ success: false, message: 'userId and isFavorite are required' });
+      return;
+    }
+
+    const updated = await audioService.toggleFavorite(Number(id), Number(userId), Boolean(isFavorite));
+    if (!updated) {
+      res.status(404).json({ success: false, message: 'Audio not found or not owned by user' });
+      return;
+    }
+
+    res.status(200).json({ success: true, message: 'Favorite updated', data: updated });
+  } catch (err) {
+    next(err);
+  }
 };
