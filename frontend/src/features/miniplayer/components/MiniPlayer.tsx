@@ -51,18 +51,18 @@ function SettingsPopup() {
     <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-64 bg-white border border-brand-200 rounded-xl p-4 shadow-xl text-sm">
       <h4 className="font-bold text-brand-900 mb-2 border-b border-brand-100 pb-2">Relax Mode Config</h4>
       <div className="space-y-3">
-        <label className="flex items-center justify-between text-brand-800">
+        <label className="flex items-center justify-between text-brand-700">
           <span>Source</span>
           <select className="bg-brand-50 border border-brand-200 rounded px-2 py-1 text-xs text-brand-900 outline-none">
             <option>My List</option>
             <option>Community</option>
           </select>
         </label>
-        <label className="flex items-center gap-2 text-brand-800">
+        <label className="flex items-center gap-2 text-brand-700">
           <input type="checkbox" defaultChecked className="accent-brand-500" />
           <span>Enable Quiz</span>
         </label>
-        <label className="flex items-center gap-2 text-brand-800">
+        <label className="flex items-center gap-2 text-brand-700">
           <input type="checkbox" className="accent-brand-500" />
           <span>AI Explain Mode</span>
         </label>
