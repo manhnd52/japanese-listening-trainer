@@ -54,7 +54,7 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
     const result = await dispatch(updateAudio({
       id: audio.id,
       data: { title, script, folderId },
-      userId: user.id // ✅ Truyền userId
+      userId: user.id 
     }));
 
     if (updateAudio.fulfilled.match(result)) {

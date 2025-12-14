@@ -65,11 +65,11 @@ const AudioList: React.FC<AudioListProps> = ({
     setActiveMenuId(audioId);
   };
 
-  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation();
-    action();
-    setActiveMenuId(null);
-  };
+  const handleActionClick = async (e: React.MouseEvent, action: () => void | Promise<void>) => {
+  e.stopPropagation();
+  await action(); // ← Thêm await
+  setActiveMenuId(null);
+};
 
   const openMoveModal = (audio: AudioTrack) => {
     setAudioToMove(audio);
@@ -179,7 +179,8 @@ const AudioList: React.FC<AudioListProps> = ({
                   <h3 className="text-brand-900 font-bold text-lg truncate">{audio.title}</h3>
                   <div className="flex items-center gap-2 text-xs text-brand-600 font-medium mt-0.5">
                     <span className="flex items-center gap-1">
-                      <Folder size={12} /> {folders.find(f => f.id === audio.folderId)?.name || 'Uncategorized'}
+                      <Folder size={12} /> 
+{folders.find(f => String(f.id) === String(audio.folderId))?.name || 'Uncategorized'}
                     </span>
                   </div>
                 </div>
