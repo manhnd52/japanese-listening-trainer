@@ -102,6 +102,23 @@ class AuthService {
             refreshToken
         };
     }
+
+    /**
+     * Get user by ID
+     */
+    async getUserById(userId: number) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                fullname: true,
+                email: true,
+                avatarUrl: true,
+            }
+        });
+
+        return user;
+    }
 }
 
 export default new AuthService();

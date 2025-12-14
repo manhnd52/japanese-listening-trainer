@@ -10,7 +10,7 @@ import { RootState } from "@/store";
 export interface AudioTrack {
   id: string | null | undefined;
   title: string;
-  url: string; // Mock URL or base64
+  url: string;
   duration: number; // in seconds
   folderId: string;
   status: AudioStatus;
@@ -104,7 +104,6 @@ const playerSlice = createSlice({
      * This will be called BEFORE the API call
      */
     toggleFavoriteOptimistic(state) {
-      console.log('toggleFavoriteOptimistic');
       if (state.currentAudio) {
         state.currentAudio.isFavorite = !state.currentAudio.isFavorite;
       }

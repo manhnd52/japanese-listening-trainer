@@ -85,7 +85,7 @@ export default function AudioScript({ audio }: AudioScriptProps) {
   const closeContextMenu = () => setContextMenu(null);
 
   return (
-    <div className="flex-1 bg-white rounded-3xl border border-brand-200 shadow-sm flex flex-col overflow-hidden relative min-h-0">
+    <div className="flex-1 bg-white rounded-3xl border border-brand-200 shadow-sm flex flex-col overflow-hidden relative h-full">
       {/* Header / Toggle */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-brand-100 bg-white z-10 flex-wrap gap-3">
         <h3 className="text-lg font-extrabold text-brand-900 flex items-center gap-2">
@@ -120,7 +120,7 @@ export default function AudioScript({ audio }: AudioScriptProps) {
       </div>
 
       {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar pb-20 text-brand-700">
+      <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar text-brand-700">
         {viewMode === ViewMode.Script ? (
           <div
             ref={textRef}

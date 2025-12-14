@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { ChevronDown, Pencil, PlusCircle } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { playPause, setTrack, toggleFavoriteOptimistic } from '@/store/features/player/playerSlice';
@@ -22,6 +21,7 @@ interface AudioDetailContainerProps {
  * Main container that orchestrates all audio detail functionality
  * Integrates with Redux for playback control and state management
  */
+
 export default function AudioDetailContainer({ audioId, onBack }: AudioDetailContainerProps) {
   const dispatch = useAppDispatch();
   
@@ -54,7 +54,6 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
     handleNextQuiz,
   } = useQuiz(audio?.quizzes, handleMistake, handleCorrectAnswer);
 
-  // Handlers
   const handlePlay = () => {
     if (audio && currentAudio?.id !== audio.id) {
       // Set new track if different
@@ -80,13 +79,12 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   };
 
   const handleOpenQuiz = () => {
-    handlePause(); // Pause audio when opening quiz
+    handlePause(); 
     openQuiz();
   };
 
   const handleToggleFavorite = () => {
     dispatch(toggleFavoriteOptimistic());
-    // TODO: Make API call to persist favorite status
   };
 
   const handleEditQuiz = () => {
@@ -139,7 +137,7 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   const displayAudio = currentAudio?.id === audio.id ? { ...audio, isFavorite: currentAudio.isFavorite } : audio;
 
   return (
-    <div className="h-full flex flex-col bg-jlt-cream animate-fade-in pb-24 md:pb-8">
+    <div className="flex flex-col bg-jlt-cream animate-fade-in">
       {/* Quiz Modal */}
       <QuizModal
         isOpen={isQuizModalOpen}

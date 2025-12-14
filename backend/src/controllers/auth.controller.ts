@@ -5,6 +5,7 @@ class AuthController {
     constructor() {
         this.register = this.register.bind(this);
         this.login = this.login.bind(this);
+        this.getCurrentUser = this.getCurrentUser.bind(this);
     }
 
     /**
@@ -80,6 +81,51 @@ class AuthController {
                     refreshToken: result.refreshToken,
                 },
                 message: 'Login successfully'
+            });
+        } catch (error: any) {
+            next(error);
+        }
+    }
+
+    /**
+     * @route GET /api/auth/me
+     * @desc Get current authenticated user
+     */
+    async getCurrentUser(req: Request, res: Response, next: NextFunction) {
+        try {
+            // userId is attached by authenticateToken middleware
+            const userId = req.userId;
+
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    error: {
+                        message: 'User not authenticated'
+                    }
+                });
+                return;
+            }
+
+            const user = await authService.getUserById(userId);
+
+            if (!user) {
+                res.status(404).json({
+                    success: false,
+                    error: {
+                        message: 'User not found'
+                    }
+                });
+                return;
+            }
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    id: user.id.toString(),
+                    email: user.email,
+                    name: user.fullname,
+                    avatarUrl: user.avatarUrl || ''
+                }
             });
         } catch (error: any) {
             next(error);
