@@ -3,10 +3,12 @@ import { LoginInput, RegisterInput, AuthResponse } from './types';
 
 export const authApi = {
   login: async (data: LoginInput): Promise<AuthResponse> => {
-    return await apiClient.post('/auth/login', data);
+    const response = await apiClient.post('/auth/login', data);
+    return response.data; // ✅ Extract .data từ axios response
   },
 
   register: async (data: RegisterInput): Promise<AuthResponse> => {
-    return await apiClient.post('/auth/register', data);
+    const response = await apiClient.post('/auth/register', data);
+    return response.data; // ✅ Extract .data từ axios response
   },
 };

@@ -13,6 +13,7 @@ interface UploadAudioModalProps {
 const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) => {
   const dispatch = useAppDispatch();
   const { folders, loading, error } = useAppSelector(state => state.audio);
+  const { user } = useAppSelector(state => state.auth); // ✅ Lấy user từ Redux
 
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
@@ -21,10 +22,10 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
   const [duration, setDuration] = useState('');
 
   useEffect(() => {
-    if (isOpen) {
-      dispatch(fetchFolders(8)); // TODO: lấy userId từ auth
+    if (isOpen && user?.id) { // ✅ Kiểm tra user.id
+      dispatch(fetchFolders(user.id)); // ✅ Truyền userId từ Redux
     }
-  }, [isOpen, dispatch]);
+  }, [isOpen, dispatch, user?.id]);
 
   useEffect(() => {
     if (error) {
@@ -51,6 +52,12 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
+
     if (!file || !title || !folderId || !duration) {
       alert('Please fill all required fields');
       return;
@@ -62,9 +69,9 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
     formData.append('script', script);
     formData.append('folderId', folderId);
     formData.append('duration', duration);
-    formData.append('createdBy', '8'); // TODO: lấy từ auth
+    // ✅ userId sẽ được thêm trong audioSlice.uploadAudio
 
-    const result = await dispatch(uploadAudio(formData));
+    const result = await dispatch(uploadAudio({ formData, userId: user.id })); // ✅ Truyền userId
     if (uploadAudio.fulfilled.match(result)) {
       alert('Audio uploaded successfully!');
       handleClose();

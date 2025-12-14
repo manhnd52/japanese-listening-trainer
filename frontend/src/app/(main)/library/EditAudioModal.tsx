@@ -15,6 +15,7 @@ interface EditAudioModalProps {
 const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio }) => {
   const dispatch = useAppDispatch();
   const { folders, loading, error } = useAppSelector(state => state.audio);
+  const { user } = useAppSelector(state => state.auth); // ✅ Lấy user từ Redux
 
   // Initialize state from audio prop only when modal opens
   const [title, setTitle] = useState(audio?.title || '');
@@ -39,6 +40,12 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user?.id) {
+      alert('User not authenticated');
+      return;
+    }
+
     if (!audio || !title.trim()) {
       alert('Title is required');
       return;
@@ -46,7 +53,8 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
 
     const result = await dispatch(updateAudio({
       id: audio.id,
-      data: { title, script, folderId }
+      data: { title, script, folderId },
+      userId: user.id // ✅ Truyền userId
     }));
 
     if (updateAudio.fulfilled.match(result)) {

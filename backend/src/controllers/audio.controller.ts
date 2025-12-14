@@ -5,12 +5,23 @@ import fs from 'fs';
 
 export const getAudioList = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { search, isSuspend, folderId, createdBy } = req.query;
-    const filter: any = {};
+    const { search, isSuspend, folderId, userId } = req.query;
+    
+    // ✅ BẮT BUỘC phải có userId
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+    }
+    
+    const filter: any = {
+      createdBy: Number(userId) // ✅ Luôn filter theo userId
+    };
+    
     if (search) filter.title = { contains: search as string, mode: 'insensitive' };
     if (isSuspend !== undefined) filter.isSuspend = isSuspend === 'true';
     if (folderId !== undefined) filter.folderId = Number(folderId);
-    if (createdBy !== undefined) filter.createdBy = Number(createdBy);
 
     const audios = await audioService.getAllAudios(filter);
 
@@ -26,11 +37,16 @@ export const createAudio = async (
   next: NextFunction
 ) => {
   try {
-    const { title, script, folderId, duration, createdBy } = req.body;
+    const { title, script, folderId, duration, userId } = req.body;
     const file = req.file;
 
     if (!file) {
       return res.status(400).json({ success: false, message: 'No file uploaded' });
+    }
+
+    // ✅ Validate userId
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
     }
 
     const audio = await audioService.createAudio({
@@ -39,7 +55,7 @@ export const createAudio = async (
       fileUrl: `/audio/${file.filename}`,
       duration: Number(duration),
       folderId: Number(folderId),
-      createdBy: Number(createdBy),
+      createdBy: Number(userId),
     });
 
     return res.status(201).json({ success: true, data: audio });
@@ -48,14 +64,20 @@ export const createAudio = async (
   }
 };
 
-// NEW: Get audio by ID
 export const getAudioById = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const { userId } = req.query;
+
     const audio = await audioService.getAudioById(Number(id));
 
     if (!audio) {
       return res.status(404).json({ success: false, message: 'Audio not found' });
+    }
+
+    // ✅ Kiểm tra quyền sở hữu
+    if (userId && audio.createdBy !== Number(userId)) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
     res.json({ success: true, data: audio });
@@ -64,16 +86,24 @@ export const getAudioById = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-// NEW: Update audio
 export const updateAudio = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { title, script, folderId } = req.body;
+    const { title, script, folderId, userId } = req.body;
 
-    // Check if audio exists
+    // ✅ Validate userId
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+
     const existingAudio = await audioService.getAudioById(Number(id));
     if (!existingAudio) {
       return res.status(404).json({ success: false, message: 'Audio not found' });
+    }
+
+    // ✅ Kiểm tra quyền sở hữu
+    if (existingAudio.createdBy !== Number(userId)) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
     const updateData: any = {};
@@ -88,15 +118,24 @@ export const updateAudio = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-// NEW: Delete audio
 export const deleteAudio = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
+    const { userId } = req.query;
 
-    // Check if audio exists
+    // ✅ Validate userId
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+
     const audio = await audioService.getAudioById(Number(id));
     if (!audio) {
       return res.status(404).json({ success: false, message: 'Audio not found' });
+    }
+
+    // ✅ Kiểm tra quyền sở hữu
+    if (audio.createdBy !== Number(userId)) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
     // Delete file from disk
@@ -112,20 +151,28 @@ export const deleteAudio = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-// NEW: Move audio to another folder
 export const moveAudio = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const { folderId } = req.body;
+    const { folderId, userId } = req.body;
 
     if (!folderId) {
       return res.status(400).json({ success: false, message: 'folderId is required' });
     }
 
-    // Check if audio exists
+    // ✅ Validate userId
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'userId is required' });
+    }
+
     const audio = await audioService.getAudioById(Number(id));
     if (!audio) {
       return res.status(404).json({ success: false, message: 'Audio not found' });
+    }
+
+    // ✅ Kiểm tra quyền sở hữu
+    if (audio.createdBy !== Number(userId)) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
 
     const movedAudio = await audioService.moveAudio(Number(id), Number(folderId));
