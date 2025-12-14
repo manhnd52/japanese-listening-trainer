@@ -4,7 +4,7 @@ import authReducer from './features/auth/authSlice'
 import playerReducer from './features/player/playerSlice'
 
 import folderReducer from './features/folder/folderSlice'
-
+import sharringReducer  from './features/sharring/sharringSlice';
 import audioReducer from './features/audio/audioSlice';
 export const makeStore = () => {
   return configureStore({
@@ -14,6 +14,7 @@ export const makeStore = () => {
       player: playerReducer,
       folder: folderReducer,
       audio: audioReducer,
+      sharing: sharringReducer,
     }
   })
 }
