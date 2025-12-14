@@ -1,0 +1,74 @@
+model User {
+  id        Int     @id @default(autoincrement())
+  fullname  String
+  email     String  @unique
+  password  String
+  avatarUrl String? @map("avatar_url")
+
+  refreshTokens       RefreshToken[]
+  audios              Audio[]
+  audioStats          AudioStats[]
+  folders             Folder[]
+  folderShares        FolderShare[]
+  reminders           Reminder[]
+  userSetting         UserSetting?
+  userDailyActivities UserDailyActivity[]
+  userExp             UserExp?
+  streak              Streak?
+  leaderboardPoint    LeaderboardPoint?
+  userAchievements    UserAchievement[]
+  quizzes             Quiz[]
+  quizAttemptLogs     QuizAttemptLog[]
+  quizStats           QuizStats[]
+  mistakeQuizs        MistakeQuiz[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id         Int      @id @default(autoincrement())
+  token      String   @unique
+  expireTime DateTime @map("expire_time")
+  revoked    Boolean  @default(false)
+  userId     Int      @map("user_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Reminder {
+  id     Int      @id @default(autoincrement())
+  userId Int      @map("user_id")
+  time   DateTime
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("reminders")
+}
+
+model UserSetting {
+  userId                 Int     @id @map("user_id")
+  allowEmailNotification Boolean @default(true) @map("allow_email_notification")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_settings")
+}
+
+model UserDailyActivity {
+  userId          Int      @map("user_id")
+  date            DateTime @map("date")
+  didListen       Boolean  @default(false) @map("did_listen")
+  didQuiz         Boolean  @default(false) @map("did_quiz")
+  totalListenTime Int      @default(0) @map("total_listen_time") // seconds
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@id([userId, date])
+  @@index([date])
+  @@map("user_daily_activities")
+}

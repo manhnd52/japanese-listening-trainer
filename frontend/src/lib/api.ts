@@ -50,3 +50,10 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+
+export async function fetchAudios() {
+  const res = await fetch('http://localhost:5000/api/audios');
+  const json = await res.json();
+  return json.data; // trả về mảng audio
+}
+

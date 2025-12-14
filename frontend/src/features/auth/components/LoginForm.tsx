@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 
 import { useState, FormEvent } from 'react';
 import { useLogin } from '../hooks/useLogin';
@@ -90,10 +91,10 @@ export default function LoginForm() {
                 </form>
 
                 <div className="mt-6 text-center text-sm text-brand-600">
-                    Don't have an account?{' '}
-                    <a href="#" className="text-brand-500 hover:text-brand-600 font-semibold">
-                        Sign up
-                    </a>
+                Don't have an account?{' '}
+                    <Link href="/register" className="text-brand-500 hover:text-brand-600 font-semibold">
+                    Sign up
+                    </Link>
                 </div>
             </div>
         </div>

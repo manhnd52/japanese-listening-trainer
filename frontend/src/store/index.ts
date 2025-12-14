@@ -2,8 +2,10 @@ import { configureStore } from '@reduxjs/toolkit'
 import userReducer from './features/user/userSlice'
 import authReducer from './features/auth/authSlice'
 import playerReducer from './features/player/playerSlice'
+
 import folderReducer from './features/folder/folderSlice'
 
+import audioReducer from './features/audio/audioSlice';
 export const makeStore = () => {
   return configureStore({
     reducer: {
@@ -11,6 +13,7 @@ export const makeStore = () => {
       auth: authReducer,
       player: playerReducer,
       folder: folderReducer
+      audio: audioReducer,
     }
   })
 }

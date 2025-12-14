@@ -19,20 +19,7 @@ export interface Quiz {
   type: QuizType;
 }
 
-export interface AudioTrack {
-  id: string | null | undefined;
-  title: string;
-  url: string; // Mock URL or base64
-  duration: number; // in seconds
-  folderId: string;
-  status: AudioStatus;
-  isFavorite: boolean;
-  playCount: number;
-  lastPlayed?: Date;
-  script: string;
-  overview?: string; // AI generated context description
-  quizzes: Quiz[];
-}
+
 
 export interface Folder {
   id: string;
@@ -73,6 +60,21 @@ export interface Mistake {
   audioId: string;
   quizId: string;
   timestamp: number;
+}
+
+export interface AudioTrack {
+  id: string;
+  title: string;
+  overview?: string;
+  fileUrl: string;
+  duration: number;
+  folderId: string;
+  folder?: Folder;
+  status?: AudioStatus;
+  isFavorite?: boolean;
+  isSuspend?: boolean;
+  script?: string;
+  // Thêm các trường khác nếu cần
 }
 
 export type ThemeMode = 'dark' | 'light';

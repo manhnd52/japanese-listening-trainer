@@ -1,42 +1,39 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { User } from 'lucide-react';
-import { UNSTABLE_REVALIDATE_RENAME_ERROR } from 'next/dist/lib/constants';
-
-export interface UserData {
-  id: string;
-  name: string;
-  email: string;
-}
+import { User } from '@/features/auth/types';
 
 interface AuthState {
-  user: UserData | null;
-  isLoggedIn: boolean;
+  user: User | null;
+  accessToken: string | null;
+  isAuthenticated: boolean;
 }
 
 const initialState: AuthState = {
-  user: { id: '4', name: 'Jane Doe', email: 'jane.doe@example.com' },
-  isLoggedIn: false,
+  user: null,
+  accessToken: null,
+  isAuthenticated: false,
 };
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    login(state, action: PayloadAction<UserData>) {
-      state.user = action.payload;
-      state.isLoggedIn = true;
+    // Action: Lưu thông tin khi đăng nhập thành công
+    setCredentials: (
+      state,
+      action: PayloadAction<{ user: User; accessToken: string }>
+    ) => {
+      state.user = action.payload.user;
+      state.accessToken = action.payload.accessToken;
+      state.isAuthenticated = true;
     },
-    logout(state) {
+    // Action: Xóa thông tin khi đăng xuất
+    logout: (state) => {
       state.user = null;
-      state.isLoggedIn = false;
-    },
-    updateUser(state, action: PayloadAction<Partial<UserData>>) {
-      if (state.user) {
-        state.user = { ...state.user, ...action.payload };
-      }
+      state.accessToken = null;
+      state.isAuthenticated = false;
     },
   },
 });
 
-export const { login, logout, updateUser } = authSlice.actions;
+export const { setCredentials, logout } = authSlice.actions;
 export default authSlice.reducer;
