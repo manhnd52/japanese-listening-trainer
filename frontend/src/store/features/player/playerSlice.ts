@@ -33,8 +33,9 @@ interface Playlist {
 interface PlayerState {
   currentAudio: AudioTrack | null;
   currentPlaylist: Playlist | null;
-  playlist: AudioTrack[]; // ✅ Array of all tracks
-  currentIndex: number;   // ✅ Current track index in playlist
+  playlist: AudioTrack[]; 
+  currentIndex: number;   
+    currentFolderId: string | null;
   isPlaying: boolean;
   progress: number;
   isExpanded: boolean;
@@ -51,16 +52,23 @@ const initialState: PlayerState = {
   progress: 0,
   isExpanded: false,
   volume: 50,
-  error: null
+  error: null,
+  currentFolderId: null,
 };
 
 const playerSlice = createSlice({
   name: "player",
   initialState,
   reducers: {
+    setPlaylistByFolder(state, action: PayloadAction<{ tracks: AudioTrack[], folderId: string | null }>) {
+      state.playlist = action.payload.tracks;
+      state.currentFolderId = action.payload.folderId;
+      state.currentIndex = -1; // Reset index
+    },
     // ✅ Set playlist array (called from page.tsx when tracks load)
     setPlaylistArray(state, action: PayloadAction<AudioTrack[]>) {
       state.playlist = action.payload;
+      state.currentFolderId = null;
       // Don't auto-play, just load the list
     },
 
@@ -185,7 +193,8 @@ const playerSlice = createSlice({
 });
 
 export const {
-  setPlaylistArray, // ✅ Export new action
+  setPlaylistArray, 
+  setPlaylistByFolder,
   setTrack,
   setPlaylist,
   playPause,

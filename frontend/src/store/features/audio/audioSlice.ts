@@ -152,6 +152,27 @@ export const moveAudio = createAsyncThunk(
   }
 );
 
+// Thunk toggleFavorite
+export const toggleFavorite = createAsyncThunk(
+  'audio/toggleFavorite',
+  async ({ id, userId, isFavorite }: { id: string; userId: number; isFavorite: boolean }, { rejectWithValue }) => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/audios/${id}/favorite`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, isFavorite }),
+      });
+      const data = await response.json();
+      if (!data.success) {
+        return rejectWithValue(data.message || 'Toggle favorite failed');
+      }
+      return { id, isFavorite };
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Toggle favorite failed');
+    }
+  }
+);
+
 const audioSlice = createSlice({
   name: 'audio',
   initialState,
@@ -283,6 +304,13 @@ const audioSlice = createSlice({
       })
       .addCase(moveAudio.rejected, (state, action) => {
         state.error = action.payload as string;
+      })
+      // Toggle Favorite
+      .addCase(toggleFavorite.fulfilled, (state, action) => {
+        const audio = state.audios.find(a => a.id === action.payload.id);
+        if (audio) {
+          audio.isFavorite = action.payload.isFavorite;
+        }
       });
   },
 });

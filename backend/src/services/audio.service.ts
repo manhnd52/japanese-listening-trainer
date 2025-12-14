@@ -143,6 +143,18 @@ export class AudioService {
       },
     });
   }
+  async toggleFavorite(audioId: number, userId: number, isFavorite: boolean) {
+    // Kiểm tra audio tồn tại
+    const audio = await prisma.audio.findUnique({ where: { id: audioId } });
+    if (!audio) return null;
+
+    // Upsert vào AudioStats
+    return await prisma.audioStats.upsert({
+      where: { userId_audioId: { userId, audioId } },
+      update: { isFavorite },
+      create: { userId, audioId, isFavorite },
+    });
+  }
 }
 
 export const audioService = new AudioService();

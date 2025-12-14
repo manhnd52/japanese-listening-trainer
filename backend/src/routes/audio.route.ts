@@ -5,7 +5,7 @@ import {
   getAudioById,
   updateAudio,
   deleteAudio,
-  moveAudio
+  moveAudio,toggleFavorite
 } from '../controllers/audio.controller';
 import { uploadMiddleware } from '../middlewares/upload';
 import { prisma } from '../prisma'; 
@@ -60,6 +60,7 @@ router.put('/:id', updateAudio);
 // DELETE /api/audios/:id - Delete audio
 router.delete('/:id', deleteAudio);
 
+router.patch('/:id/favorite', toggleFavorite);
 
 
 export default router;
