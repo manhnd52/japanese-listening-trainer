@@ -29,7 +29,18 @@ const TopHeader = () => {
   const navigate = (path: string) => router.push(path);
 
   const handleLogout = () => {
+    // Clear Redux state
     dispatch(logout());
+    
+    // Clear localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      
+      // Clear cookie
+      document.cookie = 'accessToken=; path=/; max-age=0';
+    }
+    
     router.push('/login');
   };
 
@@ -61,6 +72,7 @@ const TopHeader = () => {
 
       {/* Right section */}
       <div className="flex items-center gap-3 md:gap-6">
+        
 
         {/* Relax btn */}
         <div
@@ -69,6 +81,14 @@ const TopHeader = () => {
             border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
         >
           Relax
+        </div>
+
+        <div
+          onClick={() => navigate('/folders')}
+          className="hidden md:block bg-jlt-peach text-brand-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm 
+            border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
+        >
+          My Folder
         </div>
 
         {/* Add audio */}
@@ -117,7 +137,7 @@ const TopHeader = () => {
           {isMenuOpen && (
             <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-xl border border-brand-100 overflow-hidden animate-fade-in z-50">
               <div className="p-4 bg-brand-50 border-b border-brand-100">
-                <p className="text-brand-900 font-bold truncate">{user?.name}</p>
+                <p className="text-brand-900 font-bold truncate">{user?.fullname}</p>
                 <p className="text-brand-500 text-xs truncate">{user?.email}</p>
               </div>
 

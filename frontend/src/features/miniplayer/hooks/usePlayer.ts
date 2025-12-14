@@ -37,7 +37,7 @@ export const usePlayer = () => {
                     isFavorite: response.isFavorite
                 }));
 
-                console.log('✅ Toggle favorite success:', response);
+                
                 return { success: true, data: response };
             }
 

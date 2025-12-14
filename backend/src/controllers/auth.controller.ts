@@ -3,6 +3,11 @@ import authService from '../services/auth.service';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
 class AuthController {
+    constructor() {
+        this.register = this.register.bind(this);
+        this.login = this.login.bind(this);
+    }
+
     /**
      * @route POST /api/auth/register
      */
@@ -10,9 +15,8 @@ class AuthController {
         try {
             const { fullname, email, password } = req.body;
 
-            // Basic validation (Nên dùng thư viện như Joi/Zod ở bước nâng cao)
             if (!fullname || !email || !password) {
-                 res.status(400).json({
+                res.status(400).json({
                     success: false,
                     error: {
                         message: 'Missing required fields: fullname, email, password'
@@ -29,11 +33,17 @@ class AuthController {
 
             res.status(201).json({
                 success: true,
-                data: newUser,
+                data: {
+                    user: {
+                        id: newUser.id.toString(),
+                        email: newUser.email,
+                        name: newUser.fullname,
+                        // ✅ Xóa role - không tồn tại trong schema
+                    }
+                },
                 message: 'User registered successfully'
             });
         } catch (error: any) {
-            // Chuyển lỗi xuống middleware xử lý lỗi chung (src/middlewares/errorHandler.ts)
             next(error);
         }
     }
@@ -46,7 +56,7 @@ class AuthController {
             const { email, password } = req.body;
 
             if (!email || !password) {
-                 res.status(400).json({
+                res.status(400).json({
                     success: false,
                     error: {
                         message: 'Please provide email and password'
@@ -57,9 +67,19 @@ class AuthController {
 
             const result = await authService.login({ email, password });
 
+            // ✅ Map lại response cho đúng format
             res.status(200).json({
                 success: true,
-                data: result,
+                data: {
+                    user: {
+                        id: result.user.id.toString(),
+                        email: result.user.email,
+                        name: result.user.fullname, // fullname -> name
+                        // ✅ Xóa role - không tồn tại trong schema
+                    },
+                    token: result.accessToken, // accessToken -> token
+                    refreshToken: result.refreshToken,
+                },
                 message: 'Login successfully'
             });
         } catch (error: any) {

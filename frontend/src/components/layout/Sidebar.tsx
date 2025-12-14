@@ -6,7 +6,7 @@ import { Home, FolderOpen, Music, User, Settings, BarChart2} from 'lucide-react'
 
 const menuItems = [
   { icon: Home, label: 'Home', path: '/' },
-  { icon: FolderOpen, label: 'Folders', path: '/folder' },
+  { icon: FolderOpen, label: 'Folders', path: '/folders' },
   { icon: Music, label: 'Library', path: '/library' },
   { icon: BarChart2, label: 'Stats', path: '/stats' },
   { icon: User, label: 'Profile', path: '/profile' },
