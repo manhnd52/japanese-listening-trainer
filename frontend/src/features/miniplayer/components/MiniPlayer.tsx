@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
 
@@ -111,6 +111,24 @@ function Controls({
   showSettings: boolean;
   setShowSettings: (v: boolean) => void;
 }) {
+  const settingsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setShowSettings(false);
+      }
+    };
+
+    if (showSettings) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showSettings, setShowSettings]);
+
   return (
     <div className="flex flex-col items-center flex-1">
       <div className="flex items-center gap-4 md:gap-8">
@@ -140,7 +158,7 @@ function Controls({
           <SkipForward size={28} fill="currentColor" />
         </button>
 
-        <div className="relative">
+        <div className="relative" ref={settingsRef}>
           <button
             onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
             className={`text-brand-400 hover:text-brand-600 ${showSettings ? 'text-brand-600' : ''}`}
