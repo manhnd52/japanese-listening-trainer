@@ -45,9 +45,20 @@ export const submitQuizAnswer = async (
 /**
  * Create a new quiz (for Add Audio / Audio Detail flows)
  */
-export const createQuiz = async (quizData: Omit<Quiz, 'id' | 'createdAt' | 'updatedAt'>): Promise<Quiz> => {
-  const response = await apiClient.post<Quiz>('/quizzes', quizData);
-  return response.data;
+export const createQuiz = async (quizData: {
+  audioId: number;
+  questionText: string;
+  optionA: string;
+  optionB: string;
+  optionC: string;
+  optionD: string;
+  correctOption: QuizOption;
+  explanation?: string;
+}): Promise<Quiz> => {
+  console.log('[Quiz API] Creating quiz:', quizData);
+  const response = await apiClient.post<{ success: boolean; data: Quiz }>('/quizzes', quizData);
+  console.log('[Quiz API] Create response:', response.data);
+  return response.data.data;
 };
 
 /**
