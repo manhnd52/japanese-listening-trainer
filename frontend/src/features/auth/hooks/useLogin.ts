@@ -22,6 +22,8 @@ export const useLogin = () => {
     try {
       // 1. Gọi API
       const response = await authApi.login(credentials);
+
+      const { user, accessToken, refreshToken } = response.data;
       
       const userId = parseInt(response.data.user.id);
       const userObject = {
@@ -33,6 +35,7 @@ export const useLogin = () => {
 
       // 2. Lưu vào LocalStorage
       if (typeof window !== 'undefined') {
+
         localStorage.setItem('accessToken', response.data.token);
         localStorage.setItem('refreshToken', response.data.refreshToken || '');
         localStorage.setItem('user', JSON.stringify(userObject)); // ✅ Lưu user object

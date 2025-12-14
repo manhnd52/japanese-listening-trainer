@@ -44,3 +44,14 @@ export interface AuthResponse {
     refreshToken: string;
   };
 }
+
+export interface UpdateProfileInput {
+  fullname?: string;
+  newPassword?: string;
+}
+
+export interface UpdateProfileResponse {
+  success: boolean;
+  message?: string;
+  data: User; 
+}
