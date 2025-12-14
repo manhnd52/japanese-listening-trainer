@@ -4,8 +4,7 @@ import { useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import {
     toggleFavoriteOptimistic,
-    updateFavoriteStatus,
-    setError
+    updateFavoriteStatus
 } from '@/store/features/player/playerSlice';
 import { playerAPI } from '../api';
 
@@ -25,11 +24,10 @@ export const usePlayer = () => {
 
 
     const toggleFavorite = useCallback(async () => {
-        // Optimistic update
         dispatch(toggleFavoriteOptimistic());
 
         try {
-            if (currentAudio.id) {
+            if (currentAudio?.id) {
                 const response = await playerAPI.toggleFavorite(currentAudio.id);
 
                 dispatch(updateFavoriteStatus({
@@ -42,9 +40,9 @@ export const usePlayer = () => {
             }
 
         } catch (err) {
-            console.error('❌ Toggle favorite error');
+            console.error('❌ Toggle favorite error' + err);
         }
-    }, [dispatch]);
+    }, [dispatch, currentAudio]);
 
     const isFavorite = useCallback((): boolean => {
         return currentAudio?.isFavorite ?? false;

@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { AudioStatus, Quiz } from "@/types/types";
+import { AudioStatus } from "@/types/types";
 import { RootState } from "@/store";
 
 /**
@@ -30,6 +30,17 @@ interface Playlist {
   audioTracks: AudioTrack[];
 }
 
+export enum Source {
+  MyList = "My List", 
+  Community = "Community"
+}
+
+interface RelaxModeConfig {
+  source: Source;
+  enableQuiz: boolean;
+  aiExplainMode: boolean;
+}
+
 interface PlayerState {
   currentAudio: AudioTrack | null;
   currentPlaylist: Playlist | null;
@@ -41,6 +52,7 @@ interface PlayerState {
   isExpanded: boolean;
   volume: number;
   error: string | null;
+  relaxModeConfig: RelaxModeConfig;
 }
 
 const initialState: PlayerState = {
@@ -52,8 +64,13 @@ const initialState: PlayerState = {
   progress: 0,
   isExpanded: false,
   volume: 50,
-  error: null,
   currentFolderId: null,
+  error: null,
+  relaxModeConfig: {
+    source: Source.MyList,
+    enableQuiz: true,
+    aiExplainMode: false
+  }
 };
 
 const playerSlice = createSlice({
@@ -188,6 +205,23 @@ const playerSlice = createSlice({
 
     setVolume(state, action: PayloadAction<number>) {
       state.volume = action.payload;
+    },
+
+    // Relax Mode Configuration
+    setRelaxModeSource(state, action: PayloadAction<Source>) {
+      state.relaxModeConfig.source = action.payload;
+    },
+
+    toggleEnableQuiz(state) {
+      state.relaxModeConfig.enableQuiz = !state.relaxModeConfig.enableQuiz;
+    },
+
+    toggleAiExplainMode(state) {
+      state.relaxModeConfig.aiExplainMode = !state.relaxModeConfig.aiExplainMode;
+    },
+
+    updateRelaxModeConfig(state, action: PayloadAction<Partial<RelaxModeConfig>>) {
+      state.relaxModeConfig = { ...state.relaxModeConfig, ...action.payload };
     }
   }
 });
@@ -208,7 +242,11 @@ export const {
   toggleExpanded,
   setError,
   setVolume,
-  clearError
+  clearError,
+  setRelaxModeSource,
+  toggleEnableQuiz,
+  toggleAiExplainMode,
+  updateRelaxModeConfig
 } = playerSlice.actions;
 
 export const playerSelector = (state: RootState) => state.player;

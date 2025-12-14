@@ -18,7 +18,8 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
         const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
         if (!token) {
-            return errorResponse(res, 'Access token is required', 401);
+            errorResponse(res, 'Access token is required', 401);
+            return;
         }
 
         // Verify token
@@ -30,17 +31,19 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
         next();
     } catch (error: any) {
         if (error.name === 'TokenExpiredError') {
-            return errorResponse(res, 'Token has expired', 401);
+            errorResponse(res, 'Token has expired', 401);
+            return;
         }
         if (error.name === 'JsonWebTokenError') {
-            return errorResponse(res, 'Invalid token', 401);
+            errorResponse(res, 'Invalid token', 401);
         }
-        return errorResponse(res, 'Authentication failed', 401);
+        errorResponse(res, 'Authentication failed', 401);
+        return;
     }
 };
 
 // Optional: middleware for routes that can work with or without auth
-export const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction) => {
     try {
         const authHeader = req.headers['authorization'];
         const token = authHeader && authHeader.split(' ')[1];

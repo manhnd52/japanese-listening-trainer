@@ -7,6 +7,9 @@ import { config } from './config/env';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
 import { requestLogger } from './middlewares/requestLogger';
+import authRoute from '@routes/auth.route';
+import healthRoute from '@routes/health.route';
+import { authenticateToken } from '@middlewares/auth.middleware';
 
 const app: Application = express();
 
@@ -52,6 +55,9 @@ if (config.nodeEnv === 'development') {
     app.use(morgan('dev'));
 }
 app.use(requestLogger);
+
+app.use('/auth', authRoute);
+app.use('/health', healthRoute);
 
 // API routes
 app.use('/api', routes);
