@@ -7,12 +7,30 @@ export interface Folder {
   updatedAt: string;
   _count?: {
     audios: number;
+    folderShares: number;
   };
   user?: {
     id: number;
     fullname: string;
     email: string;
   };
+  audios?: Array<{
+    id: number;
+    title: string;
+    script: string;
+    fileUrl: string;
+    duration: number;
+    createdAt: string;
+  }>;
+  folderShares?: Array<{
+    id: number;
+    userId: number;
+    user: {
+      id: number;
+      fullname: string;
+      email: string;
+    };
+  }>;
 }
 
 export interface CreateFolderDto {

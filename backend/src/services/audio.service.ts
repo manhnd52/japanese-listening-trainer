@@ -41,11 +41,17 @@ export class AudioService {
     });
   }
 
-  async getAllAudios(filter?: Prisma.AudioWhereInput) {
-    return await prisma.audio.findMany({
+  // ✅ THAY ĐỔI: Thêm userId parameter và transform data
+  async getAllAudios(filter?: Prisma.AudioWhereInput, userId?: number) {
+    const audios = await prisma.audio.findMany({
       where: filter,
       include: {
-        folder: true,
+        folder: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
         user: {
           select: {
             id: true,
@@ -53,9 +59,46 @@ export class AudioService {
             fullname: true,
           },
         },
+        // ✅ Include AudioStats của user này (nếu có userId)
+        audioStats: userId ? {
+          where: { userId },
+          select: {
+            isFavorite: true,
+            listenCount: true,
+            // completionPercentage: true, // Tạm bỏ nếu field không tồn tại
+          }
+        } : false
       },
       orderBy: { id: 'desc' },
     });
+
+    // ✅ Transform data để match với frontend type
+    return audios.map(audio => {
+      const stats = audio.audioStats?.[0];
+      
+      return {
+        id: audio.id.toString(),
+        title: audio.title,
+        url: audio.fileUrl, // frontend expect 'url', backend có 'fileUrl'
+        duration: audio.duration,
+        folderId: audio.folderId.toString(),
+        folderName: audio.folder.name,
+        script: audio.script,
+        createdBy: audio.createdBy,
+        // ✅ Determine status based on listenCount (thay vì completionPercentage)
+        status: this.determineStatus(stats?.listenCount),
+        isFavorite: stats?.isFavorite || false,
+        listenCount: stats?.listenCount || 0,
+        completionPercentage: 0, // Tạm set 0
+      };
+    });
+  }
+
+  // ✅ Helper function - sửa lại logic
+  private determineStatus(listenCount?: number): 'NEW' | 'IN_PROGRESS' | 'COMPLETED' {
+    if (!listenCount || listenCount === 0) return 'NEW';
+    if (listenCount >= 3) return 'COMPLETED'; // Nghe 3 lần = completed
+    return 'IN_PROGRESS';
   }
 
   // NEW: Update audio

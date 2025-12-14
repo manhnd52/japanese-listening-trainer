@@ -79,3 +79,33 @@ export interface AudioTrack {
 }
 
 export type ThemeMode = 'dark' | 'light';
+
+export interface StatCardData {
+  label: string;
+  value: string | number;
+  subValue?: string;
+  unit?: string;
+  icon: 'clock' | 'activity' | 'lightning' | 'trophy';
+}
+
+export interface BarChartData {
+  day: string;
+  value: number;
+}
+
+export interface HeatmapData {
+  date: string;
+  level: 0 | 1 | 2 | 3 | 4;
+}
+
+export interface DashboardStats {
+  period: 'Week' | 'Month' | 'All';
+  cards: StatCardData[];    
+  activity: BarChartData[]; 
+  heatmap: HeatmapData[];  
+  quizStats: {              
+    correct: number;      
+    wrong: number;     
+    totalCorrect: number;   
+  };
+}

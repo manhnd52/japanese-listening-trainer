@@ -18,6 +18,13 @@ export interface LoginInput {
     password: string;
 }
 
+export interface UpdateProfileInput {
+    userId: number;
+    email?: string;
+    fullname?: string;
+    newPassword?: string;
+}
+
 class AuthService {
     /**
      * Đăng ký người dùng mới
@@ -118,6 +125,27 @@ class AuthService {
         });
 
         return user;
+    }
+
+    async updateProfile(data: UpdateProfileInput) {
+        const updateData: any = {};
+        if (data.fullname) {
+            updateData.fullname = data.fullname;
+        }
+        if (data.newPassword) {
+            updateData.password = await hashPassword(data.newPassword);
+        }
+        const updatedUser = await prisma.user.update({
+            where: { id: data.userId },
+            data: updateData,
+            select: {
+                id: true,
+                fullname: true,
+                email: true,
+                avatarUrl: true,
+            }
+        });
+        return updatedUser;
     }
 }
 

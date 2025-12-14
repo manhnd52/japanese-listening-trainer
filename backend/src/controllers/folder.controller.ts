@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from "express";
 import { folderService } from "../services/folder.service";
 import { successResponse, errorResponse } from "../utils/response";
 
-
 async function createFolder(req: Request, res: Response, next: NextFunction) {
     try {
         const { name, isPublic } = req.body;
@@ -51,6 +50,8 @@ async function getFolderById(req: Request, res: Response, next: NextFunction) {
         const { id } = req.params;
         const folderId = parseInt(id, 10);
 
+        console.log(`[FolderController] getFolderById - id: ${id}, userId: ${req.userId}`);
+
         if (isNaN(folderId)) {
             return errorResponse(res, "Invalid folder ID", 400);
         }
@@ -61,11 +62,14 @@ async function getFolderById(req: Request, res: Response, next: NextFunction) {
         const folder = await folderService.getFolderById(folderId, userId);
 
         if (!folder) {
+            console.log(`[FolderController] Folder ${folderId} not found`);
             return errorResponse(res, "Folder not found", 404);
         }
 
+        console.log(`[FolderController] Returning folder ${folderId} with ${folder.audios?.length || 0} audios`);
         return successResponse(res, folder);
     } catch (error) {
+        console.error(`[FolderController] Error:`, error);
         return next(error);
     }
 }

@@ -1,51 +1,35 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAppSelector } from '@/hooks/redux';
+import { useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { Folder, Plus, Lock, Unlock, Music } from 'lucide-react';
-import { getFolders, createFolder } from '@/features/folder/api';
-import { Folder as FolderType } from '@/features/folder/types';
+import { fetchFolders, createFolder as createFolderThunk } from '@/store/features/folder/folderSlice';
 import CreateFolderModal from '@/features/folder/components/CreateFolderModal';
+import { useState } from 'react';
 
 const FoldersPage = () => {
-  const [folders, setFolders] = useState<FolderType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const { folders, loading, error } = useAppSelector((state) => state.folder);
+  const user = useAppSelector((state) => state.auth.user);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
-  const user = useAppSelector((state) => state.auth.user);
 
   useEffect(() => {
     if (user) {
-      fetchFolders();
+      dispatch(fetchFolders());
+    } else {
+      console.log('No user found in state');
     }
-  }, [user]);
-
-  const fetchFolders = async () => {
-    if (!user?.id) return;
-    
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await getFolders(user.id);
-      setFolders(data);
-    } catch (err) {
-      console.error('Error fetching folders:', err);
-      setError('Failed to load folders');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user, dispatch]);
 
   const handleCreateFolder = async (name: string, isPublic: boolean) => {
     if (!user?.id) return;
     
     try {
       setCreateLoading(true);
-      // userId will be extracted from JWT token by backend, no need to send it
-      await createFolder({ name, isPublic });
+      await dispatch(createFolderThunk({ name, isPublic })).unwrap();
       setIsModalOpen(false);
-      await fetchFolders();
     } catch (err) {
       console.error('Error creating folder:', err);
       alert('Failed to create folder');
@@ -71,7 +55,7 @@ const FoldersPage = () => {
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
           <button
-            onClick={fetchFolders}
+            onClick={() => dispatch(fetchFolders())}
             className="px-4 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 transition-colors"
           >
             Retry
@@ -160,7 +144,10 @@ const FoldersPage = () => {
 
                 {/* Hover Actions */}
                 <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="text-brand-600 text-sm font-semibold hover:text-brand-700">
+                  <button 
+                    onClick={() => window.location.href = `/folders/${folder.id}`}
+                    className="text-brand-600 text-sm font-semibold hover:text-brand-700"
+                  >
                     Open Folder →
                   </button>
                 </div>

@@ -1,17 +1,16 @@
 import { Router } from 'express';
-import healthRoutes from './health.route';
 import userRoutes from './user.route';
 import folderRoutes from './folder.route';
 import audioRoutes from './audio.route';
-
-import authRoute from './auth.route';
+import authRoutes from './auth.route';
+// import statsRoutes from './stats.route';
 const router = Router();
 
 // Mount routes
-router.use('/health', healthRoutes);
-router.use('/users', userRoutes);
+// router.use('/stats', statsRoutes);
+router.use('/users',  userRoutes);
 router.use('/folders', folderRoutes);
 router.use('/audios', audioRoutes);
-router.use('/auth', authRoute);
+router.use('/auth', authRoutes); // Auth routes can be under users or a separate route
 
 export default router;

@@ -22,35 +22,37 @@ export const useLogin = () => {
     try {
       // 1. Gọi API
       const response = await authApi.login(credentials);
+
+      const { user, accessToken, refreshToken } = response.data;
       
-      // 2. Lưu token vào LocalStorage
+      const userId = parseInt(response.data.user.id);
+      const userObject = {
+        id: userId,
+        email: response.data.user.email,
+        fullname: response.data.user.name,
+        avatarUrl: '',
+      };
+
+      // 2. Lưu vào LocalStorage
       if (typeof window !== 'undefined') {
+
         localStorage.setItem('accessToken', response.data.token);
         localStorage.setItem('refreshToken', response.data.refreshToken || '');
+        localStorage.setItem('user', JSON.stringify(userObject)); // ✅ Lưu user object
         
         // Also save to cookies for middleware
         document.cookie = `accessToken=${response.data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
       }
 
-      // 3. Lấy userId từ response
-      const userId = parseInt(response.data.user.id);
-
-      // 4. Lưu vào Redux Store
+      // 3. Lưu vào Redux Store
       dispatch(setCredentials({
-        user: {
-          id: userId,
-          email: response.data.user.email,
-          fullname: response.data.user.name,
-          avatarUrl: '',
-        },
+        user: userObject,
         accessToken: response.data.token
       }));
 
-      // 5. ✅ Fetch folders và audios với userId từ response
-      await dispatch(fetchFolders(userId));
-      await dispatch(fetchAudios(userId));
+      console.log('✅ Login successful - User:', userObject);
 
-      // 6. Chuyển hướng về trang chủ
+      // 4. Chuyển hướng về trang chủ
       router.push('/');
       
       return response;

@@ -131,6 +131,36 @@ class AuthController {
             next(error);
         }
     }
+
+    async updateProfile(req: Request, res: Response, next: NextFunction){
+        try {
+            const userId = req.userId;
+            if (!userId) {
+                res.status(401).json({
+                    success: false,
+                    error: { message: 'Unauthorized' }
+                });
+                return; 
+            }
+            const { email, fullname, newPassword } = req.body;
+            const updatedUser = await authService.updateProfile({ userId, email, fullname, newPassword });
+
+            res.status(200).json({
+                success: true,
+                data: {
+                    id: updatedUser.id.toString(),
+                    email: updatedUser.email,
+                    name: updatedUser.fullname,
+                    avatarUrl: updatedUser.avatarUrl || ''
+                },
+                message: 'Profile updated successfully'
+            });
+            return;
+        } catch (error: any) {
+            next(error);
+
+        }
+    }
 }
 
 export default new AuthController();

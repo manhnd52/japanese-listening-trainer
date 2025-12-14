@@ -1,4 +1,4 @@
-import { prisma } from "../prisma";
+    import { prisma } from "../prisma";
 
 interface CreateFolderDto {
     name: string;
@@ -35,7 +35,10 @@ export class FolderService {
     async getFoldersByUserId(userId?: number) {
         return await prisma.folder.findMany({
             where: userId ? {
-                createdBy: userId,
+                OR: [
+                    { createdBy: userId },
+                    { folderShares: { some: { userId: userId } } }
+                ]
             } : {
                 isPublic: true,
             },
@@ -62,12 +65,16 @@ export class FolderService {
     }
 
     async getFolderById(id: number, userId?: number) {
-        return await prisma.folder.findFirst({
+        console.log(`[FolderService] getFolderById - id: ${id}, userId: ${userId}`);
+        
+        const startTime = Date.now();
+        const folder = await prisma.folder.findFirst({
             where: {
                 id,
                 OR: [
                     { createdBy: userId },
-                    { isPublic: true }
+                    { isPublic: true },
+                    { folderShares: { some: { userId: userId } } }
                 ]
             },
             include: {
@@ -79,12 +86,23 @@ export class FolderService {
                     },
                 },
                 audios: {
+                    select: {
+                        id: true,
+                        title: true,
+                        script: true,
+                        fileUrl: true,
+                        duration: true,
+                        createdAt: true,
+                    },
                     orderBy: {
                         createdAt: 'desc',
                     },
+                    take: 100, // Limit to 100 audios for performance
                 },
                 folderShares: {
-                    include: {
+                    select: {
+                        id: true,
+                        userId: true,
                         user: {
                             select: {
                                 id: true,
@@ -93,6 +111,7 @@ export class FolderService {
                             },
                         },
                     },
+                    take: 10, // Limit folder shares
                 },
                 _count: {
                     select: {
@@ -102,6 +121,10 @@ export class FolderService {
                 },
             },
         });
+        
+        const duration = Date.now() - startTime;
+        console.log(`[FolderService] Query completed in ${duration}ms. Folder found: ${!!folder}, audios count: ${folder?.audios?.length || 0}`);
+        return folder;
     }
 
     async updateFolder(id: number, userId: number, data: UpdateFolderDto) {

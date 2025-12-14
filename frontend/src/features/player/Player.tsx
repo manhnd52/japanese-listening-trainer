@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useRef } from "react"
-import { useAppDispatch, useAppSelector } from "@/hooks/redux"
-import { incrementProgress } from "@/store/features/player/playerSlice"
+import { useEffect, useRef } from 'react'
+import { useAppDispatch, useAppSelector } from '@/hooks/redux'
+import { incrementProgress } from '@/store/features/player/playerSlice'
 
 export default function Player() {
     const audioRef = useRef<HTMLAudioElement>(null)
@@ -11,41 +11,84 @@ export default function Player() {
     const isPlaying = useAppSelector(state => state.player.isPlaying)
     const dispatch = useAppDispatch()
 
+    // ✅ Update progress mỗi giây
     useEffect(() => {
-        let interval: any;
+        let interval: NodeJS.Timeout;
 
         if (isPlaying) {
             interval = setInterval(() => {
-                dispatch(incrementProgress());
-            }, 1000);
+                dispatch(incrementProgress())
+            }, 1000)
         }
 
         return () => clearInterval(interval);
-    }, [isPlaying]);
+    }, [isPlaying, dispatch]);
 
+    // ✅ Set volume
     useEffect(() => {
         if (!audioRef.current) return;
-        audioRef.current.volume = volume / 100
+        audioRef.current.volume = volume / 100;
+        console.log('Volume set to:', volume / 100);
     }, [volume])
 
+    // ✅ Set audio source - CHỈ KHI CÓ URL HỢP LỆ
     useEffect(() => {
         if (!audioRef.current) return;
-        audioRef.current.src = audioUrl || ''
+        
+        // ✅ Kiểm tra URL có hợp lệ không
+        if (!audioUrl || audioUrl === 'undefined' || audioUrl === 'null') {
+            console.warn('Invalid audio URL:', audioUrl);
+            return;
+        }
+        
+        console.log('Setting audio URL:', audioUrl);
+        
+        // ✅ Load audio mới
+        audioRef.current.src = audioUrl;
+        audioRef.current.load(); // Force reload
+        
     }, [audioUrl])
 
+    // ✅ Play/Pause control
     useEffect(() => {
-        if (!audioRef.current) return;
+        if (!audioRef.current || !audioUrl) return;
+        
         if (isPlaying) {
-            audioRef.current.play()
+            console.log('Playing audio...');
+            
+            const playPromise = audioRef.current.play();
+            
+            if (playPromise !== undefined) {
+                playPromise
+                    .then(() => {
+                        console.log('✅ Audio playing successfully');
+                    })
+                    .catch(err => {
+                        console.error('❌ Play failed:', err.message);
+                    });
+            }
         } else {
-            audioRef.current.pause()
+            console.log('Pausing audio...');
+            audioRef.current.pause();
         }
-    }, [isPlaying])
+    }, [isPlaying, audioUrl])
 
     return (
         <audio
             ref={audioRef}
-            autoPlay
+            preload="metadata"
+            onLoadedMetadata={() => console.log('✅ Audio metadata loaded')}
+            onCanPlay={() => console.log('✅ Audio can play')}
+            onError={(e) => {
+                const target = e.currentTarget;
+                console.error('❌ Audio error:', {
+                    src: target.src,
+                    error: target.error?.message,
+                    code: target.error?.code
+                });
+            }}
+            onPlay={() => console.log('▶️ Audio started playing')}
+            onPause={() => console.log('⏸️ Audio paused')}
         />
     )
 }

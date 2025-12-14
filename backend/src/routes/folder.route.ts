@@ -7,7 +7,7 @@ const router = Router();
 // Public: Get folders (with optional auth to see private folders)
 router.get("/", optionalAuth, FolderController.getFolders);
 
-// Public/Private: Get folder by ID (public folders accessible to all)
+// Get folder by ID
 router.get("/:id", optionalAuth, FolderController.getFolderById);
 
 // Protected: Create folder (requires auth)
