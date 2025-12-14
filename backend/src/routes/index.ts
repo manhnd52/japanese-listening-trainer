@@ -5,6 +5,8 @@ import audioRoutes from './audio.route';
 import sharringRoutes from './sharing.route';
 import statsRoutes from './stats.route';
 import authRoutes from './auth.route';
+import healthRoutes from './health.route';
+import quizRoutes, { quizAttemptRouter, mistakeQuizRouter } from './quiz.route';
 import { authenticateToken } from '@middlewares/auth.middleware';
 
 const router = Router();
@@ -12,9 +14,13 @@ const router = Router();
 // Mount routes
 router.use('/stats', statsRoutes);
 router.use('/folders', sharringRoutes);
+router.use('/health', healthRoutes);
 router.use('/users', authenticateToken, userRoutes);
 router.use('/folders', authenticateToken, folderRoutes);
 router.use('/audios', authenticateToken, audioRoutes);
-router.use('/auth', authRoutes); // Auth routes can be under users or a separate route
+router.use('/auth', authRoutes);
+router.use('/quizzes', authenticateToken, quizRoutes);
+router.use('/quiz-attempts', authenticateToken, quizAttemptRouter);
+router.use('/mistake-quizzes', authenticateToken, mistakeQuizRouter);
 
 export default router;

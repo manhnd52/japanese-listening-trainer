@@ -11,6 +11,37 @@ import {
 } from "@/store/features/player/playerSlice";
 import { AudioTrack } from "@/store/features/player/playerSlice";
 import { useAudioList } from "@/features/player/hooks/useAudioList";
+import Link from "next/link";
+
+const DUMMY_TRACKS: AudioTrack[] = [
+  {
+    id: "1",
+    title: "Lesson 1: Introduction",
+    url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/2.mp3",
+    duration: 300,
+    folderId: "folder-1",
+    status: AudioStatus.NEW,
+    isFavorite: false,
+  },
+  {
+    id: "2",
+    title: "Lesson 2: Basic Grammar",
+    url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/3.mp3",
+    duration: 450,
+    folderId: "folder-1",
+    status: AudioStatus.IN_PROGRESS,
+    isFavorite: true,
+  },
+  {
+    id: "3",
+    title: "Lesson 3: Vocabulary",
+    url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/4.mp3",
+    duration: 200,
+    folderId: "folder-2",
+    status: AudioStatus.COMPLETED,
+    isFavorite: false,
+  }
+];
 
 export default function Home() {
   const dispatch = useAppDispatch();
@@ -34,13 +65,21 @@ export default function Home() {
     <div className="p-8 space-y-8 min-h-screen bg-gray-50 dark:bg-black text-gray-900 dark:text-gray-100">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Player Store Demo</h1>
-        <button
-          onClick={refetch}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          disabled={isLoading}
-        >
-          {isLoading ? '⏳ Loading...' : '🔄 Refresh'}
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={refetch}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            disabled={isLoading}
+          >
+            {isLoading ? '⏳ Loading...' : '🔄 Refresh'}
+          </button>
+          <Link 
+            href="/test-quiz"
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition"
+          >
+            🧪 Test Quiz
+          </Link>
+        </div>
       </div>
 
       {error && (

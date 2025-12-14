@@ -36,8 +36,11 @@ export interface QuizAttemptInput {
 
 export interface QuizState {
   currentQuiz: Quiz | null;
+  allQuizzes: Quiz[];  // For "all quizzes" mode
+  currentIndex: number; // Current quiz index in allQuizzes
   result: QuizAttemptResult | null;
   isLoading: boolean;
   error: string | null;
   showModal: boolean;
+  mode: 'random' | 'all'; // Quiz mode
 }

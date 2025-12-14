@@ -3,10 +3,13 @@ import { Quiz, QuizAttemptResult, QuizState } from '../../features/quiz/types';
 
 const initialState: QuizState = {
   currentQuiz: null,
+  allQuizzes: [],
+  currentIndex: 0,
   result: null,
   isLoading: false,
   error: null,
   showModal: false,
+  mode: 'random',
 };
 
 const quizSlice = createSlice({
@@ -20,6 +23,30 @@ const quizSlice = createSlice({
       state.error = null;
     },
 
+    // Set all quizzes for "all quizzes" mode
+    setAllQuizzes: (state, action: PayloadAction<Quiz[]>) => {
+      state.allQuizzes = action.payload;
+      state.currentIndex = 0;
+      state.currentQuiz = action.payload[0] || null;
+      state.result = null;
+      state.error = null;
+      state.mode = 'all';
+    },
+
+    // Move to next quiz in "all quizzes" mode
+    nextQuiz: (state) => {
+      if (state.currentIndex < state.allQuizzes.length - 1) {
+        state.currentIndex += 1;
+        state.currentQuiz = state.allQuizzes[state.currentIndex];
+        state.result = null;
+      }
+    },
+
+    // Check if there's a next quiz
+    setMode: (state, action: PayloadAction<'random' | 'all'>) => {
+      state.mode = action.payload;
+    },
+
     // Show quiz modal
     openQuizModal: (state) => {
       state.showModal = true;
@@ -29,8 +56,11 @@ const quizSlice = createSlice({
     closeQuizModal: (state) => {
       state.showModal = false;
       state.currentQuiz = null;
+      state.allQuizzes = [];
+      state.currentIndex = 0;
       state.result = null;
       state.error = null;
+      state.mode = 'random';
     },
 
     // Set loading state
@@ -67,6 +97,9 @@ const quizSlice = createSlice({
 
 export const {
   setCurrentQuiz,
+  setAllQuizzes,
+  nextQuiz,
+  setMode,
   openQuizModal,
   closeQuizModal,
   setLoading,
