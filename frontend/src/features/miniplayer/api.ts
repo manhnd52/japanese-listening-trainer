@@ -12,15 +12,9 @@ export const playerAPI = {
      * @returns Promise with updated favorite status
      */
     toggleFavorite: async (audioId: string): Promise<ToggleFavoriteResponse> => {
-
-        // const response = await apiClient.post<ToggleFavoriteResponse>(
-        //     `/api/audio/${audioId}/favorite`
-        // );
-        const response = {
-            audioId,
-            isFavorite: true
-        }
-
-        return response;
+        const response = await apiClient.post<ToggleFavoriteResponse>(
+            `/audio/${audioId}/favorite`
+        );
+        return response.data as ToggleFavoriteResponse;
     }
 };

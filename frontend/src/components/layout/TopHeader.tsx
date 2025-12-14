@@ -137,7 +137,7 @@ const TopHeader = () => {
           {isMenuOpen && (
             <div className="absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl shadow-xl border border-brand-100 overflow-hidden animate-fade-in z-50">
               <div className="p-4 bg-brand-50 border-b border-brand-100">
-                <p className="text-brand-900 font-bold truncate">{user?.name}</p>
+                <p className="text-brand-900 font-bold truncate">{user?.fullname}</p>
                 <p className="text-brand-500 text-xs truncate">{user?.email}</p>
               </div>
 
