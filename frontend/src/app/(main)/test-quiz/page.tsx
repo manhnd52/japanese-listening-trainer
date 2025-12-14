@@ -15,8 +15,7 @@ import Link from 'next/link';
  */
 export default function TestQuizPage() {
   const { triggerQuiz, triggerAllQuizzes } = useQuiz();
-  const [randomAudioId, setRandomAudioId] = useState(1);
-  const [allAudioId, setAllAudioId] = useState(1);
+  const [quizTimeAudioId, setQuizTimeAudioId] = useState(1);
   
   // Management state
   const [manageAudioId, setManageAudioId] = useState(1);
@@ -39,12 +38,8 @@ export default function TestQuizPage() {
   const [scriptText, setScriptText] = useState('');
   const [aiQuizCount, setAiQuizCount] = useState(3);
 
-  const handleRandomQuiz = () => {
-    triggerQuiz(randomAudioId);
-  };
-
-  const handleAllQuizzes = () => {
-    triggerAllQuizzes(allAudioId);
+  const handleStartQuizTime = () => {
+    triggerAllQuizzes(quizTimeAudioId);
   };
 
   // Load quizzes for management
@@ -218,61 +213,39 @@ export default function TestQuizPage() {
       </div>
 
       <div className="max-w-6xl mx-auto p-6 pb-32">
-        {/* Test Panels (Random & All Quizzes) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          {/* Panel 1: Random Quiz */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <h2 className="text-lg font-bold text-blue-600 dark:text-blue-400 mb-2">🎲 Random Quiz</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Get a single random quiz for quick practice.
-            </p>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Audio ID
-              </label>
-              <input
-                type="number"
-                value={randomAudioId}
-                onChange={(e) => setRandomAudioId(Number(e.target.value))}
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-600 focus:border-blue-500 focus:outline-none"
-                placeholder="Enter audio ID"
-              />
+        {/* Quiz Time Panel */}
+        <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-3xl p-8 border border-orange-200 dark:border-orange-800 shadow-sm mb-8">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 p-3 rounded-xl">
+              <HelpCircle size={28}/>
+            </span>
+            <div>
+              <h2 className="text-2xl font-extrabold text-orange-800 dark:text-orange-300">Quiz Time</h2>
+              <p className="text-sm text-orange-600/80 dark:text-orange-400/80">
+                Test your listening comprehension with interactive quizzes
+              </p>
             </div>
-
-            <button
-              onClick={handleRandomQuiz}
-              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-600/20"
-            >
-              🎲 Get Random Quiz
-            </button>
           </div>
-
-          {/* Panel 2: All Quizzes */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
-            <h2 className="text-lg font-bold text-green-600 dark:text-green-400 mb-2">📚 All Quizzes</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              Go through all quizzes for an audio sequentially.
-            </p>
-            
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-orange-700 dark:text-orange-300 mb-2">
                 Audio ID
               </label>
               <input
                 type="number"
-                value={allAudioId}
-                onChange={(e) => setAllAudioId(Number(e.target.value))}
-                className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white rounded-xl border border-gray-200 dark:border-gray-600 focus:border-green-500 focus:outline-none"
+                value={quizTimeAudioId}
+                onChange={(e) => setQuizTimeAudioId(Number(e.target.value))}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-xl border border-orange-200 dark:border-orange-700 focus:border-orange-500 focus:outline-none shadow-sm"
                 placeholder="Enter audio ID"
               />
             </div>
-
             <button
-              onClick={handleAllQuizzes}
-              className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition shadow-lg shadow-green-600/20"
+              onClick={handleStartQuizTime}
+              className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:scale-95"
             >
-              📚 Start All Quizzes
+              <HelpCircle size={20} />
+              Start Quiz Time
             </button>
           </div>
         </div>
@@ -573,8 +546,8 @@ export default function TestQuizPage() {
             <li>Make sure backend is running with seeded data</li>
             <li>Login first (demo@example.com / password123)</li>
             <li>Enter an audioId (1-5 have quizzes from seed)</li>
-            <li>Use &quot;Random&quot; or &quot;All&quot; panels to test quiz flows</li>
-            <li>Use &quot;Load Manage Quizzes&quot; to enter management mode</li>
+            <li>Click &quot;Start Quiz Time&quot; to begin answering quizzes</li>
+            <li>Use &quot;Load Manage Quizzes&quot; to add/edit/delete quizzes</li>
             <li>For AI Generation: Set <code className="bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-purple-600 dark:text-purple-400">NEXT_PUBLIC_GEMINI_API_KEY</code> in .env</li>
           </ol>
         </div>
