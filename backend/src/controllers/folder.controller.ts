@@ -148,9 +148,6 @@ const FolderController = {
     getFolderById,
     updateFolder,
     deleteFolder,
-    shareFolder,
-    getFolderShares,
-    unshareFolder,
 };
 
 export default FolderController;
