@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { folderService } from "../services/folder.service";
 import { successResponse, errorResponse } from "../utils/response";
-import { prisma } from "prisma";
 
 
 async function createFolder(req: Request, res: Response, next: NextFunction) {

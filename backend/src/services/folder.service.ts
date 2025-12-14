@@ -11,44 +11,58 @@ interface UpdateFolderDto {
     isPublic?: boolean;
 }
 
-async function createFolder(data: CreateFolderDto) {
-    try {
-        const folder = await prisma.folder.create({
+export class FolderService {
+    async createFolder(data: CreateFolderDto) {
+        return await prisma.folder.create({
             data: {
                 name: data.name,
                 isPublic: data.isPublic ?? false,
                 createdBy: data.createdBy,
             },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        fullname: true,
+                    },
+                },
+                audios: true,
+            },
         });
-        return folder;
-    } catch (error) {
-        console.error("Error creating folder:", error);
-        throw error;
     }
-}
 
-async function getFoldersByUserId(userId?: number) {
-    try {
-        const folders = await prisma.folder.findMany({
+    async getFoldersByUserId(userId?: number) {
+        return await prisma.folder.findMany({
             where: userId ? {
                 createdBy: userId,
             } : {
-                isPublic: true, // If no userId, only return public folders
+                isPublic: true,
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        fullname: true,
+                    },
+                },
+                audios: true,
+                _count: {
+                    select: {
+                        audios: true,
+                        folderShares: true,
+                    },
+                },
             },
             orderBy: {
                 createdAt: 'desc',
             },
         });
-        return folders;
-    } catch (error) {
-        console.error("Error fetching folders:", error);
-        throw error;
     }
-}
 
-async function getFolderById(id: number, userId?: number) {
-    try {
-        const folder = await prisma.folder.findFirst({
+    async getFolderById(id: number, userId?: number) {
+        return await prisma.folder.findFirst({
             where: {
                 id,
                 OR: [
@@ -56,16 +70,41 @@ async function getFolderById(id: number, userId?: number) {
                     { isPublic: true }
                 ]
             },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        fullname: true,
+                    },
+                },
+                audios: {
+                    orderBy: {
+                        createdAt: 'desc',
+                    },
+                },
+                folderShares: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                email: true,
+                                fullname: true,
+                            },
+                        },
+                    },
+                },
+                _count: {
+                    select: {
+                        audios: true,
+                        folderShares: true,
+                    },
+                },
+            },
         });
-        return folder;
-    } catch (error) {
-        console.error("Error fetching folder:", error);
-        throw error;
     }
-}
 
-async function updateFolder(id: number, userId: number, data: UpdateFolderDto) {
-    try {
+    async updateFolder(id: number, userId: number, data: UpdateFolderDto) {
         const existingFolder = await prisma.folder.findFirst({
             where: {
                 id,
@@ -77,22 +116,32 @@ async function updateFolder(id: number, userId: number, data: UpdateFolderDto) {
             throw new Error("Folder not found or access denied");
         }
 
-        const updatedFolder = await prisma.folder.update({
+        return await prisma.folder.update({
             where: { id },
             data: {
                 ...(data.name && { name: data.name }),
                 ...(data.isPublic !== undefined && { isPublic: data.isPublic }),
             },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        email: true,
+                        fullname: true,
+                    },
+                },
+                audios: true,
+                _count: {
+                    select: {
+                        audios: true,
+                        folderShares: true,
+                    },
+                },
+            },
         });
-        return updatedFolder;
-    } catch (error) {
-        console.error("Error updating folder:", error);
-        throw error;
     }
-}
 
-async function deleteFolder(id: number, userId: number) {
-    try {
+    async deleteFolder(id: number, userId: number) {
         const existingFolder = await prisma.folder.findFirst({
             where: {
                 id,
@@ -112,22 +161,10 @@ async function deleteFolder(id: number, userId: number) {
             throw new Error("Cannot delete folder with audios. Please delete all audios first.");
         }
 
-        await prisma.folder.delete({
+        return await prisma.folder.delete({
             where: { id }
         });
-
-        return { message: "Folder deleted successfully" };
-    } catch (error) {
-        console.error("Error deleting folder:", error);
-        throw error;
     }
 }
 
-
-export const folderService = {
-    createFolder,
-    getFoldersByUserId,
-    getFolderById,
-    updateFolder,
-    deleteFolder,
-};
+export const folderService = new FolderService();
