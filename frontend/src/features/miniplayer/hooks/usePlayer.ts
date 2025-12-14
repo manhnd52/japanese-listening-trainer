@@ -4,8 +4,7 @@ import { useCallback } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import {
     toggleFavoriteOptimistic,
-    updateFavoriteStatus,
-    setError
+    updateFavoriteStatus
 } from '@/store/features/player/playerSlice';
 import { playerAPI } from '../api';
 

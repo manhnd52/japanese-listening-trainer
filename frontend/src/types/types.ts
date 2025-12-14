@@ -74,6 +74,7 @@ export interface AudioTrack {
   isFavorite?: boolean;
   isSuspend?: boolean;
   script?: string;
+  quizzes?: Quiz[];
   // Thêm các trường khác nếu cần
 }
 

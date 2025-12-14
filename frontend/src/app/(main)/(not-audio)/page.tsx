@@ -7,7 +7,7 @@ import { AudioTrack } from "@/store/features/player/playerSlice";
 
 const DUMMY_TRACKS: AudioTrack[] = [
   {
-    id: "1",
+    id: "54",
     title: "Lesson 1: Introduction",
     url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/2.mp3",
     duration: 300,
@@ -16,7 +16,7 @@ const DUMMY_TRACKS: AudioTrack[] = [
     isFavorite: false,
   },
   {
-    id: "2",
+    id: "55",
     title: "Lesson 2: Basic Grammar",
     url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/3.mp3",
     duration: 450,
@@ -25,7 +25,7 @@ const DUMMY_TRACKS: AudioTrack[] = [
     isFavorite: true,
   },
   {
-    id: "3",
+    id: "56",
     title: "Lesson 3: Vocabulary",
     url: "https://www.vnjpclub.com/Audio/mimikaran3chokai/CD1/4.mp3",
     duration: 200,

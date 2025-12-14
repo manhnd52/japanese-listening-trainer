@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
 
@@ -8,7 +9,6 @@ import {
   playPause,
   nextTrack,
   prevTrack,
-  setExpanded,
   setVolume,
   setRelaxModeSource,
   toggleEnableQuiz,
@@ -185,6 +185,7 @@ function VolumeSection({ volume, onVolume, onExpand }: { volume: number; onVolum
 }
 
 const MiniPlayer = () => {
+  const router = useRouter();
   const playerState = useAppSelector((state) => state.player);
   const currentAudio = playerState.currentAudio;
   const isPlaying = playerState.isPlaying;
@@ -198,6 +199,12 @@ const MiniPlayer = () => {
   // Use custom hook for player functionality
   const { toggleFavorite, isFavorite } = usePlayer();
 
+  const handleExpand = () => {
+    if (currentAudio?.id) {
+      router.push(`/audios/${currentAudio.id}`);
+    }
+  };
+
   if (!currentAudio) return null;
 
   return (
@@ -205,7 +212,7 @@ const MiniPlayer = () => {
       <ProgressBar progress={progress} duration={duration} />
 
       <div className="flex items-center justify-between max-w-7xl mx-auto px-2 md:px-4 h-20">
-        <TrackInfo currentAudio={currentAudio} onExpand={() => dispatch(setExpanded(true))} />
+        <TrackInfo currentAudio={currentAudio} onExpand={handleExpand} />
 
         <Controls
           isPlaying={isPlaying}
@@ -221,7 +228,7 @@ const MiniPlayer = () => {
         <VolumeSection
           volume={volume}
           onVolume={(v) => dispatch(setVolume(v))}
-          onExpand={() => dispatch(setExpanded(true))}
+          onExpand={handleExpand}
         />
       </div>
     </div>
