@@ -17,7 +17,7 @@ apiClient.interceptors.request.use(
     (config) => {
         // Get token from localStorage (if using JWT)
         if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('accessToken');
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
@@ -36,7 +36,8 @@ apiClient.interceptors.response.use(
         // Handle 401 Unauthorized
         if (error.response?.status === 401) {
             if (typeof window !== 'undefined') {
-                localStorage.removeItem('token');
+                localStorage.removeItem('accessToken'); // Changed from 'token'
+                localStorage.removeItem('refreshToken');
                 // Optionally redirect to login
                 // window.location.href = '/login';
             }

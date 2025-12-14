@@ -42,7 +42,8 @@ const FoldersPage = () => {
     
     try {
       setCreateLoading(true);
-      await createFolder({ name, isPublic, userId: user.id });
+      // userId will be extracted from JWT token by backend, no need to send it
+      await createFolder({ name, isPublic });
       setIsModalOpen(false);
       await fetchFolders();
     } catch (err) {
