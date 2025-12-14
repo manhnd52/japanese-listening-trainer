@@ -1,16 +1,22 @@
 import { Router } from "express";
 import FolderController from "../controllers/folder.controller";
+import { authenticateToken, optionalAuth } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", FolderController.getFolders);
+// Public: Get folders (with optional auth to see private folders)
+router.get("/", optionalAuth, FolderController.getFolders);
 
-router.get("/:id", FolderController.getFolderById);
+// Public/Private: Get folder by ID (public folders accessible to all)
+router.get("/:id", optionalAuth, FolderController.getFolderById);
 
-router.post("/", FolderController.createFolder);
+// Protected: Create folder (requires auth)
+router.post("/", authenticateToken, FolderController.createFolder);
 
-router.put("/:id", FolderController.updateFolder);
+// Protected: Update folder (requires auth + ownership check in controller)
+router.put("/:id", authenticateToken, FolderController.updateFolder);
 
-router.delete("/:id", FolderController.deleteFolder);
+// Protected: Delete folder (requires auth + ownership check in controller)
+router.delete("/:id", authenticateToken, FolderController.deleteFolder);
 
 export default router;
