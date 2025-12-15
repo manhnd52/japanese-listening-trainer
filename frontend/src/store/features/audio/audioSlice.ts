@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AudioTrack, Folder } from '@/types/types';
+import { apiClient } from '@/lib/api';
 
 interface FolderWithCount extends Folder {
   _count?: {
@@ -28,8 +29,8 @@ export const fetchAudios = createAsyncThunk(
   'audio/fetchAudios',
   async (userId: number, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios?userId=${userId}`);
-      const data = await response.json();
+      const response = await apiClient.get(`/audios?userId=${userId}`);
+      const data = response.data;
       if (!data.success) {
         return rejectWithValue(data.message || 'Failed to fetch audios');
       }
@@ -44,8 +45,8 @@ export const fetchFolders = createAsyncThunk(
   'audio/fetchFolders',
   async (userId: number, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios/folders?userId=${userId}`);
-      const data = await response.json();
+      const response = await apiClient.get(`/audios/folders?userId=${userId}`);
+      const data = response.data;
       if (!data.success) {
         return rejectWithValue(data.message || 'Failed to fetch folders');
       }
@@ -63,11 +64,8 @@ export const uploadAudio = createAsyncThunk(
       // ✅ Thêm userId vào formData
       formData.append('userId', userId.toString());
       
-      const response = await fetch('http://localhost:5000/api/audios', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
+      const response = await apiClient.post('/audios', formData);
+      const data = response.data;
       if (!data.success) {
         return rejectWithValue(data.message || 'Upload failed');
       }
@@ -90,12 +88,11 @@ export const updateAudio = createAsyncThunk(
     userId: number 
   }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...data, userId }), // ✅ Thêm userId vào body
+      const response = await apiClient.put(`/audios/${id}`, {
+        ...data,
+        userId,
       });
-      const result = await response.json();
+      const result = response.data;
       if (!result.success) {
         return rejectWithValue(result.message || 'Update failed');
       }
@@ -110,10 +107,8 @@ export const deleteAudio = createAsyncThunk(
   'audio/deleteAudio',
   async ({ id, userId }: { id: string; userId: number }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios/${id}?userId=${userId}`, {
-        method: 'DELETE',
-      });
-      const data = await response.json();
+      const response = await apiClient.delete(`/audios/${id}?userId=${userId}`);
+      const data = response.data;
       if (!data.success) {
         return rejectWithValue(data.message || 'Delete failed');
       }
@@ -136,12 +131,11 @@ export const moveAudio = createAsyncThunk(
     userId: number 
   }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios/${id}/move`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folderId: Number(folderId), userId }), // ✅ Thêm userId vào body
+      const response = await apiClient.patch(`/audios/${id}/move`, {
+        folderId: Number(folderId),
+        userId,
       });
-      const data = await response.json();
+      const data = response.data;
       if (!data.success) {
         return rejectWithValue(data.message || 'Move failed');
       }
@@ -157,12 +151,11 @@ export const toggleFavorite = createAsyncThunk(
   'audio/toggleFavorite',
   async ({ id, userId, isFavorite }: { id: string; userId: number; isFavorite: boolean }, { rejectWithValue }) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/audios/${id}/favorite`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, isFavorite }),
+      const response = await apiClient.patch(`/audios/${id}/favorite`, {
+        userId,
+        isFavorite,
       });
-      const data = await response.json();
+      const data = response.data;
       if (!data.success) {
         return rejectWithValue(data.message || 'Toggle favorite failed');
       }
