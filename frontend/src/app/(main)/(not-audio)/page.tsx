@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { statsApi } from '@/features/stats/api';
 import { audioApi } from '@/features/audios/api';
+import { mergeRecentlyListened } from '@/store/features/audio/audioSlice';
 import { Music, BarChart3, TrendingUp, RefreshCw } from 'lucide-react';
 import { AudioTrack } from '@/types/types';
 import { useAudioActions } from '@/features/audios/hooks';
+import { Heart } from 'lucide-react';
 
 interface UserStats {
   streak: number;
@@ -31,9 +33,9 @@ export default function HomePage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth?.user);
+  const audios = useAppSelector((state) => state.audio.audios);
   const { handlePlay, handleToggleFavorite} = useAudioActions();
   const [stats, setStats] = useState<UserStats | null>(null);
-  const [recentAudios, setRecentAudios] = useState<AudioTrack[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +47,15 @@ export default function HomePage() {
         const statsResponse = await statsApi.getStats();
         setStats(statsResponse.data.data);
 
-        // Fetch recently listened audios
+        // Fetch recently listened audios và merge vào store
         if (user?.id) {
-          const audiosResponse = await audioApi.getRecentlyListened(user.id, 5);
-          setRecentAudios(audiosResponse.data || []);
+          const NUM_LISTENED = 5;
+          const audiosResponse = await audioApi.getRecentlyListened(user.id, NUM_LISTENED);
+          if (audiosResponse.data) {
+            dispatch(mergeRecentlyListened(audiosResponse.data));
+          }
         }
+        
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load dashboard data');
@@ -61,7 +67,7 @@ export default function HomePage() {
     if (user) {
       fetchData();
     }
-  }, [user]);
+  }, [user, dispatch]);
 
   if (loading) {
     return (
@@ -233,9 +239,9 @@ export default function HomePage() {
         </button>
         </div>
 
-        {recentAudios && recentAudios.length > 0 ? (
+        {audios && audios.length > 0 ? (
           <div className="space-y-3">
-            {recentAudios.map((audio) => (
+            {audios.slice(0, 5).map((audio) => (
               <div
                 key={audio.id}
                 className="group bg-jlt-sage hover:bg-brand-200/70 rounded-xl p-3 transition-all flex items-center gap-4 shadow-sm border border-transparent hover:border-brand-300 cursor-pointer"
@@ -271,21 +277,9 @@ export default function HomePage() {
                       e.stopPropagation();
                       handleToggleFavorite(audio);
                     }}
-                    className="text-brand-400 hover:text-brand-600 transition"
+                    className={`transition ${audio.isFavorite ? 'red-600' : 'text-brand-400 hover:text-brand-600'}`}
                   >
-                    <svg
-                      className="w-5 h-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                      />
-                    </svg>
+                    <Heart size={22} fill={audio.isFavorite ? 'currentColor' : 'none'} strokeWidth={2.5} />
                   </button>
                 </div>
               </div>

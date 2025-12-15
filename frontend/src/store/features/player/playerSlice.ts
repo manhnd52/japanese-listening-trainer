@@ -77,10 +77,12 @@ const playerSlice = createSlice({
       state.currentFolderId = action.payload.folderId;
       state.currentIndex = -1;
     },
+
     setPlaylistArray(state, action: PayloadAction<AudioTrack[]>) {
       state.playlist = action.payload;
       state.currentFolderId = null;
     },
+
     setTrack(state, action: PayloadAction<AudioTrack>) {
       state.isPlaying = true;
       state.currentAudio = action.payload;
@@ -91,12 +93,15 @@ const playerSlice = createSlice({
         state.currentIndex = index;
       }
     },
+
     setPlaylist(state, action: PayloadAction<Playlist>) {
       state.currentPlaylist = action.payload;
     },
+
     playPause(state) {
       state.isPlaying = !state.isPlaying;
     },
+
     nextTrack(state) {
       if (state.playlist.length === 0) return;
       const nextIndex = (state.currentIndex + 1) % state.playlist.length;
@@ -105,6 +110,7 @@ const playerSlice = createSlice({
       state.progress = 0;
       state.isPlaying = true;
     },
+
     prevTrack(state) {
       if (state.playlist.length === 0) return;
       if (state.progress > 3) {
@@ -119,12 +125,15 @@ const playerSlice = createSlice({
       state.progress = 0;
       state.isPlaying = true;
     },
+    
     updateProgress(state, action: PayloadAction<number>) {
       state.progress = action.payload >= 100 ? 0 : action.payload;
     },
+
     incrementProgress(state) {
       state.progress += 1;
     },
+
     toggleFavoriteOptimistic(state) {
       if (state.currentAudio) {
         state.currentAudio.isFavorite = !state.currentAudio.isFavorite;
@@ -133,6 +142,7 @@ const playerSlice = createSlice({
         }
       }
     },
+
     updateFavoriteStatus(state, action: PayloadAction<{ audioId: string; isFavorite: boolean }>) {
       if (state.currentAudio?.id === action.payload.audioId) {
         state.currentAudio.isFavorite = action.payload.isFavorite;
@@ -142,30 +152,39 @@ const playerSlice = createSlice({
         track.isFavorite = action.payload.isFavorite;
       }
     },
+
     setExpanded(state, action: PayloadAction<boolean>) {
       state.isExpanded = action.payload;
     },
+
     toggleExpanded(state) {
       state.isExpanded = !state.isExpanded;
     },
+
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
+
     clearError(state) {
       state.error = null;
     },
+
     setVolume(state, action: PayloadAction<number>) {
       state.volume = action.payload;
     },
+
     setRelaxModeSource(state, action: PayloadAction<Source>) {
       state.relaxModeConfig.source = action.payload;
     },
+
     toggleEnableQuiz(state) {
       state.relaxModeConfig.enableQuiz = !state.relaxModeConfig.enableQuiz;
     },
+
     toggleAiExplainMode(state) {
       state.relaxModeConfig.aiExplainMode = !state.relaxModeConfig.aiExplainMode;
     },
+    
     updateRelaxModeConfig(state, action: PayloadAction<Partial<RelaxModeConfig>>) {
       state.relaxModeConfig = { ...state.relaxModeConfig, ...action.payload };
     },

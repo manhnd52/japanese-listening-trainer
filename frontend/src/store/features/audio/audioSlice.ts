@@ -178,6 +178,18 @@ const audioSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    // Merge recently listened audios vào store (tránh lặp)
+    mergeRecentlyListened: (state, action: PayloadAction<AudioTrack[]>) => {
+      const newAudios = action.payload;
+      const existingIds = new Set(state.audios.map(a => a.id));
+      
+      // Chỉ thêm các audio chưa tồn tại
+      newAudios.forEach(audio => {
+        if (!existingIds.has(audio.id)) {
+          state.audios.push(audio);
+        }
+      });
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -310,5 +322,5 @@ const audioSlice = createSlice({
   },
 });
 
-export const { setUploadProgress, clearError } = audioSlice.actions;
+export const { setUploadProgress, clearError, mergeRecentlyListened } = audioSlice.actions;
 export default audioSlice.reducer;
