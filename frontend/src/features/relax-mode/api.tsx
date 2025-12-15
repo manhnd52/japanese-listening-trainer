@@ -5,7 +5,7 @@ import { apiClient } from '@/lib/api';
  */
 export async function fetchRandomAudiosFromMyList(userId: number, limit: number = 10) {
   const response = await apiClient.get(`/audios/random/my-list`, {
-    params: { userId, limit }
+    params: { limit }
   });
   return response.data.data;
 }
@@ -15,7 +15,7 @@ export async function fetchRandomAudiosFromMyList(userId: number, limit: number 
  */
 export async function fetchRandomAudiosFromCommunity(userId: number, limit: number = 10) {
   const response = await apiClient.get(`/audios/random/community`, {
-    params: { userId, limit }
+    params: { limit }
   });
   return response.data.data;
 }
