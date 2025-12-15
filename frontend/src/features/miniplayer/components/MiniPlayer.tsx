@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings, User } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
 import {
   playPause,
@@ -17,6 +17,7 @@ import { toggleFavorite } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/store/features/player/playerSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import VolumeControl from './VolumeControl';
+import { useRelaxMode } from '@/features/relax-mode/hooks';
 
 function ProgressBar({ progress, duration }: { progress: number; duration: number }) {
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
@@ -47,9 +48,14 @@ function TrackInfo({ currentAudio, onExpand }: { currentAudio: AudioTrack; onExp
   );
 }
 
-function SettingsPopup() {
+function SettingsPopup({ onSourceChange }: { onSourceChange: (source: Source) => void }) {
   const dispatch = useAppDispatch();
   const relaxModeConfig = useAppSelector((state) => state.player.relaxModeConfig);
+
+  const handleSourceChange = (newSource: Source) => {
+    dispatch(setRelaxModeSource(newSource));
+    onSourceChange(newSource);
+  };
 
   return (
     <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-64 bg-white border border-brand-200 rounded-xl p-4 shadow-xl text-sm">
@@ -60,7 +66,7 @@ function SettingsPopup() {
           <select 
             className="bg-brand-50 border border-brand-200 rounded px-2 py-1 text-xs text-brand-900 outline-none"
             value={relaxModeConfig.source}
-            onChange={(e) => dispatch(setRelaxModeSource(e.target.value as Source))}
+            onChange={(e) => handleSourceChange(e.target.value as Source)}
           >
             <option value={Source.MyList}>My List</option>
             <option value={Source.Community}>Community</option>
@@ -98,6 +104,7 @@ function Controls({
   onNext,
   showSettings,
   setShowSettings,
+  onSourceChange,
 }: {
   isPlaying: boolean;
   isFavorite: () => boolean;
@@ -107,6 +114,7 @@ function Controls({
   onNext: () => void;
   showSettings: boolean;
   setShowSettings: (v: boolean) => void;
+  onSourceChange: (source: Source) => void;
 }) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -163,7 +171,7 @@ function Controls({
             <Settings size={22} strokeWidth={2.5} />
           </button>
 
-          {showSettings && <SettingsPopup />}
+          {showSettings && <SettingsPopup onSourceChange={onSourceChange} />}
         </div>
       </div>
     </div>
@@ -184,6 +192,7 @@ function VolumeSection({ volume, onVolume, onExpand }: { volume: number; onVolum
 const MiniPlayer = () => {
   const router = useRouter();
   const playerState = useAppSelector((state) => state.player);
+  const user = useAppSelector((state) => state.auth.user);
   const currentAudio = playerState.currentAudio;
   const isPlaying = playerState.isPlaying;
   const volume = playerState.volume;
@@ -194,9 +203,9 @@ const MiniPlayer = () => {
   const [showSettings, setShowSettings] = useState(false);
 
   // Lấy user từ state để gọi API favorite
-  const { user } = useAppSelector((state) => state.auth);
+  // Sử dụng hook useRelaxMode để load random audios
+  const { loadRandomAudios } = useRelaxMode();
 
-  // Không dùng usePlayer cho toggleFavorite nữa
   const handleToggleFavorite = async () => {
     if (!currentAudio || !user?.id) return;
     await dispatch(toggleFavorite({
@@ -211,6 +220,11 @@ const MiniPlayer = () => {
     if (currentAudio?.id) {
       router.push(`/audios/${currentAudio.id}`);
     }
+  };
+
+  const handleSourceChange = async (newSource: Source) => {
+    // Load random audios from new source
+    await loadRandomAudios(newSource);
   };
 
   if (!currentAudio) return null;
@@ -231,6 +245,7 @@ const MiniPlayer = () => {
           onNext={() => dispatch(nextTrack())}
           showSettings={showSettings}
           setShowSettings={setShowSettings}
+          onSourceChange={handleSourceChange}
         />
 
         <VolumeSection
