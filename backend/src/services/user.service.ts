@@ -1,18 +1,31 @@
 import { prisma } from "../prisma";
 
 /*
-data format: {
-  name: string,
-  password: string
-}
+  Cập nhật interface cho khớp với Schema:
+  1. name -> fullname
+  2. Thêm password (vì trong schema field này không có dấu ? nên là bắt buộc)
 */
-async function createUser(user: { name: string, email: string }) {
+interface CreateUserParams {
+  fullname: string;
+  email: string;
+  password: string; 
+}
+
+async function createUser(user: CreateUserParams) {
     console.log(user);
     try {
-        // Đảm bảo chỉ truyền các trường hợp lệ vào prisma.user.create
-        const { name, email } = user;
-        const id = await prisma.user.create({ data: { name, email } });
-        return id;
+        const { fullname, email, password } = user;
+        
+        // Tạo user mới với đúng tên trường trong database
+        const newUser = await prisma.user.create({ 
+            data: { 
+                fullname, // Khớp với schema
+                email,
+                password  // Khớp với schema
+                // avatarUrl là optional (String?) nên không truyền cũng được
+            } 
+        });
+        return newUser;
     } catch (error) {
         console.error(error);
         throw error;
