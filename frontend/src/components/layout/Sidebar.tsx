@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FolderOpen, Music, User, Settings, BarChart2} from 'lucide-react';
+import { Home, FolderOpen, Music, User, Settings, BarChart2, RotateCcw } from 'lucide-react';
 
 const menuItems = [
   { icon: Home, label: 'Home', path: '/' },
   { icon: FolderOpen, label: 'Folders', path: '/folders' },
   { icon: Music, label: 'Library', path: '/library' },
+  { icon: RotateCcw, label: 'Review', path: '/review' },
   { icon: BarChart2, label: 'Stats', path: '/stats' },
   { icon: User, label: 'Profile', path: '/profile' },
   { icon: Settings, label: 'Settings', path: '/settings' },
