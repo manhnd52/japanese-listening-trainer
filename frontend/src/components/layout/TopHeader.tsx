@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/store/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
-import { Search, Flame, User as UserIcon, LogOut, Link } from 'lucide-react';
+import { Search, Flame, User as UserIcon, LogOut, Link, Upload, Coffee } from 'lucide-react';
 import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
 import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
 
@@ -85,31 +85,40 @@ const TopHeader = () => {
       <div className="flex items-center gap-3 md:gap-6">
         
 
-        {/* Relax btn */}
-        <div
-          onClick={() => setIsRelaxModalOpen(true)}
-          className="hidden md:block bg-jlt-peach text-brand-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm 
-            border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
-        >
-          Relax
-        </div>
-
-        <div
-          onClick={() => navigate('/folders')}
-          className="hidden md:block bg-jlt-peach text-brand-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm 
-            border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
-        >
-          My Folder
-        </div>
+      <div
+        onClick={() => setIsRelaxModalOpen(true)}
+        className="
+          hidden md:flex items-center gap-2
+          bg-jlt-cream text-brand-600
+          px-4 py-2 rounded-full text-sm font-semibold
+          shadow-lg
+          hover:shadow-2xl
+          hover:scale-110
+          transition-all duration-300
+          cursor-pointer select-none
+          transform-gpu
+        "
+      >
+        <Coffee className="w-5 h-5 animate-bounce-slow" />
+        <span>Relax</span>
+      </div>
 
         {/* Add audio */}
-        <div
-          onClick={() => navigate('/add-audio')}
-          className="hidden md:block bg-jlt-peach text-brand-900 px-3 py-1 rounded-full text-sm font-bold shadow-sm 
-            border-b-2 border-orange-300 cursor-pointer hover:translate-y-0.5 transition-transform"
-        >
-          Add Audio
-        </div>
+           <button
+              onClick={() => navigate("/add-audio")}
+              className="
+                hidden md:flex items-center gap-2 
+                bg-jlt-peach text-brand-900 
+                px-4 py-2 rounded-full text-sm font-bold
+                shadow-sm border-b-2 border-orange-300
+                hover:translate-y-0.5 hover:shadow-md
+                transition-all
+                focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1
+              "
+            >
+              <Upload className="w-4 h-4" />
+              Add Audio
+          </button>
 
         {/* Streak */}
         <div className="flex items-center gap-1.5 bg-brand-600/50 px-3 py-1.5 rounded-lg border border-brand-400/30">
