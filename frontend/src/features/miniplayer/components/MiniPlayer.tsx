@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
-
 import {
   playPause,
   nextTrack,
@@ -14,11 +13,9 @@ import {
   toggleEnableQuiz,
   toggleAiExplainMode
 } from "@/store/features/player/playerSlice";
-
+import { toggleFavorite } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/store/features/player/playerSlice';
-
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { usePlayer } from '@/features/miniplayer/hooks/usePlayer';
 import VolumeControl from './VolumeControl';
 
 function ProgressBar({ progress, duration }: { progress: number; duration: number }) {
@@ -196,8 +193,19 @@ const MiniPlayer = () => {
   const dispatch = useAppDispatch();
   const [showSettings, setShowSettings] = useState(false);
 
-  // Use custom hook for player functionality
-  const { toggleFavorite, isFavorite } = usePlayer();
+  // Lấy user từ state để gọi API favorite
+  const { user } = useAppSelector((state) => state.auth);
+
+  // Không dùng usePlayer cho toggleFavorite nữa
+  const handleToggleFavorite = async () => {
+    if (!currentAudio || !user?.id) return;
+    await dispatch(toggleFavorite({
+      id: currentAudio.id as string,
+      userId: user.id,
+      isFavorite: !currentAudio.isFavorite,
+    }));
+    // Không cần fetch lại, Redux sẽ tự update state cho mọi nơi
+  };
 
   const handleExpand = () => {
     if (currentAudio?.id) {
@@ -216,8 +224,8 @@ const MiniPlayer = () => {
 
         <Controls
           isPlaying={isPlaying}
-          isFavorite={isFavorite}
-          toggleFavorite={toggleFavorite}
+          isFavorite={() => !!currentAudio.isFavorite}
+          toggleFavorite={handleToggleFavorite}
           onPrev={() => dispatch(prevTrack())}
           onPlayPause={() => dispatch(playPause())}
           onNext={() => dispatch(nextTrack())}
