@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Folder } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { updateAudio, clearError } from '@/store/features/audio/audioSlice';
+import { updateAudio, clearError,fetchAudios } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/types/types';
 
 interface EditAudioModalProps {
@@ -59,6 +59,7 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
 
     if (updateAudio.fulfilled.match(result)) {
       alert('Audio updated successfully!');
+      dispatch(fetchAudios({ userId: user.id }));
       handleClose();
     }
   };
