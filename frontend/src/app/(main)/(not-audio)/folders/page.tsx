@@ -6,7 +6,7 @@ import { Folder, Plus, Lock, Unlock, Music } from 'lucide-react';
 import { fetchFolders, createFolder as createFolderThunk } from '@/store/features/folder/folderSlice';
 import CreateFolderModal from '@/features/folder/components/CreateFolderModal';
 import { useState } from 'react';
-
+import { message } from "antd";
 const FoldersPage = () => {
   const dispatch = useAppDispatch();
   const { folders, loading, error } = useAppSelector((state) => state.folder);
@@ -32,7 +32,7 @@ const FoldersPage = () => {
       setIsModalOpen(false);
     } catch (err) {
       console.error('Error creating folder:', err);
-      alert('Failed to create folder');
+      message.error('Failed to create folder');
     } finally {
       setCreateLoading(false);
     }
