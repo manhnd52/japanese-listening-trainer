@@ -29,19 +29,12 @@ export const useAudioActions = () => {
   };
 
   const handleToggleFavorite = async (audio: AudioTrack) => {
-<<<<<<< HEAD
     if (user?.id) {
       await dispatch(toggleFavorite({ id: audio.id, userId: user.id, isFavorite: !audio.isFavorite }));
-=======
-    if (!user?.id) {
-      message.error('User not authenticated');
-      return;
->>>>>>> origin/main
     }
   };
 
   const handleDelete = async (id: string) => {
-<<<<<<< HEAD
     if (user?.id) {
       if (window.confirm('Are you sure you want to delete this audio?')) {
         const result = await dispatch(deleteAudio({ id, userId: user.id }));
@@ -51,20 +44,6 @@ export const useAudioActions = () => {
         } else {
           alert('Failed to delete audio');
         }
-=======
-    if (!user?.id) {
-      message.error('User not authenticated');
-      return;
-    }
-
-    if (window.confirm('Are you sure you want to delete this audio?')) {
-      const result = await dispatch(deleteAudio({ id, userId: user.id }));
-      if (deleteAudio.fulfilled.match(result)) {
-        message.success('Audio deleted successfully!');
-        dispatch(fetchAudios({ userId: user.id }));
-      } else {
-        message.error('Failed to delete audio');
->>>>>>> origin/main
       }
     }
   };
