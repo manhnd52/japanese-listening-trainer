@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
+import { useRelaxMode } from '../hooks';
 
 interface RelaxModeModalProps {
   isOpen: boolean;
@@ -12,12 +13,23 @@ interface RelaxModeModalProps {
 
 const RelaxModeModal = ({ isOpen, onClose, onSelectOption }: RelaxModeModalProps) => {
   const [selectedOption, setSelectedOption] = useState<Source | null>(null);
+  const { isLoading, loadRandomAudios } = useRelaxMode();
 
   if (!isOpen) return null;
 
-  const handleSelectOption = (option: Source) => {
+  const handleSelectOption = async (option: Source) => {
     setSelectedOption(option);
     onSelectOption(option);
+    
+    await loadRandomAudios(
+      option,
+      () => {
+        // Close modal after successful load
+        setTimeout(() => {
+          onClose();
+        }, 300);
+      }
+    );
   };
 
   return (
@@ -34,13 +46,14 @@ const RelaxModeModal = ({ isOpen, onClose, onSelectOption }: RelaxModeModalProps
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-brand-500 hover:text-brand-700 transition-colors"
+          disabled={isLoading}
         >
           <X size={24} />
         </button>
 
         {/* Title */}
         <h2 className="text-2xl font-bold text-brand-900 text-center mb-8">
-          Select Audio Source To Start
+          {isLoading ? 'Loading...' : 'Select Audio Source To Start'}
         </h2>
 
         {/* Options Container */}
@@ -48,11 +61,12 @@ const RelaxModeModal = ({ isOpen, onClose, onSelectOption }: RelaxModeModalProps
           {/* My List Option */}
           <button
             onClick={() => handleSelectOption(Source.MyList)}
+            disabled={isLoading}
             className={`w-32 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 transition-all ${
               selectedOption === Source.MyList
                 ? 'bg-brand-50 border-brand-500'
                 : 'bg-white border-brand-200 hover:border-brand-400'
-            }`}
+            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center">
               <div className="w-10 h-10 rounded-full bg-brand-400 flex items-center justify-center text-white text-2xl">
@@ -65,11 +79,12 @@ const RelaxModeModal = ({ isOpen, onClose, onSelectOption }: RelaxModeModalProps
           {/* Community Option */}
           <button
             onClick={() => handleSelectOption(Source.Community)}
+            disabled={isLoading}
             className={`w-32 flex flex-col items-center gap-4 p-6 rounded-2xl border-2 transition-all ${
               selectedOption === Source.Community
                 ? 'bg-brand-50 border-brand-500'
                 : 'bg-white border-brand-200 hover:border-brand-400'
-            }`}
+            } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center">
               <div className="flex gap-1">

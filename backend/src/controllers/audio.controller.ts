@@ -225,3 +225,31 @@ export const getRecentlyListened = async (req: Request, res: Response, next: Nex
   }
 };
 
+export const getRandomAudiosFromMyList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { limit } = req.query;
+    const userId = req.userId;
+    
+    const limitNum = limit ? Math.min(parseInt(limit as string), 50) : 10;
+    const audios = await audioService.getRandomAudiosFromMyList(Number(userId), limitNum);
+
+    res.json({ success: true, data: audios });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getRandomAudiosFromCommunity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { limit } = req.query;
+    const userId = req.userId;
+
+    const limitNum = limit ? Math.min(parseInt(limit as string), 50) : 10;
+    const audios = await audioService.getRandomAudiosFromCommunity(Number(userId), limitNum);
+
+    res.json({ success: true, data: audios });
+  } catch (error) {
+    next(error);
+  }
+};
+
