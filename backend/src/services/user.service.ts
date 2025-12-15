@@ -9,7 +9,9 @@ data format: {
 async function createUser(user: { name: string, email: string }) {
     console.log(user);
     try {
-        const id = await prisma.user.create({ data: { name: user.name, email: user.email } });
+        // Đảm bảo chỉ truyền các trường hợp lệ vào prisma.user.create
+        const { name, email } = user;
+        const id = await prisma.user.create({ data: { name, email } });
         return id;
     } catch (error) {
         console.error(error);

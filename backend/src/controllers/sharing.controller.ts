@@ -34,7 +34,7 @@ async function getSharedFolders(req: Request, res: Response, next: NextFunction)
     const folders = await folderShareService.getSharedFolders(userId);
     return successResponse(res, folders);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 

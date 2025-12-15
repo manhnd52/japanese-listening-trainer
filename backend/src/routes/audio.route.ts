@@ -35,18 +35,14 @@ router.post('/', uploadMiddleware.single('file'), createAudio);
 router.get('/folders', async (req, res, next) => {
   try {
     const { userId } = req.query;
-    
     if (!userId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'userId is required' 
+      return res.status(400).json({
+        success: false,
+        message: 'userId is required'
       });
     }
-
     const folders = await prisma.folder.findMany({
-      where: {
-        createdBy: Number(userId),
-      },
+      where: { createdBy: Number(userId) },
       select: {
         id: true,
         name: true,
@@ -57,7 +53,7 @@ router.get('/folders', async (req, res, next) => {
     });
     return res.json({ success: true, data: folders });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 

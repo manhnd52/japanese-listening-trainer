@@ -31,7 +31,7 @@ export async function createUserController(
         });
         return res.status(201).json(newUser);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 }
 
