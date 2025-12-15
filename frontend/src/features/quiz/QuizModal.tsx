@@ -78,24 +78,24 @@ export default function QuizModal() {
 
   const getOptionStyle = (option: QuizOption) => {
     if (!hasSubmitted) {
-      return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-purple-300 dark:hover:border-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20';
+      return 'bg-white border-brand-200 text-brand-700 hover:border-brand-400 hover:bg-brand-50';
     }
 
     // After submission
     if (result) {
       if (option === result.correctOption) {
-        return 'bg-green-50 dark:bg-green-900/30 border-green-500 text-green-800 dark:text-green-300';
+        return 'bg-green-50 border-green-500 text-green-800';
       }
       if (option === selectedOption && !result.isCorrect) {
-        return 'bg-red-50 dark:bg-red-900/30 border-red-500 text-red-800 dark:text-red-300';
+        return 'bg-red-50 border-red-500 text-red-800';
       }
     }
-    return 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-600 opacity-50';
+    return 'bg-white border-brand-200 text-brand-400 opacity-50';
   };
 
   const getIcon = (option: QuizOption) => {
     if (!hasSubmitted || !result) {
-      return <div className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 group-hover:border-purple-400" />;
+      return <div className="w-6 h-6 rounded-full border-2 border-brand-300 group-hover:border-brand-500" />;
     }
     
     if (option === result.correctOption) {
@@ -104,11 +104,11 @@ export default function QuizModal() {
     if (option === selectedOption && !result.isCorrect) {
       return <XCircle size={24} className="text-red-500" />;
     }
-    return <div className="w-6 h-6 rounded-full border-2 border-gray-300 dark:border-gray-600 opacity-50" />;
+    return <div className="w-6 h-6 rounded-full border-2 border-brand-300 opacity-50" />;
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 dark:bg-black/70 backdrop-blur-md p-4 animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-900/60 backdrop-blur-md p-4 animate-in fade-in duration-300">
       {/* EXP Gain Animation */}
       {showExpAnimation && result?.expGained && (
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[110] animate-bounce">
@@ -119,18 +119,18 @@ export default function QuizModal() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 w-full max-w-2xl max-h-[85vh] rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
+      <div className="bg-white w-full max-w-2xl max-h-[85vh] rounded-3xl shadow-2xl border border-brand-200 flex flex-col overflow-hidden">
         {/* Modal Header */}
-        <div className="p-5 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900/50">
-          <h3 className="text-xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 p-2 rounded-xl">
+        <div className="p-5 border-b border-brand-100 flex justify-between items-center bg-brand-50">
+          <h3 className="text-xl font-extrabold text-brand-900 flex items-center gap-2">
+            <span className="bg-jlt-peach text-orange-600 p-2 rounded-xl">
               <HelpCircle size={20}/>
             </span>
             Quiz Time
           </h3>
           <button 
             onClick={handleClose} 
-            className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-200/50 dark:hover:bg-gray-700/50 transition-colors"
+            className="text-brand-400 hover:text-brand-700 p-2 rounded-full hover:bg-brand-100 transition-colors"
           >
             <X size={24} />
           </button>
@@ -142,15 +142,15 @@ export default function QuizModal() {
             {/* Progress Info */}
             {isAllMode && (
               <>
-                <div className="flex justify-between items-center text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                <div className="flex justify-between items-center text-xs font-bold text-brand-500 uppercase tracking-widest">
                   <span>Question {currentIndex + 1} of {totalQuizzes}</span>
                   <span>{progressPercent}% Completed</span>
                 </div>
                 
                 {/* Progress Bar */}
-                <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-brand-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-purple-500 transition-all duration-500 ease-out"
+                    className="h-full bg-brand-500 transition-all duration-500 ease-out"
                     style={{ width: `${progressPercent}%` }}
                   />
                 </div>
@@ -159,7 +159,7 @@ export default function QuizModal() {
 
             {/* Question */}
             <div className="text-center py-4">
-              <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white leading-snug">
+              <h3 className="text-xl md:text-2xl font-bold text-brand-900 leading-snug">
                 {currentQuiz.questionText}
               </h3>
             </div>
@@ -191,9 +191,9 @@ export default function QuizModal() {
 
             {/* Explanation & Next Button (shown after answer) */}
             {result && hasSubmitted && !isLoading && (
-              <div className="animate-in slide-in-from-bottom duration-300 mt-6 p-6 bg-gray-50 dark:bg-gray-900/50 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="animate-in slide-in-from-bottom duration-300 mt-6 p-6 bg-brand-50 rounded-2xl border border-brand-200 shadow-sm">
                 {/* Result Indicator */}
-                <div className={`flex items-center gap-2 mb-3 ${result.isCorrect ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                <div className={`flex items-center gap-2 mb-3 ${result.isCorrect ? 'text-green-600' : 'text-red-500'}`}>
                   {result.isCorrect ? (
                     <>
                       <CheckCircle size={20} />
@@ -210,10 +210,10 @@ export default function QuizModal() {
                 {/* Explanation */}
                 {result.explanation && (
                   <>
-                    <h4 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-2">
-                      <Sparkles size={18} className="text-purple-500"/> Explanation
+                    <h4 className="font-bold text-brand-900 flex items-center gap-2 mb-2">
+                      <Sparkles size={18} className="text-brand-500"/> Explanation
                     </h4>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+                    <p className="text-brand-700 leading-relaxed mb-6">
                       {result.explanation}
                     </p>
                   </>
@@ -224,14 +224,14 @@ export default function QuizModal() {
                   {hasNextQuiz ? (
                     <button 
                       onClick={handleNext} 
-                      className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-gray-800 dark:hover:bg-gray-100 flex items-center gap-2 transition-all active:scale-95"
+                      className="bg-brand-900 text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-brand-800 flex items-center gap-2 transition-all active:scale-95"
                     >
                       Next Question <ArrowRight size={18} />
                     </button>
                   ) : (
                     <button 
                       onClick={handleClose} 
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
+                      className="bg-gradient-to-r from-brand-600 to-brand-700 hover:from-brand-700 hover:to-brand-800 text-white px-8 py-3 rounded-xl font-bold shadow-lg flex items-center gap-2 transition-all active:scale-95"
                     >
                       {isAllMode ? 'Finish Quiz 🎉' : 'Continue'} <ArrowRight size={18} />
                     </button>
