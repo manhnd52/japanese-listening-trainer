@@ -21,8 +21,8 @@ import { toggleFavorite } from "@/store/features/audio/audioSlice";
 const LibraryPage = () => {
   const dispatch = useAppDispatch();
   const { audios, folders, loading } = useAppSelector((state) => state.audio);
-  const { user } = useAppSelector((state) => state.auth);
-
+  const { user, accessToken } = useAppSelector((state) => state.auth);
+   
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAudio, setSelectedAudio] = useState<RawAudioTrack | null>(
@@ -30,11 +30,11 @@ const LibraryPage = () => {
   );
 
   useEffect(() => {
-    if (user?.id) {
-      dispatch(fetchAudios(user.id));
-      dispatch(fetchFolders(user.id));
-    }
-  }, [dispatch, user?.id]);
+  if (user?.id && accessToken) {
+    dispatch(fetchAudios({ userId: user.id, token: accessToken }));
+    dispatch(fetchFolders(user.id));
+  }
+}, [dispatch, user?.id, accessToken]);
 
   const handlePlay = (audio: RawAudioTrack) => {
     const backendUrl =

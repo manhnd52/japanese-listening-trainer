@@ -27,10 +27,14 @@ const initialState: AudioState = {
 // Async thunks
 export const fetchAudios = createAsyncThunk(
   'audio/fetchAudios',
-  async (userId: number, { rejectWithValue }) => {
+  async ({ userId, token }: { userId: number, token: string }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/audios?userId=${userId}`);
-      const data = response.data;
+      const response = await fetch(`http://localhost:5000/api/audios?userId=${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
       if (!data.success) {
         return rejectWithValue(data.message || 'Failed to fetch audios');
       }

@@ -9,11 +9,11 @@ import {
 } from '../controllers/audio.controller';
 import { uploadMiddleware } from '../middlewares/upload';
 import { prisma } from '../prisma'; 
-
+import { authenticateToken } from '../middlewares/auth.middleware';
 const router = Router();
 
 // GET /api/audios - Get all audios
-router.get('/', getAudioList);
+router.get('/', authenticateToken, getAudioList);
 
 // POST /api/audios - Upload new audio
 router.post('/', uploadMiddleware.single('file'), createAudio);
