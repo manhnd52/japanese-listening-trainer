@@ -14,7 +14,7 @@ export interface AuthResponse {
     token: string;
     refreshToken: string;
   };
-  message: string;
+  message?: string;
 }
 
 export interface User {

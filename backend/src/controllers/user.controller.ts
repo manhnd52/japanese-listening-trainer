@@ -17,21 +17,22 @@ export async function createUserController(
     next: NextFunction
 ) {
     try {
-        const { name, email } = req.body;
+        const { fullname, email, password } = req.body;
 
-        if (!name || !email) {
+        if (!fullname || !email || !password) {
             return res
                 .status(400)
-                .json({ message: "Name and email are required" });
+                .json({ message: "Fullname, email and password are required" });
         }
 
         const newUser = await userService.createUser({
-            name: name.toString(),
-            email: email.toString()
+            fullname: fullname.toString(),
+            email: email.toString(),
+            password: password.toString()
         });
         return res.status(201).json(newUser);
     } catch (error) {
-        next(error);
+        return next(error);
     }
 }
 
@@ -48,10 +49,9 @@ export async function getUserByIdController(
             return res.status(404).json({ message: "User not found" });
         }
 
-        res.json(user);
+        return res.json(user);
     } catch (error) {
-        next(error);
+        return next(error);
     }
-    return;
 }
 

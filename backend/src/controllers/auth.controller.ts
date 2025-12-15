@@ -44,7 +44,7 @@ class AuthController {
                 message: 'User registered successfully'
             });
         } catch (error: any) {
-            next(error);
+            return next(error);
         }
     }
 
@@ -83,7 +83,7 @@ class AuthController {
                 message: 'Login successfully'
             });
         } catch (error: any) {
-            next(error);
+            return next(error);
         }
     }
 
@@ -128,7 +128,7 @@ class AuthController {
                 }
             });
         } catch (error: any) {
-            next(error);
+            return next(error);
         }
     }
 
@@ -157,7 +157,7 @@ class AuthController {
             });
             return;
         } catch (error: any) {
-            next(error);
+            return next(error);
 
         }
     }

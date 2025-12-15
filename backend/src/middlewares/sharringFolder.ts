@@ -22,5 +22,5 @@ export async function checkFolderOwnerPermission(
     return errorResponse(res, "Only folder owner can share", 403);
   }
 
-  next();
+  return next();
 }

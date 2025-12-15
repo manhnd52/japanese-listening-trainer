@@ -57,7 +57,7 @@ export const createAudio = async (
 
     res.status(201).json({ success: true, data: audio });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
@@ -81,7 +81,7 @@ export const getAudioById = async (req: Request, res: Response, next: NextFuncti
 
     res.json({ success: true, data: audio });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -110,7 +110,7 @@ export const updateAudio = async (req: Request, res: Response, next: NextFunctio
     const updatedAudio = await audioService.updateAudio(Number(id), updateData);
     res.json({ success: true, data: updatedAudio, message: 'Audio updated successfully' });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -146,7 +146,7 @@ export const deleteAudio = async (req: Request, res: Response, next: NextFunctio
     await audioService.deleteAudio(Number(id));
     res.json({ success: true, data: null, message: 'Audio deleted successfully' });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 };
 
@@ -180,7 +180,7 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
     const movedAudio = await audioService.moveAudio(Number(id), Number(folderId));
     res.json({ success: true, data: movedAudio, message: 'Audio moved successfully' });
   } catch (error) {
-    next(error);
+    return next(error);
   }
   
 };
@@ -199,7 +199,7 @@ export const toggleFavorite = async (req: Request, res: Response, next: NextFunc
 
     res.status(200).json({ success: true, message: 'Favorite updated', data: updated });
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 

@@ -47,9 +47,9 @@ router.get('/folders', async (req, res, next) => {
       },
       orderBy: { name: 'asc' },
     });
-    res.json({ success: true, data: folders });
+    return res.json({ success: true, data: folders });
   } catch (error) {
-    next(error);
+    return next(error);
   }
 });
 
