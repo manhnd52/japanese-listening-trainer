@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AudioTrack, Folder } from '@/types/types';
-import { apiClient } from '@/lib/api';
+import { audioApi } from '@/features/audios/api';
 
 interface FolderWithCount extends Folder {
   _count?: {
@@ -24,19 +24,18 @@ const initialState: AudioState = {
   uploadProgress: 0,
 };
 
-// Async thunks
+// Async thunks - Sử dụng audioApi từ features
 export const fetchAudios = createAsyncThunk(
   'audio/fetchAudios',
-  async (userId: number, { rejectWithValue }) => {
+  async ({ userId }: { userId: number }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/audios?userId=${userId}`);
-      const data = response.data;
+      const data = await audioApi.fetchAudios({ userId });
       if (!data.success) {
         return rejectWithValue(data.message || 'Failed to fetch audios');
       }
       return data.data;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch audios');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch audios');
     }
   }
 );
@@ -45,14 +44,13 @@ export const fetchFolders = createAsyncThunk(
   'audio/fetchFolders',
   async (userId: number, { rejectWithValue }) => {
     try {
-      const response = await apiClient.get(`/audios/folders?userId=${userId}`);
-      const data = response.data;
+      const data = await audioApi.fetchFolders(userId);
       if (!data.success) {
         return rejectWithValue(data.message || 'Failed to fetch folders');
       }
       return data.data;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to fetch folders');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch folders');
     }
   }
 );
@@ -61,17 +59,13 @@ export const uploadAudio = createAsyncThunk(
   'audio/uploadAudio',
   async ({ formData, userId }: { formData: FormData; userId: number }, { rejectWithValue }) => {
     try {
-      // ✅ Thêm userId vào formData
-      formData.append('userId', userId.toString());
-      
-      const response = await apiClient.post('/audios', formData);
-      const data = response.data;
+      const data = await audioApi.uploadAudio({ formData, userId });
       if (!data.success) {
         return rejectWithValue(data.message || 'Upload failed');
       }
       return data.data;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Upload failed');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Upload failed');
     }
   }
 );
@@ -88,17 +82,13 @@ export const updateAudio = createAsyncThunk(
     userId: number 
   }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.put(`/audios/${id}`, {
-        ...data,
-        userId,
-      });
-      const result = response.data;
+      const result = await audioApi.updateAudio({ id, ...data, userId });
       if (!result.success) {
         return rejectWithValue(result.message || 'Update failed');
       }
       return result.data;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Update failed');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Update failed');
     }
   }
 );
@@ -107,14 +97,13 @@ export const deleteAudio = createAsyncThunk(
   'audio/deleteAudio',
   async ({ id, userId }: { id: string; userId: number }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.delete(`/audios/${id}?userId=${userId}`);
-      const data = response.data;
+      const data = await audioApi.deleteAudio({ id, userId });
       if (!data.success) {
         return rejectWithValue(data.message || 'Delete failed');
       }
       return id;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Delete failed');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Delete failed');
     }
   }
 );
@@ -131,37 +120,28 @@ export const moveAudio = createAsyncThunk(
     userId: number 
   }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.patch(`/audios/${id}/move`, {
-        folderId: Number(folderId),
-        userId,
-      });
-      const data = response.data;
+      const data = await audioApi.moveAudio({ id, folderId, userId });
       if (!data.success) {
         return rejectWithValue(data.message || 'Move failed');
       }
       return data.data;
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Move failed');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Move failed');
     }
   }
 );
 
-// Thunk toggleFavorite
 export const toggleFavorite = createAsyncThunk(
   'audio/toggleFavorite',
   async ({ id, userId, isFavorite }: { id: string; userId: number; isFavorite: boolean }, { rejectWithValue }) => {
     try {
-      const response = await apiClient.patch(`/audios/${id}/favorite`, {
-        userId,
-        isFavorite,
-      });
-      const data = response.data;
+      const data = await audioApi.toggleFavorite({ id, userId, isFavorite });
       if (!data.success) {
         return rejectWithValue(data.message || 'Toggle favorite failed');
       }
       return { id, isFavorite };
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Toggle favorite failed');
+    } catch (error: any) {
+      return rejectWithValue(error?.response?.data?.message || 'Toggle favorite failed');
     }
   }
 );
