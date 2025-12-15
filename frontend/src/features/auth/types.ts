@@ -35,12 +35,12 @@ export interface RegisterInput {
   password: string;
 }
 
-export interface AuthResponse {
+export interface RegisterResponse {
   success: boolean;
   message?: string;
   data: {
     user: User; 
-    accessToken: string;
+    token: string;
     refreshToken: string;
   };
 }
