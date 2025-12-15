@@ -62,11 +62,15 @@ export const submitQuizAnswer = async (
   try {
     const { quizId, selectedOption } = req.body;
 
-    // TEMP: Hardcoded userId=31 for testing
-    // TODO: Restore to req.user?.id after fixing auth
-    // @ts-ignore
-    // const userId = req.user?.id;
-    const userId = 31;
+    // req.userId is set by auth middleware
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
 
     if (!quizId || !selectedOption) {
       return res.status(400).json({
@@ -220,11 +224,16 @@ export const getMistakeQuizzes = async (
   next: NextFunction
 ) => {
   try {
-    // TEMP: Hardcoded userId=31 for testing
-    // TODO: Restore to req.user?.id after fixing auth
-    // @ts-ignore
-    // const userId = req.user?.id;
-    const userId = 31;
+
+    // req.userId is set by auth middleware
+    const userId = req.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not authenticated',
+      });
+    }
 
     const quizzes = await quizService.getMistakeQuizzes(userId);
 

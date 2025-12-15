@@ -34,7 +34,7 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   const { audio, loading, error } = useAudioDetail(audioId);
   
   // Global quiz hook - same as MiniPlayer uses
-  const { triggerQuiz } = useQuiz();
+  const { triggerAllQuizzes } = useQuiz();
 
   const handlePlay = () => {
     if (audio && currentAudio?.id !== audio.id) {
@@ -62,8 +62,8 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
 
   const handleOpenQuiz = () => {
     handlePause();
-    // Use global quiz system - same as MiniPlayer
-    triggerQuiz(Number(audioId));
+    // Use global quiz system - Quiz Time mode (all quizzes sequentially)
+    triggerAllQuizzes(Number(audioId));
   };
 
   const handleToggleFavorite = () => {
