@@ -13,6 +13,9 @@ RUN npm install --omit=dev
 COPY prisma.config.ts ./
 COPY src/prisma ./src/prisma
 
+# Set dummy DATABASE_URL for Prisma generate
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 # Generate Prisma Client
 RUN npx prisma generate
 
@@ -36,6 +39,10 @@ RUN npm install --omit=dev
 # Copy prisma files and generate client
 COPY prisma.config.ts ./
 COPY src/prisma ./src/prisma
+
+# Set dummy DATABASE_URL for Prisma generate
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 RUN npx prisma generate
 
 # Copy built files from builder
