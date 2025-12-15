@@ -205,7 +205,7 @@ export default function HomePage() {
 
         {/* Review Mistakes */}
         <button
-          onClick={() => router.push('/review-mistakes')}
+          onClick={() => router.push('/review')}
           className="group bg-gradient-to-br from-sky-50 to-sky-100/50 border border-sky-200 rounded-2xl p-6 hover:from-sky-100 hover:to-sky-200/50 transition-all duration-300 text-left shadow-sm"
         >
           <div className="flex items-start justify-between mb-4">

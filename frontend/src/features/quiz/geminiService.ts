@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 // Types for AI-generated quiz
 export interface AIGeneratedQuiz {
@@ -40,31 +40,17 @@ Make the questions varied: some about main ideas, some about details, some about
 
 Text: "${script.substring(0, 3000)}${script.length > 3000 ? '...' : ''}"
 
-Generate the quiz in the same language as the text (if Japanese, questions in Japanese).`;
+Generate the quiz in the same language as the text (if Japanese, questions in Japanese).
 
-  const schema: Schema = {
-    type: Type.ARRAY,
-    items: {
-      type: Type.OBJECT,
-      properties: {
-        question: { type: Type.STRING, description: "The quiz question" },
-        options: { 
-          type: Type.ARRAY, 
-          items: { type: Type.STRING },
-          description: "Array of 4 answer options"
-        },
-        correctAnswer: { 
-          type: Type.INTEGER, 
-          description: "Index of the correct option (0-3)" 
-        },
-        explanation: { 
-          type: Type.STRING, 
-          description: "Brief explanation of why the answer is correct"
-        },
-      },
-      required: ["question", "options", "correctAnswer", "explanation"]
-    }
-  };
+Return ONLY a valid JSON array with this exact structure (no markdown, no explanation):
+[
+  {
+    "question": "Your question here",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correctAnswer": 0,
+    "explanation": "Brief explanation"
+  }
+]`;
 
   try {
     const response = await ai.models.generateContent({
@@ -72,12 +58,24 @@ Generate the quiz in the same language as the text (if Japanese, questions in Ja
       contents: prompt,
       config: {
         responseMimeType: "application/json",
-        responseSchema: schema,
       },
     });
 
-    if (response.text) {
-      const data = JSON.parse(response.text) as AIGeneratedQuiz[];
+    const responseText = response.text;
+    if (responseText) {
+      // Clean the response - remove potential markdown code blocks
+      let cleanedText = responseText.trim();
+      if (cleanedText.startsWith('```json')) {
+        cleanedText = cleanedText.slice(7);
+      } else if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.slice(3);
+      }
+      if (cleanedText.endsWith('```')) {
+        cleanedText = cleanedText.slice(0, -3);
+      }
+      cleanedText = cleanedText.trim();
+      
+      const data = JSON.parse(cleanedText) as AIGeneratedQuiz[];
       // Validate each quiz has 4 options
       return data.filter(q => 
         q.options && 
@@ -87,9 +85,10 @@ Generate the quiz in the same language as the text (if Japanese, questions in Ja
       );
     }
     return [];
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Gemini Quiz Generation Error:", error);
-    throw new Error("Failed to generate quiz with AI. Please try again.");
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Failed to generate quiz with AI: ${errorMessage}`);
   }
 };
 
