@@ -2,15 +2,22 @@ import { prisma } from "../prisma";
 
 /*
 data format: {
-  name: string,
+  fullname: string,
+  email: string,
   password: string
 }
 */
-async function createUser(user: { name: string, email: string }) {
+async function createUser(user: { fullname: string, email: string, password: string }) {
     console.log(user);
     try {
-        const id = await prisma.user.create({ data: { name: user.name, email: user.email } });
-        return id;
+        const newUser = await prisma.user.create({ 
+            data: { 
+                fullname: user.fullname, 
+                email: user.email,
+                password: user.password
+            } 
+        });
+        return newUser;
     } catch (error) {
         console.error(error);
         throw error;
