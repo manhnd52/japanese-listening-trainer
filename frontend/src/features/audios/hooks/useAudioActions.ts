@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { deleteAudio, moveAudio, toggleFavorite, fetchAudios } from '@/store/features/audio/audioSlice';
 import { setTrack, AudioTrack as PlayerAudioTrack, AudioStatus } from '@/store/features/player/playerSlice';
 import { AudioTrack } from '@/types/types';
-
+import { message } from "antd";
 export const useAudioActions = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -50,16 +50,16 @@ export const useAudioActions = () => {
 
   const handleMove = async (id: string, folderId: string) => {
     if (!user?.id) {
-      alert('User not authenticated');
+      message.error('User not authenticated');
       return;
     }
 
     const result = await dispatch(moveAudio({ id, folderId, userId: user.id }));
     if (moveAudio.fulfilled.match(result)) {
-      alert('Audio moved successfully!');
+      message.success('Audio moved successfully!');
       dispatch(fetchAudios({ userId: user.id }));
     } else {
-      alert('Failed to move audio');
+      message.error('Failed to move audio');
     }
   };
 
