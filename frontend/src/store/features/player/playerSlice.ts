@@ -77,12 +77,18 @@ const playerSlice = createSlice({
       state.currentFolderId = action.payload.folderId;
       state.currentIndex = -1;
     },
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
     setPlaylistArray(state, action: PayloadAction<AudioTrack[]>) {
       state.playlist = action.payload;
       state.currentFolderId = null;
     },
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
     setTrack(state, action: PayloadAction<AudioTrack>) {
       state.isPlaying = true;
       state.currentAudio = action.payload;
@@ -93,15 +99,20 @@ const playerSlice = createSlice({
         state.currentIndex = index;
       }
     },
-
     setPlaylist(state, action: PayloadAction<Playlist>) {
       state.currentPlaylist = action.payload;
     },
+<<<<<<< HEAD
 
     playPause(state) {
       state.isPlaying = !state.isPlaying;
     },
 
+=======
+    playPause(state) {
+      state.isPlaying = !state.isPlaying;
+    },
+>>>>>>> origin/main
     nextTrack(state) {
       if (state.playlist.length === 0) return;
       const nextIndex = (state.currentIndex + 1) % state.playlist.length;
@@ -110,7 +121,10 @@ const playerSlice = createSlice({
       state.progress = 0;
       state.isPlaying = true;
     },
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
     prevTrack(state) {
       if (state.playlist.length === 0) return;
       if (state.progress > 3) {
@@ -125,15 +139,20 @@ const playerSlice = createSlice({
       state.progress = 0;
       state.isPlaying = true;
     },
+<<<<<<< HEAD
     
+=======
+>>>>>>> origin/main
     updateProgress(state, action: PayloadAction<number>) {
       state.progress = action.payload >= 100 ? 0 : action.payload;
     },
-
     incrementProgress(state) {
       state.progress += 1;
     },
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/main
     toggleFavoriteOptimistic(state) {
       if (state.currentAudio) {
         state.currentAudio.isFavorite = !state.currentAudio.isFavorite;
@@ -142,7 +161,6 @@ const playerSlice = createSlice({
         }
       }
     },
-
     updateFavoriteStatus(state, action: PayloadAction<{ audioId: string; isFavorite: boolean }>) {
       if (state.currentAudio?.id === action.payload.audioId) {
         state.currentAudio.isFavorite = action.payload.isFavorite;
@@ -156,7 +174,6 @@ const playerSlice = createSlice({
     setExpanded(state, action: PayloadAction<boolean>) {
       state.isExpanded = action.payload;
     },
-
     toggleExpanded(state) {
       state.isExpanded = !state.isExpanded;
     },
@@ -164,11 +181,9 @@ const playerSlice = createSlice({
     setError(state, action: PayloadAction<string | null>) {
       state.error = action.payload;
     },
-
     clearError(state) {
       state.error = null;
     },
-
     setVolume(state, action: PayloadAction<number>) {
       state.volume = action.payload;
     },
@@ -176,11 +191,10 @@ const playerSlice = createSlice({
     setRelaxModeSource(state, action: PayloadAction<Source>) {
       state.relaxModeConfig.source = action.payload;
     },
-
+    
     toggleEnableQuiz(state) {
       state.relaxModeConfig.enableQuiz = !state.relaxModeConfig.enableQuiz;
     },
-
     toggleAiExplainMode(state) {
       state.relaxModeConfig.aiExplainMode = !state.relaxModeConfig.aiExplainMode;
     },
