@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { deleteAudio, moveAudio, toggleFavorite, fetchAudios } from '@/store/features/audio/audioSlice';
 import { setTrack, AudioTrack as PlayerAudioTrack, AudioStatus } from '@/store/features/player/playerSlice';
 import { AudioTrack } from '@/types/types';
-
+import { message } from "antd";
 export const useAudioActions = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -30,7 +30,7 @@ export const useAudioActions = () => {
 
   const handleToggleFavorite = async (audio: AudioTrack) => {
     if (!user?.id) {
-      alert('User not authenticated');
+      message.error('User not authenticated');
       return;
     }
     await dispatch(toggleFavorite({ id: audio.id, userId: user.id, isFavorite: !audio.isFavorite }));
@@ -38,33 +38,33 @@ export const useAudioActions = () => {
 
   const handleDelete = async (id: string) => {
     if (!user?.id) {
-      alert('User not authenticated');
+      message.error('User not authenticated');
       return;
     }
 
     if (window.confirm('Are you sure you want to delete this audio?')) {
       const result = await dispatch(deleteAudio({ id, userId: user.id }));
       if (deleteAudio.fulfilled.match(result)) {
-        alert('Audio deleted successfully!');
+        message.success('Audio deleted successfully!');
         dispatch(fetchAudios({ userId: user.id }));
       } else {
-        alert('Failed to delete audio');
+        message.error('Failed to delete audio');
       }
     }
   };
 
   const handleMove = async (id: string, folderId: string) => {
     if (!user?.id) {
-      alert('User not authenticated');
+      message.error('User not authenticated');
       return;
     }
 
     const result = await dispatch(moveAudio({ id, folderId, userId: user.id }));
     if (moveAudio.fulfilled.match(result)) {
-      alert('Audio moved successfully!');
+      message.success('Audio moved successfully!');
       dispatch(fetchAudios({ userId: user.id }));
     } else {
-      alert('Failed to move audio');
+      message.error('Failed to move audio');
     }
   };
 

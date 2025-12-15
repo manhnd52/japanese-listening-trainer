@@ -5,7 +5,7 @@ import { X, Folder } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { updateAudio, clearError,fetchAudios } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/types/types';
-
+import { message } from "antd";
 interface EditAudioModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +33,7 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
 
   useEffect(() => {
     if (error) {
-      alert(error);
+      message.error(error);
       dispatch(clearError());
     }
   }, [error, dispatch]);
@@ -42,12 +42,12 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
     e.preventDefault();
     
     if (!user?.id) {
-      alert('User not authenticated');
+      message.error('User not authenticated');
       return;
     }
 
     if (!audio || !title.trim()) {
-      alert('Title is required');
+      message.error('Title is required');
       return;
     }
 
@@ -58,7 +58,7 @@ const EditAudioModal: React.FC<EditAudioModalProps> = ({ isOpen, onClose, audio 
     }));
 
     if (updateAudio.fulfilled.match(result)) {
-      alert('Audio updated successfully!');
+      message.success('Audio updated successfully!');
       dispatch(fetchAudios({ userId: user.id }));
       handleClose();
     }
