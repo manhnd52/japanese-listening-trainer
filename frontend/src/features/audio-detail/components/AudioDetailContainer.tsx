@@ -67,7 +67,6 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
         isFavorite: audio.isFavorite || false,
       }));
     } else if (!isPlaying) {
-      // Resume playback
       dispatch(playPause());
     }
   };
