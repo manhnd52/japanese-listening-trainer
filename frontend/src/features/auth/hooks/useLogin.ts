@@ -23,7 +23,7 @@ export const useLogin = () => {
       // 1. Gọi API
       const response = await authApi.login(credentials);
 
-      const { user, accessToken, refreshToken } = response.data;
+      const { user, token: accessToken, refreshToken } = response.data;
       
       const userId = parseInt(response.data.user.id);
       const userObject = {
