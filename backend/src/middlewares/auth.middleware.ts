@@ -27,6 +27,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
         
         // Attach userId to request object
         req.userId = decoded.userId;
+        console.log(`[Auth Middleware] Authenticated user ID: ${req.userId}`);
         
         next();
     } catch (error: any) {

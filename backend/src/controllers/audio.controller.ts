@@ -7,7 +7,6 @@ export const getAudioList = async (req: Request, res: Response, next: NextFuncti
   try {
     const { search, isSuspend, folderId, userId } = req.query;
     
-    // ✅ BẮT BUỘC phải có userId
     if (!userId) {
       res.status(400).json({
         success: false,
@@ -17,14 +16,14 @@ export const getAudioList = async (req: Request, res: Response, next: NextFuncti
     }
     
     const filter: any = {
-      createdBy: Number(userId) // ✅ Luôn filter theo userId
+      createdBy: Number(userId) // Luôn filter theo userId
     };
     
     if (search) filter.title = { contains: search as string, mode: 'insensitive' };
     if (isSuspend !== undefined) filter.isSuspend = isSuspend === 'true';
     if (folderId !== undefined) filter.folderId = Number(folderId);
 
-    // ✅ Pass userId vào service để lấy AudioStats
+    // Pass userId vào service để lấy AudioStats
     const audios = await audioService.getAllAudios(filter, Number(userId));
 
     res.json({ success: true, data: audios });
@@ -44,12 +43,6 @@ export const createAudio = async (
 
     if (!file) {
       res.status(400).json({ success: false, message: 'No file uploaded' });
-      return;
-    }
-
-    // ✅ Validate userId
-    if (!userId) {
-      res.status(400).json({ success: false, message: 'userId is required' });
       return;
     }
 
@@ -80,7 +73,7 @@ export const getAudioById = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // ✅ Kiểm tra quyền sở hữu
+    // Kiểm tra quyền sở hữu
     if (userId && audio.createdBy !== Number(userId)) {
       res.status(403).json({ success: false, message: 'Access denied' });
       return;
@@ -96,12 +89,6 @@ export const updateAudio = async (req: Request, res: Response, next: NextFunctio
   try {
     const { id } = req.params;
     const { title, script, folderId, userId } = req.body;
-
-    // ✅ Validate userId
-    if (!userId) {
-      res.status(400).json({ success: false, message: 'userId is required' });
-      return;
-    }
 
     const existingAudio = await audioService.getAudioById(Number(id));
     if (!existingAudio) {
@@ -167,7 +154,6 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
   try {
     const { id } = req.params;
     const { folderId, userId } = req.body;
-
     if (!folderId) {
       res.status(400).json({ success: false, message: 'folderId is required' });
       return;
@@ -202,15 +188,10 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
 export const toggleFavorite = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { userId, isFavorite } = req.body;
+    const userId = req.userId;
 
-    // Validate
-    if (!userId || typeof isFavorite === 'undefined') {
-      res.status(400).json({ success: false, message: 'userId and isFavorite are required' });
-      return;
-    }
+    const updated = await audioService.toggleFavorite(Number(id), Number(userId));
 
-    const updated = await audioService.toggleFavorite(Number(id), Number(userId), Boolean(isFavorite));
     if (!updated) {
       res.status(404).json({ success: false, message: 'Audio not found or not owned by user' });
       return;
@@ -221,3 +202,26 @@ export const toggleFavorite = async (req: Request, res: Response, next: NextFunc
     next(err);
   }
 };
+
+export const getRecentlyListened = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { userId, limit } = req.query;
+
+    // Validate userId
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+      return;
+    }
+
+    const limitNum = limit ? Math.min(parseInt(limit as string), 50) : 10;
+    const audios = await audioService.getRecentlyListened(Number(userId), limitNum);
+
+    res.json({ success: true, data: audios });
+  } catch (error) {
+    next(error);
+  }
+};
+

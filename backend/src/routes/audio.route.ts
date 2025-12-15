@@ -5,7 +5,9 @@ import {
   getAudioById,
   updateAudio,
   deleteAudio,
-  moveAudio,toggleFavorite
+  moveAudio,
+  toggleFavorite,
+  getRecentlyListened
 } from '../controllers/audio.controller';
 import { uploadMiddleware } from '../middlewares/upload';
 import { prisma } from '../prisma'; 
@@ -14,6 +16,9 @@ const router = Router();
 
 // GET /api/audios - Get all audios
 router.get('/', getAudioList);
+
+// GET /api/audios/recent - Get recently listened audios
+router.get('/recent', getRecentlyListened);
 
 // POST /api/audios - Upload new audio
 router.post('/', uploadMiddleware.single('file'), createAudio);

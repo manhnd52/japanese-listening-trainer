@@ -143,18 +143,79 @@ export class AudioService {
       },
     });
   }
-  async toggleFavorite(audioId: number, userId: number, isFavorite: boolean) {
-    // Kiểm tra audio tồn tại
-    const audio = await prisma.audio.findUnique({ where: { id: audioId } });
+
+  async toggleFavorite(audioId: number, userId: number) {
+    const audio = await prisma.audio.findUnique({
+      where: { id: audioId }
+    });
     if (!audio) return null;
 
-    // Upsert vào AudioStats
-    return await prisma.audioStats.upsert({
-      where: { userId_audioId: { userId, audioId } },
-      update: { isFavorite },
-      create: { userId, audioId, isFavorite },
+    const stats = await prisma.audioStats.findUnique({
+      where: {
+        userId_audioId: { userId, audioId }
+      }
+    });
+
+    if (!stats) {
+      return prisma.audioStats.create({
+        data: {
+          userId,
+          audioId,
+          isFavorite: true
+        }
+      });
+    }
+
+    return prisma.audioStats.update({
+      where: {
+        userId_audioId: { userId, audioId }
+      },
+      data: {
+        isFavorite: !stats.isFavorite
+      }
     });
   }
+
+
+  /**
+   * Get recently listened audios for a user
+   * Sorted by lastListenTime in descending order
+   */
+  async getRecentlyListened(userId: number, limit: number = 10) {
+    const recentlyListened = await prisma.audioStats.findMany({
+      where: {
+        userId,
+        lastListenTime: { not: null }
+      },
+      orderBy: {
+        lastListenTime: 'desc'
+      },
+      take: limit,
+      include: {
+        audio: {
+          include: {
+            folder: {
+              select: { id: true, name: true }
+            },
+            user: {
+              select: { id: true, email: true, fullname: true }
+            }
+          }
+        }
+      }
+    });
+
+    // nếu frontend cần audio là root
+    return recentlyListened.map(s => ({
+      ...s.audio,
+      audioStats: {
+        isFavorite: s.isFavorite,
+        listenCount: s.listenCount,
+        lastListenTime: s.lastListenTime
+      }
+    }));
+  }
+
 }
 
 export const audioService = new AudioService();

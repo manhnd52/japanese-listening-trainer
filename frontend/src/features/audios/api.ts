@@ -56,4 +56,10 @@ export const audioApi = {
     });
     return response.data;
   },
+
+  // Get recently listened audios
+  getRecentlyListened: async (userId: number, limit: number) => {
+    const response = await apiClient.get(`/audios/recent?userId=${userId}&limit=${limit}`);
+    return response.data;
+  }
 };

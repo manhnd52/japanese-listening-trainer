@@ -14,7 +14,7 @@ const LibraryPage = () => {
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(null);
 
   const handleSelect = (audio: AudioTrack) => {
-    // Navigate to audio detail if needed
+    handlePlay(audio);
   };
 
   const handleAddAudio = () => {
