@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 import { useAppDispatch } from '@/hooks/redux'
 import { setCredentials } from '@/store/features/auth/authSlice'
 import { apiClient } from '@/lib/api'
+import { useRouter } from 'next/navigation'
 
 /**
  * Component to restore authentication state from localStorage on app initialization
@@ -11,6 +12,7 @@ import { apiClient } from '@/lib/api'
 export default function AuthInitializer() {
     const dispatch = useAppDispatch()
     const hasInitialized = useRef(false)
+    const router = useRouter()
 
     useEffect(() => {
         // Only run once on mount
@@ -23,6 +25,7 @@ export default function AuthInitializer() {
             
             if (!accessToken) {
                 console.log('[AuthInitializer] No token found in localStorage')
+                router.push('/login')
                 return
             }
 
@@ -48,7 +51,6 @@ export default function AuthInitializer() {
                 console.log('[AuthInitializer] ✓ Auth state restored successfully')
             } catch (error) {
                 console.error('[AuthInitializer] Failed to restore auth state:', error)
-                
                 // Token is invalid, clean up
                 if (error && typeof error === 'object' && 'response' in error) {
                     const axiosError = error as { response?: { status?: number } }
@@ -57,13 +59,15 @@ export default function AuthInitializer() {
                         localStorage.removeItem('accessToken')
                         localStorage.removeItem('refreshToken')
                         document.cookie = 'accessToken=; path=/; max-age=0' // Clear cookie
+                        router.push('/login')
                     }
                 }
+
             }
         }
 
         initAuth()
-    }, [dispatch])
+    }, [dispatch, router])
 
     // This component doesn't render anything
     return null

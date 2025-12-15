@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { AudioTrack, Folder } from '@/types/types';
 import { audioApi } from '@/features/audios/api';
+import { AxiosError } from 'axios';
 
 interface FolderWithCount extends Folder {
   _count?: {
@@ -34,8 +35,11 @@ export const fetchAudios = createAsyncThunk(
         return rejectWithValue(data.message || 'Failed to fetch audios');
       }
       return data.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch audios');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );
@@ -49,8 +53,11 @@ export const fetchFolders = createAsyncThunk(
         return rejectWithValue(data.message || 'Failed to fetch folders');
       }
       return data.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Failed to fetch folders');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );
@@ -64,8 +71,11 @@ export const uploadAudio = createAsyncThunk(
         return rejectWithValue(data.message || 'Upload failed');
       }
       return data.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Upload failed');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );
@@ -87,8 +97,11 @@ export const updateAudio = createAsyncThunk(
         return rejectWithValue(result.message || 'Update failed');
       }
       return result.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Update failed');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );
@@ -102,8 +115,11 @@ export const deleteAudio = createAsyncThunk(
         return rejectWithValue(data.message || 'Delete failed');
       }
       return id;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Delete failed');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );
@@ -125,8 +141,11 @@ export const moveAudio = createAsyncThunk(
         return rejectWithValue(data.message || 'Move failed');
       }
       return data.data;
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Move failed');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );
@@ -140,8 +159,11 @@ export const toggleFavorite = createAsyncThunk(
         return rejectWithValue(data.message || 'Toggle favorite failed');
       }
       return { id, isFavorite };
-    } catch (error: any) {
-      return rejectWithValue(error?.response?.data?.message || 'Toggle favorite failed');
+    } catch (error) {
+        if (error instanceof AxiosError) {
+          return rejectWithValue(error.response?.data?.message || 'Upload failed');
+        }    
+        return rejectWithValue('Upload failed');
     }
   }
 );

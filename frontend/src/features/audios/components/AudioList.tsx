@@ -79,7 +79,7 @@ const AudioList: React.FC<AudioListProps> = ({
   };
 
   return (
-    <div className="bg-[#FCFDF7] min-h-screen p-8">
+    <div className="bg-jlt-cream min-h-screen p-8">
       <div className="max-w-5xl mx-auto flex flex-col">
         {/* Move Modal */}
         {moveModalOpen && audioToMove && (

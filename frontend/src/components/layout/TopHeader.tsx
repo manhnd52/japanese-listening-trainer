@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/store/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
-import { Search, Flame, User as UserIcon, LogOut } from 'lucide-react';
+import { Search, Flame, User as UserIcon, LogOut, Link } from 'lucide-react';
 import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
 import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
 
@@ -53,16 +53,19 @@ const TopHeader = () => {
   };
 
   return (
-    <header className="h-16 bg-brand-500 border-b border-brand-600 flex items-center justify-between px-4 md:px-6 shrink-0 z-20 shadow-md relative">
+    <header className="h-16 bg-brand-500 border-b border-brand-600 flex items-center justify-between px-4 md:px-6 shrink-0 z-20 shadow-md fixed inset-x-0 top-0">
 
       {/* Left: Logo */}
-      <div className="flex items-center gap-2 w-64">
+      <div 
+        onClick={() => navigate('/')}
+        className="flex items-center gap-2 w-64 cursor-pointer hover:opacity-80 transition-opacity"
+      >
         <div className="w-8 h-8 bg-jlt-cream rounded-lg flex items-center justify-center font-bold text-brand-500 text-lg shadow-sm">
           J
         </div>
         <span className="font-bold text-xl tracking-tight text-white">JLT</span>
       </div>
-
+      
       {/* Center: Search */}
       <div className="flex-1 max-w-2xl mx-4 md:mx-8 hidden md:block">
         <div className="relative group">
