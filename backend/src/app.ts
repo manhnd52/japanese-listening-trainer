@@ -70,6 +70,16 @@ app.use(requestLogger);
 app.use('/auth', authRoute);
 app.use('/health', healthRoute);
 
+// Debug CORS endpoint
+app.get('/debug-cors', (req, res) => {
+  res.json({
+    receivedOrigin: req.headers.origin || 'no origin header',
+    allowedOrigins: allowedOrigins,
+    corsOriginEnv: config.corsOrigin,
+    allHeaders: req.headers
+  });
+});
+
 // API routes
 app.use('/api', routes);
 
