@@ -1,4 +1,4 @@
-import { prisma } from '../prisma/index';
+import { prisma } from '../prisma/index.js';
 import { QuizOption } from '../generated/prisma/client.js';
 
 export class QuizService {
