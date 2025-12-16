@@ -53,7 +53,8 @@ apiClient.interceptors.response.use(
 );
 
 export async function fetchAudios() {
-  const res = await fetch('http://localhost:5000/api/audios');
+  const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const res = await fetch(`${baseURL}/audios`);
   const json = await res.json();
   return json.data; // trả về mảng audio
 }
