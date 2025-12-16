@@ -6,8 +6,8 @@ import {
   getQuizzesByAudio,
   deleteQuiz,
   getMistakeQuizzes,
-} from '../controllers/quiz.controller';
-import { authenticateToken } from '../middlewares/auth.middleware';
+} from '../controllers/quiz.controller.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
