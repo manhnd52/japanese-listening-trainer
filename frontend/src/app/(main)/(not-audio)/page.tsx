@@ -10,6 +10,7 @@ import { Music, BarChart3, TrendingUp, RefreshCw } from 'lucide-react';
 import { AudioTrack } from '@/types/types';
 import { useAudioActions } from '@/features/audios/hooks';
 import { Heart } from 'lucide-react';
+import Link from 'next/link';
 
 interface UserStats {
   streak: number;
@@ -91,6 +92,12 @@ export default function HomePage() {
           >
             Retry
           </button>
+          <Link 
+            href="/review"
+            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-medium transition"
+          >
+            📝 Review Mistakes
+          </Link>
         </div>
       </div>
     );
@@ -198,7 +205,7 @@ export default function HomePage() {
 
         {/* Review Mistakes */}
         <button
-          onClick={() => router.push('/review-mistakes')}
+          onClick={() => router.push('/review')}
           className="group bg-gradient-to-br from-sky-50 to-sky-100/50 border border-sky-200 rounded-2xl p-6 hover:from-sky-100 hover:to-sky-200/50 transition-all duration-300 text-left shadow-sm"
         >
           <div className="flex items-start justify-between mb-4">

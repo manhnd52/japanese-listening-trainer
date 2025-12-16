@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Play, Pause, SkipForward, SkipBack, Heart, Maximize2, Settings } from 'lucide-react';
 import { Source } from '@/store/features/player/playerSlice';
+import { Play, Pause, SkipForward, SkipBack, Heart, Volume2, Maximize2, X, Settings, ListMusic, HelpCircle } from 'lucide-react';
 import {
   playPause,
   nextTrack,
@@ -16,6 +16,7 @@ import {
 import { toggleFavorite } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/store/features/player/playerSlice';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import { useQuiz } from '@/features/quiz/useQuiz';
 import VolumeControl from './VolumeControl';
 
 function ProgressBar({ progress, duration }: { progress: number; duration: number }) {
@@ -98,6 +99,7 @@ function Controls({
   onNext,
   showSettings,
   setShowSettings,
+  onQuiz,
 }: {
   isPlaying: boolean;
   isFavorite: () => boolean;
@@ -107,6 +109,7 @@ function Controls({
   onNext: () => void;
   showSettings: boolean;
   setShowSettings: (v: boolean) => void;
+  onQuiz: () => void;
 }) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -138,6 +141,16 @@ function Controls({
           aria-label={isFavorite() ? 'Remove from favorites' : 'Add to favorites'}
         >
           <Heart size={22} fill={isFavorite() ? 'currentColor' : 'none'} strokeWidth={2.5} />
+        </button>
+
+        {/* Quiz Button */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onQuiz(); }}
+          className="text-brand-400 hover:text-brand-600 transition-all"
+          aria-label="Take quiz"
+          title="Take quiz"
+        >
+          <HelpCircle size={22} strokeWidth={2.5} />
         </button>
 
         <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="text-brand-700 hover:text-brand-900">
@@ -193,10 +206,11 @@ const MiniPlayer = () => {
   const dispatch = useAppDispatch();
   const [showSettings, setShowSettings] = useState(false);
 
-  // Lấy user từ state để gọi API favorite
+  // Get user from state for favorite API
   const { user } = useAppSelector((state) => state.auth);
+  const { triggerQuiz } = useQuiz();
 
-  // Không dùng usePlayer cho toggleFavorite nữa
+  // Use Redux dispatch for toggleFavorite
   const handleToggleFavorite = async () => {
     if (!currentAudio || !user?.id) return;
     await dispatch(toggleFavorite({
@@ -204,7 +218,12 @@ const MiniPlayer = () => {
       userId: user.id,
       isFavorite: !currentAudio.isFavorite,
     }));
-    // Không cần fetch lại, Redux sẽ tự update state cho mọi nơi
+  };
+
+  const handleQuizClick = () => {
+    if (currentAudio?.id) {
+      triggerQuiz(Number(currentAudio.id));
+    }
   };
 
   const handleExpand = () => {
@@ -231,6 +250,7 @@ const MiniPlayer = () => {
           onNext={() => dispatch(nextTrack())}
           showSettings={showSettings}
           setShowSettings={setShowSettings}
+          onQuiz={handleQuizClick}
         />
 
         <VolumeSection

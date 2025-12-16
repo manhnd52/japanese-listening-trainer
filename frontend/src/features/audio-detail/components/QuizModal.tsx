@@ -13,6 +13,7 @@ interface QuizModalProps {
   onQuizOptionClick: (quiz: Quiz, optionIdx: number) => void;
   onNextQuiz: () => void;
   onEditQuiz: () => void;
+  onCreateQuiz?: () => void; // Optional: navigate to create quiz page
 }
 
 /**
@@ -32,8 +33,18 @@ export default function QuizModal({
   onQuizOptionClick,
   onNextQuiz,
   onEditQuiz,
+  onCreateQuiz,
 }: QuizModalProps) {
   if (!isOpen) return null;
+
+  const handleCreateQuiz = () => {
+    onClose(); // Close modal first
+    if (onCreateQuiz) {
+      onCreateQuiz();
+    } else {
+      onEditQuiz(); // Fallback to edit quiz handler
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-900/60 backdrop-blur-md p-4 animate-fade-in">
@@ -63,7 +74,7 @@ export default function QuizModal({
               </div>
               <h3 className="text-brand-900 font-bold text-lg mb-2">No Quizzes Available</h3>
               <p className="text-brand-500 mb-6">This track doesn&apos;t have any quizzes yet.</p>
-              <button onClick={onEditQuiz} className="text-brand-600 font-bold underline hover:text-brand-800">
+              <button onClick={handleCreateQuiz} className="text-brand-600 font-bold underline hover:text-brand-800">
                 Create a Quiz
               </button>
             </div>

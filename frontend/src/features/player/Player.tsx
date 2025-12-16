@@ -3,13 +3,17 @@
 import { useEffect, useRef } from 'react'
 import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { incrementProgress } from '@/store/features/player/playerSlice'
+import { useQuiz } from "../quiz/useQuiz"
+import QuizModal from "../quiz/QuizModal"
 
 export default function Player() {
     const audioRef = useRef<HTMLAudioElement>(null)
     const volume = useAppSelector(state => state.player.volume)
     const audioUrl = useAppSelector(state => state.player.currentAudio?.url)
+    const audioId = useAppSelector(state => state.player.currentAudio?.id)
     const isPlaying = useAppSelector(state => state.player.isPlaying)
     const dispatch = useAppDispatch()
+    const { triggerQuiz } = useQuiz()
 
     // ✅ Update progress mỗi giây
     useEffect(() => {
@@ -73,7 +77,15 @@ export default function Player() {
         }
     }, [isPlaying, audioUrl])
 
+    // Trigger quiz when audio ends
+    const handleAudioEnded = () => {
+        if (audioId) {
+            triggerQuiz(Number(audioId));
+        }
+    }
+
     return (
+        <>
         <audio
             ref={audioRef}
             preload="metadata"
@@ -89,6 +101,9 @@ export default function Player() {
             }}
             onPlay={() => console.log('▶️ Audio started playing')}
             onPause={() => console.log('⏸️ Audio paused')}
+            onEnded={handleAudioEnded}
         />
+        <QuizModal />
+        </>
     )
 }
