@@ -15,7 +15,7 @@ const TopHeader = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector(state => state.auth.user);
-  const stats = useAppSelector(state => state.user.stats);
+  const { stats, isCompletedToday} = useAppSelector(state => state.user.stats);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRelaxModalOpen, setIsRelaxModalOpen] = useState(false);

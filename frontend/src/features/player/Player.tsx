@@ -37,6 +37,11 @@ export default function Player() {
         } catch (error) {
             console.error("Failed to update streak", error);
         }
+
+        if (audioId) {
+            console.log("Triggering quiz for audio ID:", audioId);
+            triggerQuiz(Number(audioId));
+        }
     };
 
     // ✅ Update progress mỗi giây
@@ -100,13 +105,6 @@ export default function Player() {
             audioRef.current.pause();
         }
     }, [isPlaying, audioUrl])
-
-    // Trigger quiz when audio ends
-    const handleAudioEnded = () => {
-        if (audioId) {
-            triggerQuiz(Number(audioId));
-        }
-    }
 
     return (
         <>
