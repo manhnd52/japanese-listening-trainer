@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api';
-import { Quiz, QuizAttemptInput, QuizAttemptResult } from './types';
+import { Quiz, QuizAttemptInput, QuizAttemptResult } from './types.js';
+import { QuizOption } from '@/features/quiz/types.js';
 
 /**
  * Fetch a random quiz for a specific audio

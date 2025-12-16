@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { closeQuizModal, nextQuiz, setLoading, setQuizResult, setError } from '@/store/features/quiz/quizSlice';
-import { QuizOption } from './types';
-import { submitQuizAnswer } from './api';
+import { closeQuizModal, nextQuiz, setLoading, setQuizResult, setError } from '@/store/features/quiz/quizSlice.js';
+import { QuizOption } from './types.js';
+import { submitQuizAnswer } from './api.js';
 import { X, CheckCircle, XCircle, ArrowRight, HelpCircle, Sparkles, Zap } from 'lucide-react';
 
 export default function QuizModal() {

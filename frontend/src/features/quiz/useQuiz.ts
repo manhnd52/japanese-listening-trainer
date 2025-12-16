@@ -1,8 +1,8 @@
 'use client';
 
 import { useAppDispatch } from '@/hooks/redux';
-import { setCurrentQuiz, setAllQuizzes, openQuizModal, setLoading, setError, setMode } from '@/store/features/quiz/quizSlice';
-import { fetchQuizByAudio, getQuizzesByAudio } from './api';
+import { setCurrentQuiz, setAllQuizzes, openQuizModal, setLoading, setError, setMode } from '@/store/features/quiz/quizSlice.js';
+import { fetchQuizByAudio, getQuizzesByAudio } from './api.js';
 
 /**
  * Custom hook for quiz operations
