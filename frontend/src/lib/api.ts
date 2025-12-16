@@ -7,6 +7,7 @@ import axios from 'axios';
 export const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
     timeout: 30000, // Increase timeout to 30s
+    // Force rebuild to apply new env variables
     headers: {
         'Content-Type': 'application/json'
     }
