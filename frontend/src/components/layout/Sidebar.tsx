@@ -16,14 +16,16 @@ const menuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
 
+  // Sidebar is hidden on mobile, fixed on md+
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-white border-r border-brand-200 fixed left-0 top-16 bottom-0 pt-4 z-10">
-      
+    <aside
+      className="hidden md:flex flex-col w-64 bg-white border-r border-brand-200 fixed left-0 top-16 bottom-0 pt-4 z-10"
+      aria-label="Sidebar"
+    >
       <nav className="flex-1 px-4 overflow-y-auto">
         {menuItems.map((item) => {
           const isActive = pathname === item.path;
           const Icon = item.icon;
-          
           return (
             <Link
               key={item.path}

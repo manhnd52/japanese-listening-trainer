@@ -7,10 +7,10 @@ export default function MainLayout({ children } : { children: React.ReactNode })
     <>
       <TopHeader />
       <Sidebar/>
-      <main className="flex pt-16 flex-1 min-h-0">
-        <main className="flex-1 overflow-y-auto">
+      <main className="flex pt-16 flex-1 min-h-0 pl-0 md:pl-64">
+        <div className="flex-1 overflow-y-auto">
           {children}
-        </main>
+        </div>
       </main>
     </>
   )
