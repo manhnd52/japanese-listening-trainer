@@ -36,18 +36,14 @@ COPY package*.json ./
 # Install production dependencies only
 RUN npm install --omit=dev
 
-# Copy prisma files and generate client
-COPY prisma.config.ts ./
-COPY src/prisma ./src/prisma
-
-# Set dummy DATABASE_URL for Prisma generate
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-
-RUN npx prisma generate
-
-# Copy built files from builder
+# Copy built files from builder (including generated Prisma client)
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/src/generated ./src/generated
+
+# Copy prisma schema for migrations only (no need to regenerate)
+COPY prisma.config.ts ./
+COPY src/prisma ./src/prisma
 
 # Create necessary directories
 RUN mkdir -p uploads backups
