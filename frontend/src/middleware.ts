@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/register', '/debug-env'];
+  const publicRoutes = ['/login', '/register', '/debug-env', '/test-cors'];
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
   // If accessing a public route and already authenticated, redirect to home
