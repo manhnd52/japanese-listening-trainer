@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { useAppSelector, useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/store/features/auth/authSlice';
 import { useRouter } from 'next/navigation';
-import { Search, Flame, User as UserIcon, LogOut, Link, Upload, Coffee } from 'lucide-react';
+import { Search, Flame, User as UserIcon, LogOut, Upload, Coffee } from 'lucide-react';
 import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
 import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
-import { authApi } from '@/features/auth/api'; // Đảm bảo bạn đã tạo hàm này trong api.ts
+import { authApi } from '@/features/auth/api';
 import { setStats } from '@/store/features/user/userSlice';
 
 const TopHeader = () => {
@@ -15,7 +15,7 @@ const TopHeader = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector(state => state.auth.user);
-  const { stats, isCompletedToday} = useAppSelector(state => state.user.stats);
+  const { stats, isCompletedToday } = useAppSelector(state => state.user.stats || {});
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRelaxModalOpen, setIsRelaxModalOpen] = useState(false);
@@ -41,11 +41,11 @@ const TopHeader = () => {
             streak: res.data.streak,
             level: res.data.level,
             exp: res.data.exp,
-            lastActiveDate: res.data.lastActiveDate // Quan trọng để tính isCompletedToday
+            lastActiveDate: res.data.lastActiveDate
           }));
         }
       } catch (error) {
-        console.error("Failed to load user stats", error);
+        console.error('Failed to load user stats', error);
       }
     };
     loadStats();
@@ -54,30 +54,22 @@ const TopHeader = () => {
   const navigate = (path: string) => router.push(path);
 
   const handleLogout = () => {
-    // Clear Redux state
     dispatch(logout());
-    
-    // Clear localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      
-      // Clear cookie
       document.cookie = 'accessToken=; path=/; max-age=0';
     }
-    
     router.push('/login');
   };
 
   const handleRelaxModalSelect = (option: Source) => {
-    dispatch(setRelaxModeSource(option));  
+    dispatch(setRelaxModeSource(option));
     setIsRelaxModalOpen(false);
   };
 
   return (
     <header className="h-16 bg-brand-500 border-b border-brand-600 flex items-center justify-between px-4 md:px-6 shrink-0 z-20 shadow-md fixed inset-x-0 top-0">
-
-      {/* Left: Logo */}
       <div 
         onClick={() => navigate('/')}
         className="flex items-center gap-2 w-64 cursor-pointer hover:opacity-80 transition-opacity"
@@ -87,88 +79,42 @@ const TopHeader = () => {
         </div>
         <span className="font-bold text-xl tracking-tight text-white">JLT</span>
       </div>
-      
-      
 
-      {/* Right section */}
       <div className="flex items-center gap-3 md:gap-6">
-        
+        <div
+          onClick={() => setIsRelaxModalOpen(true)}
+          className="hidden md:flex items-center gap-2 bg-jlt-cream text-brand-600 px-4 py-2 rounded-full text-sm font-semibold shadow-lg hover:shadow-2xl hover:scale-110 transition-all duration-300 cursor-pointer select-none transform-gpu"
+        >
+          <Coffee className="w-5 h-5 animate-bounce-slow" />
+          <span>Relax</span>
+        </div>
 
-      <div
-        onClick={() => setIsRelaxModalOpen(true)}
-        className="
-          hidden md:flex items-center gap-2
-          bg-jlt-cream text-brand-600
-          px-4 py-2 rounded-full text-sm font-semibold
-          shadow-lg
-          hover:shadow-2xl
-          hover:scale-110
-          transition-all duration-300
-          cursor-pointer select-none
-          transform-gpu
-        "
-      >
-        <Coffee className="w-5 h-5 animate-bounce-slow" />
-        <span>Relax</span>
-      </div>
+        {/* Navigate to library and open upload modal via query param */}
+        <button
+          onClick={() => navigate('/library?add=1')}
+          className="hidden md:flex items-center gap-2 bg-jlt-peach text-brand-900 px-4 py-2 rounded-full text-sm font-bold shadow-sm border-b-2 border-orange-300 hover:translate-y-0.5 hover:shadow-md transition-all focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1"
+        >
+          <Upload className="w-4 h-4" />
+          Add Audio
+        </button>
 
-        {/* Add audio */}
-           <button
-              onClick={() => navigate("/add-audio")}
-              className="
-                hidden md:flex items-center gap-2 
-                bg-jlt-peach text-brand-900 
-                px-4 py-2 rounded-full text-sm font-bold
-                shadow-sm border-b-2 border-orange-300
-                hover:translate-y-0.5 hover:shadow-md
-                transition-all
-                focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1
-              "
-            >
-              <Upload className="w-4 h-4" />
-              Add Audio
-          </button>
-
-        {/* Streak */}
-        <div 
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-300
-            ${isCompletedToday 
-              ? 'bg-orange-100 border-orange-200 shadow-[0_0_10px_rgba(251,146,60,0.5)]' // Đã học: Sáng rực
-              : 'bg-brand-600/50 border-brand-400/30 opacity-70 grayscale' // Chưa học: Xám mờ
-            }`}
+        <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-300
+          ${isCompletedToday ? 'bg-orange-100 border-orange-200 shadow-[0_0_10px_rgba(251,146,60,0.5)]' : 'bg-brand-600/50 border-brand-400/30 opacity-70 grayscale'}`}
           title={isCompletedToday ? "Bạn đã duy trì chuỗi hôm nay!" : "Hãy nghe 1 bài để giữ chuỗi!"}
         >
-          <Flame 
-            className={isCompletedToday ? 'text-orange-500 fill-orange-500 animate-pulse' : 'text-gray-300 fill-gray-300'} 
-            size={16} 
-          />
-          <span className={`font-bold text-sm ${isCompletedToday ? 'text-orange-600' : 'text-gray-200'}`}>
-            {stats?.streak ?? 0}
-          </span>
+          <Flame className={isCompletedToday ? 'text-orange-500 fill-orange-500 animate-pulse' : 'text-gray-300 fill-gray-300'} size={16} />
+          <span className={`font-bold text-sm ${isCompletedToday ? 'text-orange-600' : 'text-gray-200'}`}>{stats?.streak ?? 0}</span>
         </div>
 
-        {/* Level info */}
-        <div
-          className="hidden md:flex flex-col items-end cursor-pointer"
-          onClick={() => navigate('/achievements')}
-        >
-          <span className="text-sm font-bold text-white leading-none">
-            Level {stats?.level ?? 1}
-          </span>
-          <span className="text-[10px] font-medium text-brand-100 leading-none mt-1">
-            {stats?.exp ?? 0}/100 EXP
-          </span>
+        <div className="hidden md:flex flex-col items-end cursor-pointer" onClick={() => navigate('/achievements')}>
+          <span className="text-sm font-bold text-white leading-none">Level {stats?.level ?? 1}</span>
+          <span className="text-[10px] font-medium text-brand-100 leading-none mt-1">{stats?.exp ?? 0}/100 EXP</span>
         </div>
 
-        {/* Avatar + Dropdown */}
         <div className="relative" ref={menuRef}>
           <div
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`h-9 w-9 rounded-full border flex items-center justify-center text-brand-600 overflow-hidden 
-              cursor-pointer transition-colors ${isMenuOpen
-                ? 'bg-white border-white ring-2 ring-brand-300'
-                : 'bg-brand-100 border-brand-200 hover:border-white hover:bg-white'
-              }`}
+            className={`h-9 w-9 rounded-full border flex items-center justify-center text-brand-600 overflow-hidden cursor-pointer transition-colors ${isMenuOpen ? 'bg-white border-white ring-2 ring-brand-300' : 'bg-brand-100 border-brand-200 hover:border-white hover:bg-white'}`}
           >
             <UserIcon size={20} />
           </div>
@@ -179,21 +125,12 @@ const TopHeader = () => {
                 <p className="text-brand-900 font-bold truncate">{user?.fullname}</p>
                 <p className="text-brand-500 text-xs truncate">{user?.email}</p>
               </div>
-
               <div className="p-2">
-                <button
-                  onClick={() => { setIsMenuOpen(false); navigate('/profile'); }}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-700 font-bold text-sm flex items-center gap-3 transition-colors"
-                >
+                <button onClick={() => { setIsMenuOpen(false); navigate('/profile'); }} className="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-700 font-bold text-sm flex items-center gap-3 transition-colors">
                   <UserIcon size={18} /> My Profile
                 </button>
-
                 <div className="h-px bg-brand-100 my-1"></div>
-
-                <button
-                  onClick={handleLogout}
-                  className="w-full text-left px-4 py-3 rounded-xl hover:bg-rose-50 text-rose-500 font-bold text-sm flex items-center gap-3 transition-colors"
-                >
+                <button onClick={handleLogout} className="w-full text-left px-4 py-3 rounded-xl hover:bg-rose-50 text-rose-500 font-bold text-sm flex items-center gap-3 transition-colors">
                   <LogOut size={18} /> Logout
                 </button>
               </div>
@@ -203,11 +140,7 @@ const TopHeader = () => {
 
       </div>
 
-      <RelaxModeModal
-        isOpen={isRelaxModalOpen}
-        onClose={() => setIsRelaxModalOpen(false)}
-        onSelectOption={handleRelaxModalSelect}
-      />
+      <RelaxModeModal isOpen={isRelaxModalOpen} onClose={() => setIsRelaxModalOpen(false)} onSelectOption={handleRelaxModalSelect} />
     </header>
   );
 };
