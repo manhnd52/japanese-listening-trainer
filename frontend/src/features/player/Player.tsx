@@ -3,13 +3,46 @@
 import { useEffect, useRef } from 'react'
 import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { incrementProgress } from '@/store/features/player/playerSlice'
+import { useQuiz } from "../quiz/useQuiz"
+import QuizModal from "../quiz/QuizModal"
+import { setIsPlaying } from '@/store/features/player/playerSlice'
+import { updateUserStreak } from '@/store/features/user/userSlice'
+import { apiClient } from '@/lib/api'
 
 export default function Player() {
     const audioRef = useRef<HTMLAudioElement>(null)
     const volume = useAppSelector(state => state.player.volume)
     const audioUrl = useAppSelector(state => state.player.currentAudio?.url)
+    const audioId = useAppSelector(state => state.player.currentAudio?.id)
     const isPlaying = useAppSelector(state => state.player.isPlaying)
     const dispatch = useAppDispatch()
+    const { triggerQuiz } = useQuiz()
+
+    // ✅ 1. Hàm xử lý khi nghe hết bài
+    const handleAudioEnded = async () => {
+        console.log("Audio finished! Updating streak...");
+        dispatch(setIsPlaying(false)); // Dừng player
+
+        try {
+            // Gọi API (đường dẫn phải khớp với Route ở Bước 2)
+            const res = await apiClient.post('/stats/streak'); 
+            
+            if (res.data.success) {
+                // Cập nhật Redux để UI nhảy số và sáng đèn
+                dispatch(updateUserStreak({
+                    streak: res.data.data.streak,
+                    lastActiveDate: res.data.data.lastActiveDate
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to update streak", error);
+        }
+
+        if (audioId) {
+            console.log("Triggering quiz for audio ID:", audioId);
+            triggerQuiz(Number(audioId));
+        }
+    };
 
     // ✅ Update progress mỗi giây
     useEffect(() => {
@@ -74,6 +107,7 @@ export default function Player() {
     }, [isPlaying, audioUrl])
 
     return (
+        <>
         <audio
             ref={audioRef}
             preload="metadata"
@@ -89,6 +123,9 @@ export default function Player() {
             }}
             onPlay={() => console.log('▶️ Audio started playing')}
             onPause={() => console.log('⏸️ Audio paused')}
+            onEnded={handleAudioEnded}
         />
+        <QuizModal />
+        </>
     )
 }

@@ -4,10 +4,12 @@ export interface UserStats {
   streak: number;
   level: number;
   exp: number;
+  lastActiveDate?: string;
 }
 
 interface UserState {
   stats: UserStats;
+  isCompletedToday?: boolean;
 }
 
 const initialState: UserState = {
@@ -16,6 +18,16 @@ const initialState: UserState = {
     level: 1,
     exp: 0,
   },
+  isCompletedToday: false,
+};
+
+const checkIsToday = (dateString?: string) => {
+  if (!dateString) return false;
+  const date = new Date(dateString);
+  const today = new Date();
+  return date.getDate() === today.getDate() &&
+         date.getMonth() === today.getMonth() &&
+         date.getFullYear() === today.getFullYear();
 };
 
 const userSlice = createSlice({
@@ -24,6 +36,14 @@ const userSlice = createSlice({
   reducers: {
     setStats(state, action: PayloadAction<UserStats>) {
       state.stats = action.payload;
+      state.isCompletedToday = checkIsToday(action.payload.lastActiveDate);
+    },
+    updateUserStreak(state, action: PayloadAction<{ streak: number; lastActiveDate: string }>) {
+      if (state.stats) {
+        state.stats.streak = action.payload.streak;
+        state.stats.lastActiveDate = action.payload.lastActiveDate;
+        state.isCompletedToday = true; // ✅ Bật đèn sáng ngay lập tức
+      }
     },
     addExp(state, action: PayloadAction<number>) {
       state.stats.exp += action.payload;
@@ -42,6 +62,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setStats, addExp, increaseStreak, resetStreak } =
+export const { setStats, addExp, increaseStreak, resetStreak, updateUserStreak } =
   userSlice.actions;
 export default userSlice.reducer;

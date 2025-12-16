@@ -6,6 +6,8 @@ import playerReducer from './features/player/playerSlice'
 import folderReducer from './features/folder/folderSlice'
 import sharringReducer  from './features/sharring/sharringSlice';
 import audioReducer from './features/audio/audioSlice';
+import quizReducer from './features/quiz/quizSlice';
+
 export const makeStore = () => {
   return configureStore({
     reducer: {
@@ -15,6 +17,7 @@ export const makeStore = () => {
       folder: folderReducer,
       audio: audioReducer,
       sharing: sharringReducer,
+      quiz: quizReducer,
     }
   })
 }
