@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { Search, Flame, User as UserIcon, LogOut, Link, Upload, Coffee } from 'lucide-react';
 import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
 import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
+import { authApi } from '@/features/auth/api'; // Đảm bảo bạn đã tạo hàm này trong api.ts
+import { setStats } from '@/store/features/user/userSlice';
 
 const TopHeader = () => {
   const router = useRouter();
@@ -28,6 +30,26 @@ const TopHeader = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      if (!user) return;
+      try {
+        const res = await authApi.getUserStats();
+        if (res.success && res.data) {
+          dispatch(setStats({
+            streak: res.data.streak,
+            level: res.data.level,
+            exp: res.data.exp,
+            lastActiveDate: res.data.lastActiveDate // Quan trọng để tính isCompletedToday
+          }));
+        }
+      } catch (error) {
+        console.error("Failed to load user stats", error);
+      }
+    };
+    loadStats();
+  }, [user, dispatch]);
 
   const navigate = (path: string) => router.push(path);
 
@@ -121,9 +143,19 @@ const TopHeader = () => {
           </button>
 
         {/* Streak */}
-        <div className="flex items-center gap-1.5 bg-brand-600/50 px-3 py-1.5 rounded-lg border border-brand-400/30">
-          <Flame className="text-jlt-peach fill-jlt-peach" size={16} />
-          <span className="font-bold text-jlt-peach text-sm">
+        <div 
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-300
+            ${isCompletedToday 
+              ? 'bg-orange-100 border-orange-200 shadow-[0_0_10px_rgba(251,146,60,0.5)]' // Đã học: Sáng rực
+              : 'bg-brand-600/50 border-brand-400/30 opacity-70 grayscale' // Chưa học: Xám mờ
+            }`}
+          title={isCompletedToday ? "Bạn đã duy trì chuỗi hôm nay!" : "Hãy nghe 1 bài để giữ chuỗi!"}
+        >
+          <Flame 
+            className={isCompletedToday ? 'text-orange-500 fill-orange-500 animate-pulse' : 'text-gray-300 fill-gray-300'} 
+            size={16} 
+          />
+          <span className={`font-bold text-sm ${isCompletedToday ? 'text-orange-600' : 'text-gray-200'}`}>
             {stats?.streak ?? 0}
           </span>
         </div>

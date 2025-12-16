@@ -5,6 +5,9 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux'
 import { incrementProgress } from '@/store/features/player/playerSlice'
 import { useQuiz } from "../quiz/useQuiz"
 import QuizModal from "../quiz/QuizModal"
+import { setIsPlaying } from '@/store/features/player/playerSlice'
+import { updateUserStreak } from '@/store/features/user/userSlice'
+import { apiClient } from '@/lib/api'
 
 export default function Player() {
     const audioRef = useRef<HTMLAudioElement>(null)
@@ -14,6 +17,27 @@ export default function Player() {
     const isPlaying = useAppSelector(state => state.player.isPlaying)
     const dispatch = useAppDispatch()
     const { triggerQuiz } = useQuiz()
+
+    // ✅ 1. Hàm xử lý khi nghe hết bài
+    const handleAudioEnded = async () => {
+        console.log("Audio finished! Updating streak...");
+        dispatch(setIsPlaying(false)); // Dừng player
+
+        try {
+            // Gọi API (đường dẫn phải khớp với Route ở Bước 2)
+            const res = await apiClient.post('/stats/streak'); 
+            
+            if (res.data.success) {
+                // Cập nhật Redux để UI nhảy số và sáng đèn
+                dispatch(updateUserStreak({
+                    streak: res.data.data.streak,
+                    lastActiveDate: res.data.data.lastActiveDate
+                }));
+            }
+        } catch (error) {
+            console.error("Failed to update streak", error);
+        }
+    };
 
     // ✅ Update progress mỗi giây
     useEffect(() => {
