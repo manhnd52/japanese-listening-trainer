@@ -25,5 +25,5 @@ export const config: EnvConfig = {
     databaseUrl: getEnvVar('DATABASE_URL'),
     jwtSecret: getEnvVar('JWT_SECRET'),
     jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '7d'),
-    corsOrigin: getEnvVar('CORS_ORIGIN', 'http://localhost:3000'),
+    corsOrigin: getEnvVar('CORS_ORIGIN', 'https://jltedu.io.vn'),
 };

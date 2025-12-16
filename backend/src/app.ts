@@ -19,8 +19,9 @@ app.use(helmet({
 }));
 
 // ✅ CORS - Cho phép frontend truy cập
+const allowedOrigins = config.corsOrigin.split(',').map(origin => origin.trim());
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
 }));
