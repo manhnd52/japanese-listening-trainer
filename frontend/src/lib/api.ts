@@ -5,7 +5,7 @@ import axios from 'axios';
  * Configured with base URL and interceptors
  */
 export const apiClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL,
     timeout: 30000, // Increase timeout to 30s
     headers: {
         'Content-Type': 'application/json'
@@ -53,7 +53,7 @@ apiClient.interceptors.response.use(
 );
 
 export async function fetchAudios() {
-  const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+  const baseURL = process.env.NEXT_PUBLIC_API_URL;
   const res = await fetch(`${baseURL}/audios`);
   const json = await res.json();
   return json.data; // trả về mảng audio

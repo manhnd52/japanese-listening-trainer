@@ -24,7 +24,7 @@ interface GetAudioResponse {
 }
 
 // ✅ Base URL cho audio files
-const AUDIO_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const AUDIO_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '');
 
 export const playerApi = {
   async getAllAudios(userId: number): Promise<AudioTrack[]> {

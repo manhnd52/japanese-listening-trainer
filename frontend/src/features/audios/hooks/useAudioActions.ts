@@ -8,7 +8,7 @@ export const useAudioActions = () => {
   const { user } = useAppSelector((state) => state.auth);
 
   const handlePlay = (audio: AudioTrack) => {
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:5000';
+    const backendUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '');
     let url = (audio as { url?: string; fileUrl?: string }).url || (audio as { url?: string; fileUrl?: string }).fileUrl || '';
     if (url && !url.startsWith('http')) {
       url = backendUrl + url;
