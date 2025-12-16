@@ -1,4 +1,4 @@
-import { prisma, AchievementConditionType } from '../index';
+import { prisma, AchievementConditionType } from '../index.js';
 
 export async function seedAchievements() {
     console.log('🌱 Seeding achievements...');

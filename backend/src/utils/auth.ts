@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { config } from '../config/env';
+import { config } from '../config/env.js';
 
 // --- Password Handling ---
 const SALT_ROUNDS = 10;

@@ -1,4 +1,4 @@
-import { prisma } from '../index';
+import { prisma } from '../index.js';
 import bcrypt from 'bcrypt';
 
 export async function seedUsers() {

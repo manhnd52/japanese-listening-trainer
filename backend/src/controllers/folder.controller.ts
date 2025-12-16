@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { folderService } from "../services/folder.service";
-import { successResponse, errorResponse } from "../utils/response";
+import { folderService } from "../services/folder.service.js";
+import { successResponse, errorResponse } from "../utils/response.js";
 
 async function createFolder(req: Request, res: Response, next: NextFunction) {
     try {

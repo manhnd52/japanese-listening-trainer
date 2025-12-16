@@ -1,12 +1,12 @@
-import { prisma } from '../index';
-import { seedUsers } from './seed.user';
-import { seedFolders } from './seed.folder';
-import { seedAudios } from './seed.audio';
-import { seedAudioStats } from './seed.audioStats';
-import { seedUserSettings } from './seed.userSetting';
-import { seedGamification } from './seed.gamification';
-import { seedAchievements, seedUserAchievements } from './seed.achievement';
-import { seedQuizzes } from './seed.quiz';
+import { prisma } from '../index.js';
+import { seedUsers } from './seed.user.js';
+import { seedFolders } from './seed.folder.js';
+import { seedAudios } from './seed.audio.js';
+import { seedAudioStats } from './seed.audioStats.js';
+import { seedUserSettings } from './seed.userSetting.js';
+import { seedGamification } from './seed.gamification.js';
+import { seedAchievements, seedUserAchievements } from './seed.achievement.js';
+import { seedQuizzes } from './seed.quiz.js';
 
 async function main() {
     console.log('🚀 Starting database seeding...\n');

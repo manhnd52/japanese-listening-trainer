@@ -1,7 +1,7 @@
 import { Router } from "express";
-import SharingController from "../controllers/sharing.controller";
-import { authenticateToken } from "../middlewares/auth.middleware";
-import { checkFolderOwnerPermission } from "../middlewares/sharringFolder";
+import SharingController from "../controllers/sharing.controller.js";
+import { authenticateToken } from "../middlewares/auth.middleware.js";
+import { checkFolderOwnerPermission } from "../middlewares/sharringFolder.js";
 
 const router = Router();
 

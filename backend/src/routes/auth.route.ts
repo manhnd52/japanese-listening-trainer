@@ -1,7 +1,7 @@
 // src/routes/auth.route.ts
 import { Router } from 'express';
-import authController from '../controllers/auth.controller';
-import { authenticateToken } from '../middlewares/auth.middleware';
+import authController from '../controllers/auth.controller.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 

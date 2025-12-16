@@ -8,9 +8,9 @@ import {
   moveAudio,
   toggleFavorite,
   getRecentlyListened
-} from '../controllers/audio.controller';
-import { uploadMiddleware } from '../middlewares/upload';
-import { prisma } from '../prisma'; 
+} from '../controllers/audio.controller.js';
+import { uploadMiddleware } from '../middlewares/upload.js';
+import { prisma } from '../prisma/index.js'; 
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { prisma } from "../prisma";
-import { errorResponse } from "../utils/response";
+import { prisma } from "../prisma/index.js";
+import { errorResponse } from "../utils/response.js";
 
 export async function checkFolderOwnerPermission(
   req: Request,

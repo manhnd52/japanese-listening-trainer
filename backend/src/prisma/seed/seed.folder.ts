@@ -1,4 +1,4 @@
-import { prisma } from '../index';
+import { prisma } from '../index.js';
 
 export async function seedFolders(userId: number) {
     console.log('🌱 Seeding folders...');

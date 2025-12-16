@@ -1,4 +1,4 @@
-import { HealthCheckResponse } from '../types';
+import { HealthCheckResponse } from '../types/index.js';
 
 class HealthService {
     getHealthStatus(): HealthCheckResponse {

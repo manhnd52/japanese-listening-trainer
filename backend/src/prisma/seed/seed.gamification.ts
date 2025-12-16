@@ -1,4 +1,4 @@
-import { prisma } from '../index';
+import { prisma } from '../index.js';
 
 export async function seedGamification(userId: number) {
     console.log('🌱 Seeding gamification data...');

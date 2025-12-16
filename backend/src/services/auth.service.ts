@@ -1,10 +1,10 @@
-import { prisma } from '../prisma';
+import { prisma } from '../prisma/index.js';
 import { 
     hashPassword, 
     comparePassword, 
     generateAccessToken, 
     generateRefreshToken 
-} from '../utils/auth';
+} from '../utils/auth.js';
 
 // Định nghĩa kiểu dữ liệu đầu vào (DTO)
 export interface RegisterInput {

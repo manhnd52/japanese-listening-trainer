@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../utils/auth';
-import { errorResponse } from '../utils/response';
+import { verifyToken } from '../utils/auth.js';
+import { errorResponse } from '../utils/response.js';
 
 // Extend Express Request type to include userId
 declare global {

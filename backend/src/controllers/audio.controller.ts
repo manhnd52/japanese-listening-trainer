@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { audioService } from '../services/audio.service';
+import { audioService } from '../services/audio.service.js';
 import path from 'path';
 import fs from 'fs';
 

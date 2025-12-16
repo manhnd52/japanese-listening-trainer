@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { folderShareService } from "../services/sharing.service";
-import { successResponse, errorResponse } from "../utils/response";
+import { folderShareService } from "../services/sharing.service.js";
+import { successResponse, errorResponse } from "../utils/response.js";
 
 async function shareFolder(req: Request, res: Response, next: NextFunction) {
   try {

@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import folderRoutes from './folder.route';
-import audioRoutes from './audio.route';
-import sharringRoutes from './sharing.route';
-import statsRoutes from './stats.route';
-import authRoutes from './auth.route';
-import { authenticateToken } from '@middlewares/auth.middleware';
+import folderRoutes from './folder.route.js';
+import audioRoutes from './audio.route.js';
+import sharringRoutes from './sharing.route.js';
+import statsRoutes from './stats.route.js';
+import authRoutes from './auth.route.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import FolderController from "../controllers/folder.controller";
-import { authenticateToken, optionalAuth } from "../middlewares/auth.middleware";
+import FolderController from "../controllers/folder.controller.js";
+import { authenticateToken, optionalAuth } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 

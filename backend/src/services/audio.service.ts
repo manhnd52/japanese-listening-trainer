@@ -1,5 +1,5 @@
-import { Prisma } from '../generated/prisma/client';
-import { prisma } from '../prisma';
+import { Prisma } from '../generated/prisma/client.js';
+import { prisma } from '../prisma/index.js';
 
 export class AudioService {
   async createAudio(data: any) {

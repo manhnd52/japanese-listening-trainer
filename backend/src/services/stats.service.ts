@@ -1,5 +1,5 @@
 import { startOfWeek, endOfWeek, subDays, format, getDay } from 'date-fns';
-import { prisma } from '../prisma';
+import { prisma } from '../prisma/index.js';
 
 export const statsService = {
   getDashboardStats: async (userId: number) => {

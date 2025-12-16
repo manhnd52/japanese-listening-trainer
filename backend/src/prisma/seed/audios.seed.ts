@@ -1,4 +1,4 @@
-import { PrismaClient, Audio, User, Folder } from '../../generated/prisma/client';
+import { PrismaClient, Audio, User, Folder } from '../../generated/prisma/client.js';
 
 export async function seedAudios(
     prisma: PrismaClient,

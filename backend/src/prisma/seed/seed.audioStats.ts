@@ -1,4 +1,4 @@
-import { prisma } from '../index';
+import { prisma } from '../index.js';
 
 export async function seedAudioStats(userId: number, audioIds: number[]) {
     console.log('🌱 Seeding audio stats...');
