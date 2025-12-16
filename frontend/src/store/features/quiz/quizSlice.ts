@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Quiz, QuizAttemptResult, QuizState } from '../../features/quiz/types';
+import { Quiz, QuizAttemptResult, QuizState } from '../../../features/quiz/types';
 
 const initialState: QuizState = {
   currentQuiz: null,
