@@ -1,3 +1,5 @@
+'use client';
+
 export default function TestCorsPage() {
   const testCors = async () => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
