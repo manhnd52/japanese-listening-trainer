@@ -3,13 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import path from 'path';
-import { config } from './config/env';
-import routes from './routes';
-import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
-import { requestLogger } from './middlewares/requestLogger';
-import authRoute from '@routes/auth.route';
-import healthRoute from '@routes/health.route';
-import { authenticateToken } from '@middlewares/auth.middleware';
+import { config } from './config/env.js';
+import routes from './routes/index.js';
+import { errorHandler, notFoundHandler } from './middlewares/errorHandler.js';
+import { requestLogger } from './middlewares/requestLogger.js';
+import authRoute from './routes/auth.route.js';
+import healthRoute from './routes/health.route.js';
+import { authenticateToken } from './middlewares/auth.middleware.js';
 
 const app: Application = express();
 
