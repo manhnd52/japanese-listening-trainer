@@ -1,25 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react'; // Thêm Suspense
 import { useSearchParams } from 'next/navigation';
 import { useQuiz } from '@/features/quiz/useQuiz';
 import QuizModal from '@/features/quiz/QuizModal';
 import { Quiz, QuizOption } from '@/features/quiz/types';
 import { getQuizzesByAudio, createQuiz, deleteQuiz } from '@/features/quiz/api';
-import { generateQuizFromScript, AIGeneratedQuiz } from '@/features/quiz/geminiService';
+import { generateQuizFromScript } from '@/features/quiz/geminiService';
 import { Trash2, Plus, X, Loader2, Sparkles, CheckCircle, Save, HelpCircle, ArrowLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
 
 /**
- * Quiz Test & Management Page
- * Access: http://localhost:3000/test-quiz
- * Access with pre-selected audio: http://localhost:3000/test-quiz?audioId=123
+ * Quiz Content Component
+ * Chứa toàn bộ logic chính sử dụng useSearchParams
  */
-export default function TestQuizPage() {
+function QuizContent() {
   const searchParams = useSearchParams();
   const urlAudioId = searchParams.get('audioId');
   
-  const { triggerQuiz, triggerAllQuizzes } = useQuiz();
+  const { triggerAllQuizzes } = useQuiz();
   const [quizTimeAudioId, setQuizTimeAudioId] = useState(1);
   
   // Management state
@@ -30,9 +29,9 @@ export default function TestQuizPage() {
   const [isManageMode, setIsManageMode] = useState(false);
   const [showManualQuizForm, setShowManualQuizForm] = useState(false);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving] = useState(false);
   
-  // Manual Quiz Form State (matching ref code structure)
+  // Manual Quiz Form State
   const [manualQuestion, setManualQuestion] = useState('');
   const [manualOptions, setManualOptions] = useState(['', '', '', '']);
   const [manualCorrect, setManualCorrect] = useState(0);
@@ -594,5 +593,27 @@ export default function TestQuizPage() {
       {/* Quiz Modal */}
       <QuizModal />
     </div>
+  );
+}
+
+/**
+ * Quiz Test & Management Page
+ * Wraps content in Suspense to fix build error
+ * Access: http://localhost:3000/test-quiz
+ */
+export default function TestQuizPage() {
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-jlt-cream">
+          <div className="flex flex-col items-center gap-2">
+            <Loader2 className="animate-spin text-brand-500" size={32} />
+            <p className="text-brand-500 font-medium">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <QuizContent />
+    </Suspense>
   );
 }
