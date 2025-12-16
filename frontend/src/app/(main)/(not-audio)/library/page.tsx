@@ -3,16 +3,27 @@
 import React, { useState } from "react";
 import { AudioTrack } from "@/types/types";
 import { useAudioList, useAudioActions } from "@/features/audios/hooks";
-import { AudioList, EditAudioModal, UploadAudioModal } from "@/features/audios/components";
-
+import {
+  AudioList,
+  EditAudioModal,
+  UploadAudioModal,
+} from "@/features/audios/components";
+import { useAppDispatch } from "@/hooks/redux";
+import { setPlaylistArray } from "@/store/features/player/playerSlice";
 const LibraryPage = () => {
   const { audios, folders, loading } = useAudioList();
-  const { handlePlay, handleToggleFavorite, handleDelete, handleMove } = useAudioActions();
+  const { handlePlay, handleToggleFavorite, handleDelete, handleMove } =
+    useAudioActions();
 
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(null);
-
+  const dispatch = useAppDispatch();
+  React.useEffect(() => {
+    if (audios && audios.length > 0) {
+      dispatch(setPlaylistArray(audios));
+    }
+  }, [audios, dispatch]);
   const handleSelect = (audio: AudioTrack) => {
     handlePlay(audio);
   };
