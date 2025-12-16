@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, Folder } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { uploadAudio, fetchFolders, clearError } from '@/store/features/audio/audioSlice';
-
+import {message} from "antd"
 interface UploadAudioModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,7 +29,7 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
   useEffect(() => {
     if (error) {
-      alert(error);
+      message.error(error);
       dispatch(clearError());
     }
   }, [error, dispatch]);

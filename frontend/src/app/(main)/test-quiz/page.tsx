@@ -1,26 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect, Suspense } from 'react'; // Thêm Suspense
-import { useSearchParams } from 'next/navigation';
-import { useQuiz } from '@/features/quiz/useQuiz';
-import QuizModal from '@/features/quiz/QuizModal';
-import { Quiz, QuizOption } from '@/features/quiz/types';
-import { getQuizzesByAudio, createQuiz, deleteQuiz } from '@/features/quiz/api';
-import { generateQuizFromScript } from '@/features/quiz/geminiService';
-import { Trash2, Plus, X, Loader2, Sparkles, CheckCircle, Save, HelpCircle, ArrowLeft, FileText } from 'lucide-react';
-import Link from 'next/link';
-
+import { useState, useEffect, Suspense } from "react"; // Thêm Suspense
+import { useSearchParams } from "next/navigation";
+import { useQuiz } from "@/features/quiz/useQuiz";
+import QuizModal from "@/features/quiz/QuizModal";
+import { Quiz, QuizOption } from "@/features/quiz/types";
+import { getQuizzesByAudio, createQuiz, deleteQuiz } from "@/features/quiz/api";
+import { generateQuizFromScript } from "@/features/quiz/geminiService";
+import {
+  Trash2,
+  Plus,
+  X,
+  Loader2,
+  Sparkles,
+  CheckCircle,
+  Save,
+  HelpCircle,
+  ArrowLeft,
+  FileText,
+} from "lucide-react";
+import Link from "next/link";
+import { message } from "antd";
 /**
  * Quiz Content Component
  * Chứa toàn bộ logic chính sử dụng useSearchParams
  */
 function QuizContent() {
   const searchParams = useSearchParams();
-  const urlAudioId = searchParams.get('audioId');
-  
+  const urlAudioId = searchParams.get("audioId");
+
   const { triggerAllQuizzes } = useQuiz();
   const [quizTimeAudioId, setQuizTimeAudioId] = useState(1);
-  
+
   // Management state
   const [manageAudioId, setManageAudioId] = useState(1);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
@@ -30,16 +41,16 @@ function QuizContent() {
   const [showManualQuizForm, setShowManualQuizForm] = useState(false);
   const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
   const [isSaving] = useState(false);
-  
+
   // Manual Quiz Form State
-  const [manualQuestion, setManualQuestion] = useState('');
-  const [manualOptions, setManualOptions] = useState(['', '', '', '']);
+  const [manualQuestion, setManualQuestion] = useState("");
+  const [manualOptions, setManualOptions] = useState(["", "", "", ""]);
   const [manualCorrect, setManualCorrect] = useState(0);
-  const [manualExplanation, setManualExplanation] = useState('');
-  
+  const [manualExplanation, setManualExplanation] = useState("");
+
   // AI Generation State
   const [showScriptInput, setShowScriptInput] = useState(false);
-  const [scriptText, setScriptText] = useState('');
+  const [scriptText, setScriptText] = useState("");
   const [aiQuizCount, setAiQuizCount] = useState(3);
 
   // Auto-load quizzes if audioId is provided in URL
@@ -63,7 +74,7 @@ function QuizContent() {
       setQuizzes(data);
       setOriginalQuizzes(data);
     } catch (error) {
-      console.error('Failed to load quizzes:', error);
+      console.error("Failed to load quizzes:", error);
       setQuizzes([]);
       setOriginalQuizzes([]);
     } finally {
@@ -84,19 +95,26 @@ function QuizContent() {
   // AI Generate Quiz from Script
   const handleGenerateAIQuiz = async () => {
     if (!scriptText.trim()) {
-      alert('Please enter a script/transcript to generate quizzes from.');
+      message.warning(
+        "Please enter a script/transcript to generate quizzes from."
+      );
       return;
     }
-    
+
     setIsGeneratingQuiz(true);
     try {
-      const generatedQuizzes = await generateQuizFromScript(scriptText, aiQuizCount);
-      
+      const generatedQuizzes = await generateQuizFromScript(
+        scriptText,
+        aiQuizCount
+      );
+
       if (generatedQuizzes.length === 0) {
-        alert('No quizzes were generated. Please try with different text.');
+        message.warning(
+          "No quizzes were generated. Please try with different text."
+        );
         return;
       }
-      
+
       // Map index to QuizOption enum
       const optionMap: Record<number, QuizOption> = {
         0: QuizOption.A,
@@ -104,33 +122,37 @@ function QuizContent() {
         2: QuizOption.C,
         3: QuizOption.D,
       };
-      
+
       // Create each quiz via API
       for (const aiQuiz of generatedQuizzes) {
         try {
           const created = await createQuiz({
             audioId: manageAudioId,
             questionText: aiQuiz.question,
-            optionA: aiQuiz.options[0] || '',
-            optionB: aiQuiz.options[1] || '',
-            optionC: aiQuiz.options[2] || '',
-            optionD: aiQuiz.options[3] || '',
+            optionA: aiQuiz.options[0] || "",
+            optionB: aiQuiz.options[1] || "",
+            optionC: aiQuiz.options[2] || "",
+            optionD: aiQuiz.options[3] || "",
             correctOption: optionMap[aiQuiz.correctAnswer] || QuizOption.A,
-            explanation: aiQuiz.explanation || 'AI generated quiz.',
+            explanation: aiQuiz.explanation || "AI generated quiz.",
           });
-          setQuizzes(prev => [...prev, created]);
+          setQuizzes((prev) => [...prev, created]);
         } catch (err) {
-          console.error('Failed to create AI quiz:', err);
+          console.error("Failed to create AI quiz:", err);
         }
       }
-      
+
       // Clear script input after success
-      setScriptText('');
+      setScriptText("");
       setShowScriptInput(false);
-      alert(`Successfully generated ${generatedQuizzes.length} quizzes!`);
+      message.success(
+        `Successfully generated ${generatedQuizzes.length} quizzes!`
+      );
     } catch (error) {
-      console.error('AI Quiz generation failed:', error);
-      alert('Failed to generate quizzes. Please check your API key and try again.');
+      console.error("AI Quiz generation failed:", error);
+      message.error(
+        "Failed to generate quizzes. Please check your API key and try again."
+      );
     } finally {
       setIsGeneratingQuiz(false);
     }
@@ -145,11 +167,11 @@ function QuizContent() {
 
   // Add manual quiz (local only, persists on Save)
   const handleAddManualQuiz = async () => {
-    if (!manualQuestion || manualOptions.some(opt => !opt)) {
-      alert("Please fill in the question and all options.");
+    if (!manualQuestion || manualOptions.some((opt) => !opt)) {
+      message.warning("Please fill in the question and all options.");
       return;
     }
-    
+
     // Map index to QuizOption enum
     const optionMap: Record<number, QuizOption> = {
       0: QuizOption.A,
@@ -167,20 +189,20 @@ function QuizContent() {
         optionC: manualOptions[2],
         optionD: manualOptions[3],
         correctOption: optionMap[manualCorrect],
-        explanation: manualExplanation || 'No explanation provided.',
+        explanation: manualExplanation || "No explanation provided.",
       });
 
-      setQuizzes(prev => [...prev, created]);
-      
+      setQuizzes((prev) => [...prev, created]);
+
       // Reset form
-      setManualQuestion('');
-      setManualOptions(['', '', '', '']);
+      setManualQuestion("");
+      setManualOptions(["", "", "", ""]);
       setManualCorrect(0);
-      setManualExplanation('');
+      setManualExplanation("");
       setShowManualQuizForm(false);
     } catch (error) {
-      console.error('Failed to create quiz:', error);
-      alert('Failed to create quiz');
+      console.error("Failed to create quiz:", error);
+      message.error("Failed to create quiz");
     }
   };
 
@@ -188,10 +210,10 @@ function QuizContent() {
   const handleRemoveQuiz = async (id: number) => {
     try {
       await deleteQuiz(id);
-      setQuizzes(prev => prev.filter(q => q.id !== id));
+      setQuizzes((prev) => prev.filter((q) => q.id !== id));
     } catch (error) {
-      console.error('Failed to delete quiz:', error);
-      alert('Failed to delete quiz');
+      console.error("Failed to delete quiz:", error);
+      message.error("Failed to delete quiz");
     }
   };
 
@@ -212,7 +234,7 @@ function QuizContent() {
   // Get option text by index for display
   const getOptionText = (quiz: Quiz, index: number): string => {
     const options = [quiz.optionA, quiz.optionB, quiz.optionC, quiz.optionD];
-    return options[index] || '';
+    return options[index] || "";
   };
 
   // Get correct answer index
@@ -226,10 +248,15 @@ function QuizContent() {
       {/* Top Navigation */}
       <div className="bg-white border-b border-brand-200 p-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-brand-600 hover:text-brand-800 font-bold transition-colors"
+          >
             <ArrowLeft size={20} strokeWidth={2.5} /> Back to Home
           </Link>
-          <h1 className="text-xl font-bold text-brand-900">🧪 Quiz Management</h1>
+          <h1 className="text-xl font-bold text-brand-900">
+            🧪 Quiz Management
+          </h1>
           <div className="w-32"></div>
         </div>
       </div>
@@ -239,16 +266,18 @@ function QuizContent() {
         <div className="bg-gradient-to-br from-jlt-peach to-orange-100 rounded-3xl p-8 border border-orange-200 shadow-sm mb-8">
           <div className="flex items-center gap-3 mb-4">
             <span className="bg-white/80 text-orange-600 p-3 rounded-xl shadow-sm">
-              <HelpCircle size={28}/>
+              <HelpCircle size={28} />
             </span>
             <div>
-              <h2 className="text-2xl font-extrabold text-orange-800">Quiz Time</h2>
+              <h2 className="text-2xl font-extrabold text-orange-800">
+                Quiz Time
+              </h2>
               <p className="text-sm text-orange-600/80">
                 Test your listening comprehension with interactive quizzes
               </p>
             </div>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-orange-700 mb-2">
@@ -277,11 +306,13 @@ function QuizContent() {
           {!isManageMode ? (
             /* Load Management Mode UI */
             <div className="p-8">
-              <h2 className="text-xl font-bold text-purple-600 mb-2">⚙️ Quiz Management</h2>
+              <h2 className="text-xl font-bold text-purple-600 mb-2">
+                ⚙️ Quiz Management
+              </h2>
               <p className="text-sm text-brand-500 mb-6">
                 View, add, and delete quizzes for an audio.
               </p>
-              
+
               <div className="flex gap-4 items-end">
                 <div className="flex-1">
                   <label className="block text-sm font-medium text-brand-700 mb-2">
@@ -300,7 +331,9 @@ function QuizContent() {
                   disabled={isLoadingQuizzes}
                   className="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-brand-300 text-white font-bold rounded-xl transition shadow-lg shadow-purple-600/20 flex items-center gap-2"
                 >
-                  {isLoadingQuizzes && <Loader2 className="animate-spin" size={18} />}
+                  {isLoadingQuizzes && (
+                    <Loader2 className="animate-spin" size={18} />
+                  )}
                   Load Manage Quizzes
                 </button>
               </div>
@@ -311,7 +344,9 @@ function QuizContent() {
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-brand-900 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-jlt-peach text-orange-600 flex items-center justify-center text-lg font-bold shadow-inner">Q</div>
+                  <div className="w-10 h-10 rounded-xl bg-jlt-peach text-orange-600 flex items-center justify-center text-lg font-bold shadow-inner">
+                    Q
+                  </div>
                   Quiz Editor
                 </h3>
                 <span className="text-sm font-bold text-purple-600 bg-purple-50 px-4 py-2 rounded-full border border-purple-200">
@@ -321,19 +356,19 @@ function QuizContent() {
 
               {/* Quiz Actions - AI Generate & Add Manual */}
               <div className="grid grid-cols-2 gap-4 mb-8">
-                <button 
+                <button
                   onClick={() => setShowScriptInput(true)}
                   disabled={isGeneratingQuiz}
                   className="bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 disabled:from-brand-300 disabled:to-brand-400 text-white py-6 px-4 rounded-2xl font-bold flex flex-col items-center justify-center gap-2 transition-all shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-1"
                 >
                   {isGeneratingQuiz ? (
-                    <div className="animate-spin w-7 h-7 border-2 border-white border-t-transparent rounded-full"/>
+                    <div className="animate-spin w-7 h-7 border-2 border-white border-t-transparent rounded-full" />
                   ) : (
                     <Sparkles size={28} />
                   )}
                   <span className="text-lg">AI Generate</span>
                 </button>
-                <button 
+                <button
                   onClick={() => setShowManualQuizForm(true)}
                   className="bg-brand-50 hover:bg-brand-100 border-2 border-brand-200 text-brand-700 py-6 px-4 rounded-2xl font-bold flex flex-col items-center justify-center gap-2 transition-all hover:-translate-y-1"
                 >
@@ -350,14 +385,14 @@ function QuizContent() {
                       <Sparkles size={18} className="text-purple-500" />
                       AI Quiz Generator
                     </h4>
-                    <button 
-                      onClick={() => setShowScriptInput(false)} 
+                    <button
+                      onClick={() => setShowScriptInput(false)}
                       className="text-purple-400 hover:text-red-500 transition-colors"
                     >
-                      <X size={20}/>
+                      <X size={20} />
                     </button>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* Script/Transcript Input */}
                     <div>
@@ -373,10 +408,11 @@ function QuizContent() {
                         rows={6}
                       />
                       <p className="text-xs text-purple-500 mt-1">
-                        Tip: Longer and more detailed scripts produce better quizzes.
+                        Tip: Longer and more detailed scripts produce better
+                        quizzes.
                       </p>
                     </div>
-                    
+
                     {/* Quiz Count */}
                     <div className="flex items-center gap-4">
                       <label className="text-sm font-medium text-purple-700">
@@ -393,10 +429,10 @@ function QuizContent() {
                         <option value={5}>5 quizzes</option>
                       </select>
                     </div>
-                    
+
                     {/* Generate Button */}
                     <div className="flex justify-end pt-2">
-                      <button 
+                      <button
                         onClick={handleGenerateAIQuiz}
                         disabled={isGeneratingQuiz || !scriptText.trim()}
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-brand-300 disabled:to-brand-400 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
@@ -409,7 +445,8 @@ function QuizContent() {
                         ) : (
                           <>
                             <Sparkles size={18} />
-                            Generate {aiQuizCount} Quiz{aiQuizCount > 1 ? 'zes' : ''}
+                            Generate {aiQuizCount} Quiz
+                            {aiQuizCount > 1 ? "zes" : ""}
                           </>
                         )}
                       </button>
@@ -423,50 +460,54 @@ function QuizContent() {
                 <div className="bg-brand-50 p-6 rounded-2xl border border-brand-200 mb-6 shadow-inner animate-in fade-in duration-200">
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="font-bold text-brand-900">New Question</h4>
-                    <button 
-                      onClick={() => setShowManualQuizForm(false)} 
+                    <button
+                      onClick={() => setShowManualQuizForm(false)}
                       className="text-brand-400 hover:text-red-500 transition-colors"
                     >
-                      <X size={20}/>
+                      <X size={20} />
                     </button>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {/* Question Input */}
-                    <input 
-                      className="w-full p-3 rounded-xl border border-brand-200 bg-white text-brand-900 focus:border-purple-500 outline-none" 
-                      placeholder="Question..." 
+                    <input
+                      className="w-full p-3 rounded-xl border border-brand-200 bg-white text-brand-900 focus:border-purple-500 outline-none"
+                      placeholder="Question..."
                       value={manualQuestion}
                       onChange={(e) => setManualQuestion(e.target.value)}
                     />
-                    
+
                     {/* Options with Radio */}
                     <div className="space-y-3 pl-2 border-l-2 border-brand-200">
                       {manualOptions.map((opt, idx) => (
                         <div key={idx} className="flex gap-3 items-center">
                           <div className="relative flex items-center">
-                            <input 
-                              type="radio" 
-                              name="correct" 
-                              checked={manualCorrect === idx} 
+                            <input
+                              type="radio"
+                              name="correct"
+                              checked={manualCorrect === idx}
                               onChange={() => setManualCorrect(idx)}
                               className="w-5 h-5 accent-purple-500 cursor-pointer"
                             />
                           </div>
-                          <input 
+                          <input
                             className={`flex-1 p-3 rounded-xl border ${
-                              manualCorrect === idx 
-                                ? 'border-purple-500 bg-purple-50' 
-                                : 'border-brand-200 bg-white'
-                            } text-brand-900 text-sm outline-none transition-colors`} 
-                            placeholder={`Option ${String.fromCharCode(65 + idx)}`}
+                              manualCorrect === idx
+                                ? "border-purple-500 bg-purple-50"
+                                : "border-brand-200 bg-white"
+                            } text-brand-900 text-sm outline-none transition-colors`}
+                            placeholder={`Option ${String.fromCharCode(
+                              65 + idx
+                            )}`}
                             value={opt}
-                            onChange={(e) => handleOptionChange(idx, e.target.value)}
+                            onChange={(e) =>
+                              handleOptionChange(idx, e.target.value)
+                            }
                           />
                         </div>
                       ))}
                     </div>
-                    
+
                     {/* Explanation */}
                     <textarea
                       className="w-full p-3 rounded-xl border border-brand-200 bg-white text-brand-900 focus:border-purple-500 outline-none text-sm"
@@ -475,11 +516,11 @@ function QuizContent() {
                       onChange={(e) => setManualExplanation(e.target.value)}
                       rows={2}
                     />
-                    
+
                     {/* Add Button */}
                     <div className="flex justify-end pt-2">
-                      <button 
-                        onClick={handleAddManualQuiz} 
+                      <button
+                        onClick={handleAddManualQuiz}
                         className="bg-brand-900 text-white font-bold px-6 py-2 rounded-xl hover:bg-brand-800 transition-colors shadow-md"
                       >
                         Add Question
@@ -493,24 +534,24 @@ function QuizContent() {
               <div className="space-y-4 min-h-[200px]">
                 {quizzes.length === 0 && !showManualQuizForm ? (
                   <div className="flex flex-col items-center justify-center h-48 text-brand-400 border-2 border-dashed border-brand-200 rounded-2xl bg-brand-50/50">
-                    <HelpCircle size={40} className="mb-2 opacity-50"/>
+                    <HelpCircle size={40} className="mb-2 opacity-50" />
                     <p className="font-medium">No quizzes added yet.</p>
                     <p className="text-sm">Generate with AI or add manually.</p>
                   </div>
                 ) : (
                   quizzes.map((quiz, idx) => (
-                    <div 
-                      key={quiz.id} 
+                    <div
+                      key={quiz.id}
                       className="bg-white p-5 rounded-2xl border border-brand-100 shadow-sm relative group hover:border-purple-300 transition-all"
                     >
                       {/* Delete Button */}
-                      <button 
+                      <button
                         onClick={() => handleRemoveQuiz(quiz.id)}
                         className="absolute top-4 right-4 text-brand-300 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 size={18} />
                       </button>
-                      
+
                       {/* Question */}
                       <div className="font-bold text-brand-900 mb-3 pr-8">
                         <span className="bg-purple-100 text-purple-700 px-2 py-0.5 rounded-md text-xs mr-2">
@@ -518,38 +559,41 @@ function QuizContent() {
                         </span>
                         {quiz.questionText}
                       </div>
-                      
+
                       {/* Options */}
                       <div className="space-y-1 pl-2">
                         {[0, 1, 2, 3].map((optIdx) => {
                           const isCorrect = getCorrectIndex(quiz) === optIdx;
                           const optionText = getOptionText(quiz, optIdx);
                           return (
-                            <div 
-                              key={optIdx} 
+                            <div
+                              key={optIdx}
                               className={`text-sm flex items-center gap-2 ${
-                                isCorrect 
-                                  ? 'text-green-600 font-bold' 
-                                  : 'text-brand-500'
+                                isCorrect
+                                  ? "text-green-600 font-bold"
+                                  : "text-brand-500"
                               }`}
                             >
                               {isCorrect ? (
                                 <CheckCircle size={14} />
                               ) : (
-                                <div className="w-3.5"/>
+                                <div className="w-3.5" />
                               )}
-                              <span className="font-medium mr-1">{String.fromCharCode(65 + optIdx)}.</span>
+                              <span className="font-medium mr-1">
+                                {String.fromCharCode(65 + optIdx)}.
+                              </span>
                               {optionText}
                             </div>
                           );
                         })}
                       </div>
-                      
+
                       {/* Explanation */}
                       {quiz.explanation && (
                         <div className="mt-3 pt-3 border-t border-brand-100">
                           <p className="text-xs text-brand-400">
-                            <span className="font-medium">Explanation:</span> {quiz.explanation}
+                            <span className="font-medium">Explanation:</span>{" "}
+                            {quiz.explanation}
                           </p>
                         </div>
                       )}
@@ -570,13 +614,13 @@ function QuizContent() {
               {quizzes.length} Quizzes total
             </div>
             <div className="flex gap-3">
-              <button 
-                onClick={handleCancel} 
+              <button
+                onClick={handleCancel}
                 className="px-6 py-3 rounded-xl font-bold text-brand-500 hover:bg-brand-100 transition-colors"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 onClick={handleSaveChanges}
                 disabled={isSaving}
                 className="bg-brand-900 hover:bg-brand-800 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-brand-900/20 flex items-center gap-2 transform active:scale-95 transition-all"
@@ -603,7 +647,7 @@ function QuizContent() {
  */
 export default function TestQuizPage() {
   return (
-    <Suspense 
+    <Suspense
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-jlt-cream">
           <div className="flex flex-col items-center gap-2">
