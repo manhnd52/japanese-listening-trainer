@@ -101,6 +101,9 @@ const playerSlice = createSlice({
       state.isPlaying = !state.isPlaying;
     },
 
+    setIsPlaying(state, action: PayloadAction<boolean>) {
+      state.isPlaying = action.payload;
+    },
     
     nextTrack(state) {
       if (state.playlist.length === 0) return;
@@ -208,6 +211,7 @@ export const {
   setTrack,
   setPlaylist,
   playPause,
+  setIsPlaying,
   nextTrack,
   prevTrack,
   updateProgress,
