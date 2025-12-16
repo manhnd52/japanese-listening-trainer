@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { QuizService } from '../services/quiz.service';
-import { QuizOption } from '../generated/prisma/client';
+import { QuizService } from '../services/quiz.service.js';
+import { QuizOption } from '../generated/prisma/client.js';
 
 const quizService = new QuizService();
 
