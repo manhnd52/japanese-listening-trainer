@@ -25,29 +25,29 @@ export const useLogin = () => {
 
       const { user, token, refreshToken } = response.data;
       
-      const userId = parseInt(response.data.user.id);
+      const userId = parseInt(user.id);
       const userObject = {
         id: userId,
-        email: response.data.user.email,
-        fullname: response.data.user.name,
+        email: user.email,
+        fullname: user.name,
         avatarUrl: '',
       };
 
       // 2. Lưu vào LocalStorage
       if (typeof window !== 'undefined') {
 
-        localStorage.setItem('accessToken', response.data.token);
-        localStorage.setItem('refreshToken', response.data.refreshToken || '');
+        localStorage.setItem('accessToken', token);
+        localStorage.setItem('refreshToken', refreshToken || '');
         localStorage.setItem('user', JSON.stringify(userObject)); // ✅ Lưu user object
         
         // Also save to cookies for middleware
-        document.cookie = `accessToken=${response.data.token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
+        document.cookie = `accessToken=${token}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
       }
 
       // 3. Lưu vào Redux Store
       dispatch(setCredentials({
         user: userObject,
-        accessToken: response.data.token
+        accessToken: token
       }));
 
       console.log('✅ Login successful - User:', userObject);
