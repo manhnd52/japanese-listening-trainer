@@ -1,15 +1,25 @@
 import { Request, Response } from 'express';
 import { statsService } from '../services/stats.service.js';
-import { streakService } from '@services/streak.service.js';
+import { streakService } from '../services/streak.service.js';
+
+interface AuthenticatedRequest extends Request {
+  userId?: number;
+}
 
 export const checkStreak = async (req: Request, res: Response) => {
   try {
-    const userId = req.userId;
-    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    const userId = (req as AuthenticatedRequest).userId;
+    
+    if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const updatedStreak = await streakService(userId);
 
-    const updatedStreak = await streakService.updateStreak(userId);
+    if (!updatedStreak) {
+        throw new Error('Could not update streak');
+    }
 
-    res.json({
+    return res.json({
       success: true,
       data: {
         streak: updatedStreak.currentStreak,
@@ -18,13 +28,13 @@ export const checkStreak = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Check streak error:', error);
-    res.status(500).json({ message: 'Failed to update streak' });
+    return res.status(500).json({ message: 'Failed to update streak' });
   }
 };
 
 export const getStats = async (req: Request, res: Response) => {
   try {
-    const userId = req.userId; 
+    const userId = (req as AuthenticatedRequest).userId; 
 
     if (!userId) {
       return res.status(401).json({
