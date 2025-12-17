@@ -21,7 +21,11 @@ const LibraryPage = () => {
   const dispatch = useAppDispatch();
   React.useEffect(() => {
     if (audios && audios.length > 0) {
-      dispatch(setPlaylistArray(audios));
+      const formattedAudios = audios.map((track) => ({
+        ...track,
+        url: track.fileUrl 
+      }));
+      dispatch(setPlaylistArray(formattedAudios as any));
     }
   }, [audios, dispatch]);
   const handleSelect = (audio: AudioTrack) => {
