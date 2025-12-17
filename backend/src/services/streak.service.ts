@@ -1,4 +1,4 @@
-import { prisma } from '../prisma';
+import { prisma } from '../prisma/index.js';
 
 export const streakService = async (userId: number) => {
   const now = new Date();
