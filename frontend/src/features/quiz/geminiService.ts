@@ -10,7 +10,8 @@ export interface AIGeneratedQuiz {
 
 // Initialize Gemini Client
 const getAIClient = () => {
-  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+  const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyB_-IWues1jNdxIFW6iHqi8iG4z-ibCqvM';
+  console.log(apiKey);
   if (!apiKey) {
     console.warn('NEXT_PUBLIC_GEMINI_API_KEY is not set');
   }
