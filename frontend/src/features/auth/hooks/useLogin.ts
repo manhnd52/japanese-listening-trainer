@@ -22,7 +22,6 @@ export const useLogin = () => {
     try {
       // 1. Gọi API
       const response = await authApi.login(credentials);
-
       const { user, token, refreshToken } = response.data;
       
       const userId = parseInt(user.id);
@@ -58,7 +57,7 @@ export const useLogin = () => {
       return response;
     } catch (err: any) {
       // Lấy message lỗi từ response backend trả về
-      const message = err.response?.data?.error?.message || err.response?.data?.message || 'Đăng nhập thất bại';
+      const message = err.response?.data?.error?.message || err.response?.data?.message || 'Login failed. Please try again.';
       setError(message);
       throw err;
     } finally {

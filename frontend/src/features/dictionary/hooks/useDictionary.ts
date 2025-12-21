@@ -111,7 +111,7 @@ export function initializeDictionary(): Promise<void> {
             reject(error);
         };
 
-        worker.postMessage({ type: 'load' });
+        worker.postMessage({ type: 'load' , dictPath: process.env.NEXT_PUBLIC_DICTIONARY_PATH || ''});
     });
 
     return initPromise;
