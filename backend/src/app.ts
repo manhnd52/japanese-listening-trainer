@@ -40,11 +40,13 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const publicPath = path.resolve(process.cwd(), 'public');
+
 //  Static files - Serve audio với headers đúng
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(publicPath));
 
 //  Riêng route /audio với MIME type và range support
-app.use('/audio', express.static(path.join(__dirname, '..', 'public', 'audio'), {
+app.use('/audio', express.static(path.join(publicPath, 'audio'), {
   setHeaders: (res, filePath) => {
     // Set correct MIME type
     if (filePath.endsWith('.mp3')) {
