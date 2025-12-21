@@ -35,7 +35,7 @@ let isReady = false;
 // Message types
 // Kiểu dữ liệu có thể 1 trong 3 object khác nhau
 type WorkerMessage =
-    | { type: 'load' }
+    | { type: 'load'; dictPath: string }
     | { type: 'search'; query: string }
     | { type: 'isReady' };
 
@@ -78,11 +78,10 @@ function buildIndex(words: DictEntry[]): void {
 }
 
 // Load dictionary from public folder
-async function loadDictionary(): Promise<void> {
+async function loadDictionary(dictPath : string): Promise<void> {
     try {
         console.log('[DictWorker] Loading dictionary...');
         const startTime = performance.now();
-        const dictPath = process.env.NEXT_PUBLIC_DICTIONARY_PATH || 'https://localhost:3000/jmdict-eng-3.6.1.json';
         console.log('[DictWorker] Dictionary path:', dictPath);
 
         let data: DictData;
@@ -158,7 +157,7 @@ self.onmessage = (e: MessageEvent<WorkerMessage>) => {
 
     switch (type) {
         case 'load':
-            loadDictionary();
+            loadDictionary(e.data.dictPath);
             break;
 
         case 'search':
