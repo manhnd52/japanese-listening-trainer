@@ -82,7 +82,7 @@ async function loadDictionary(): Promise<void> {
     try {
         console.log('[DictWorker] Loading dictionary...');
         const startTime = performance.now();
-        const dictPath = process.env.NEXT_PUBLIC_DICTIONARY_PATH;
+        const dictPath = "https://pub-494af1f931884f64b78688230a3db6e5.r2.dev/jmdict-eng-3.6.1.json";
         console.log('[DictWorker] Dictionary path:', dictPath);
 
         let data: DictData;
