@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Source } from '@/store/features/player/playerSlice';
 import { Play, Pause, SkipForward, SkipBack, Heart, Volume2, Maximize2, X, Settings, ListMusic, HelpCircle } from 'lucide-react';
@@ -11,7 +11,8 @@ import {
   setVolume,
   setRelaxModeSource,
   toggleEnableQuiz,
-  toggleAiExplainMode
+  toggleAiExplainMode,
+  toggleFavoriteOptimistic, // ✅ Thêm import
 } from "@/store/features/player/playerSlice";
 import { toggleFavorite } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/store/features/player/playerSlice';
@@ -19,10 +20,33 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { useQuiz } from '@/features/quiz/useQuiz';
 import VolumeControl from './VolumeControl';
 
-function ProgressBar({ progress, duration }: { progress: number; duration: number }) {
+function ProgressBar({
+  progress,
+  duration,
+  onSeek
+}: {
+  progress: number;
+  duration: number;
+  onSeek: (sec: number) => void;
+}) {
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (!duration || duration <= 0) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const pct = clickX / rect.width;
+
+    const sec = pct * duration;
+    onSeek(sec);
+  };
+
   const pct = duration > 0 ? (progress / duration) * 100 : 0;
+
   return (
-    <div className="absolute top-0 left-0 right-0 h-1.5 bg-brand-200 cursor-pointer group">
+    <div
+      className="absolute top-0 left-0 right-0 h-1.5 bg-brand-200 cursor-pointer group"
+      onClick={handleClick}
+    >
       <div
         className="h-full bg-brand-500 group-hover:bg-brand-600 transition-all"
         style={{ width: `${pct}%` }}
@@ -115,17 +139,17 @@ function Controls({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+      if (settingsRef.current && !(event.target instanceof Node && settingsRef.current.contains(event.target))) {
         setShowSettings(false);
       }
     };
 
     if (showSettings) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside as unknown as EventListener);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside as unknown as EventListener);
     };
   }, [showSettings, setShowSettings]);
 
@@ -133,9 +157,9 @@ function Controls({
     <div className="flex flex-col items-center flex-1">
       <div className="flex items-center gap-4 md:gap-8">
         <button
-          onClick={async (e) => {
+          onClick={(e) => {
             e.stopPropagation();
-            await toggleFavorite();
+            toggleFavorite(); // ✅ Gọi hàm, không await
           }}
           className={`transition-all ${isFavorite() ? 'text-rose-500 hover:text-rose-600' : 'text-brand-400 hover:text-brand-600'}`}
           aria-label={isFavorite() ? 'Remove from favorites' : 'Add to favorites'}
@@ -143,7 +167,6 @@ function Controls({
           <Heart size={22} fill={isFavorite() ? 'currentColor' : 'none'} strokeWidth={2.5} />
         </button>
 
-        {/* Quiz Button */}
         <button
           onClick={(e) => { e.stopPropagation(); onQuiz(); }}
           className="text-brand-400 hover:text-brand-600 transition-all"
@@ -206,18 +229,24 @@ const MiniPlayer = () => {
   const dispatch = useAppDispatch();
   const [showSettings, setShowSettings] = useState(false);
 
-  // Get user from state for favorite API
   const { user } = useAppSelector((state) => state.auth);
   const { triggerQuiz } = useQuiz();
 
-  // Use Redux dispatch for toggleFavorite
-  const handleToggleFavorite = async () => {
+  // ✅ Sửa: Dispatch 2 actions - optimistic update + async toggle
+  const handleToggleFavorite = () => {
     if (!currentAudio || !user?.id) return;
-    await dispatch(toggleFavorite({
-      id: currentAudio.id as string,
-      userId: user.id,
-      isFavorite: !currentAudio.isFavorite,
-    }));
+    
+    // ✅ Optimistic update: update UI ngay
+    dispatch(toggleFavoriteOptimistic());
+    
+    // ✅ Backend sync: gọi async thunk
+    dispatch(
+      toggleFavorite({
+        id: currentAudio.id as string,
+        userId: user.id,
+        isFavorite: !currentAudio.isFavorite,
+      })
+    );
   };
 
   const handleQuizClick = () => {
@@ -236,7 +265,15 @@ const MiniPlayer = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-jlt-sage/95 backdrop-blur-lg border-t border-brand-200 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.1)] p-2 transition-all duration-300">
-      <ProgressBar progress={progress} duration={duration} />
+      <ProgressBar
+        progress={progress}
+        duration={duration}
+        onSeek={(sec) => {
+          document.dispatchEvent(
+            new CustomEvent("player:seek", { detail: { sec } })
+          );
+        }}
+      />
 
       <div className="flex items-center justify-between max-w-7xl mx-auto px-2 md:px-4 h-20">
         <TrackInfo currentAudio={currentAudio} onExpand={handleExpand} />
