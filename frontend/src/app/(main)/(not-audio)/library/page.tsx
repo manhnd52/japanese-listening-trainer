@@ -20,14 +20,20 @@ const LibraryPage = () => {
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(null);
   const dispatch = useAppDispatch();
   React.useEffect(() => {
-    if (audios && audios.length > 0) {
-      const formattedAudios = audios.map((track) => ({
-        ...track,
-        url: track.fileUrl 
-      }));
-      dispatch(setPlaylistArray(formattedAudios as any));
+    if (audios?.length) {
+      const backend =
+        process.env.NEXT_PUBLIC_ASSET_URL?.replace(/\/$/, "") ?? "";
+      const formatted = audios.map((a) => {
+        const raw = a.fileUrl ?? a.file_url ?? a.path ?? a.url; // fallback
+        return {
+          ...a,
+          url: raw?.startsWith("http") ? raw : `${backend}${raw}`,
+        };
+      });
+
+      dispatch(setPlaylistArray(formatted));
     }
-  }, [audios, dispatch]);
+  }, [audios]);
   const handleSelect = (audio: AudioTrack) => {
     handlePlay(audio);
   };

@@ -112,6 +112,7 @@ const playerSlice = createSlice({
       state.currentAudio = state.playlist[nextIndex];
       state.progress = 0;
       state.isPlaying = true;
+
     },
 
     prevTrack(state) {
