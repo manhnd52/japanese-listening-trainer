@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, Folder } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { uploadAudio, fetchFolders, clearError } from '@/store/features/audio/audioSlice';
-
+import {message} from "antd"
 interface UploadAudioModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,7 +29,7 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
   useEffect(() => {
     if (error) {
-      alert(error);
+      message.error(error);
       dispatch(clearError());
     }
   }, [error, dispatch]);
@@ -54,12 +54,12 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
     e.preventDefault();
     
     if (!user?.id) {
-      alert('User not authenticated');
+      message.error('User not authenticated');
       return;
     }
 
     if (!file || !title || !folderId || !duration) {
-      alert('Please fill all required fields');
+      message.warning('Please fill all required fields');
       return;
     }
 
@@ -73,7 +73,7 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
     const result = await dispatch(uploadAudio({ formData, userId: user.id })); // ✅ Truyền userId
     if (uploadAudio.fulfilled.match(result)) {
-      alert('Audio uploaded successfully!');
+      message.success('Audio uploaded successfully!');
       handleClose();
     }
   };

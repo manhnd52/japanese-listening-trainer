@@ -18,7 +18,7 @@ model Quiz {
   explanation   String?    @map("explanation")
 
   user            User             @relation(fields: [userId], references: [id])
-  audio           Audio            @relation(fields: [audioId], references: [id])
+  audio           Audio            @relation(fields: [audioId], references: [id], onDelete: Cascade) // ✅ Cascade
   quizAttemptLogs QuizAttemptLog[]
   quizStats       QuizStats[]
   mistakeQuizs    MistakeQuiz[]
@@ -37,9 +37,9 @@ model QuizAttemptLog {
   isCorrect      Boolean    @map("is_correct")
   attemptAt      DateTime   @default(now()) @map("attempt_at")
 
-  quiz  Quiz  @relation(fields: [quizId], references: [id])
+  quiz  Quiz  @relation(fields: [quizId], references: [id], onDelete: Cascade) // ✅ Cascade
   user  User  @relation(fields: [userId], references: [id])
-  audio Audio @relation(fields: [audioId], references: [id])
+  audio Audio @relation(fields: [audioId], references: [id], onDelete: Cascade) // ✅ Cascade
 
   @@index([quizId])
   @@index([userId])
@@ -54,7 +54,7 @@ model QuizStats {
   wrongCount   Int @default(0) @map("wrong_count")
 
   user User @relation(fields: [userId], references: [id])
-  quiz Quiz @relation(fields: [quizId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade) // ✅ Cascade
 
   @@id([userId, quizId])
   @@index([quizId])
@@ -67,7 +67,7 @@ model MistakeQuiz {
   wrongAt DateTime @default(now()) @map("wrong_at")
 
   user User @relation(fields: [userId], references: [id])
-  quiz Quiz @relation(fields: [quizId], references: [id])
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade) // ✅ Cascade
 
   @@id([userId, quizId, wrongAt])
   @@index([quizId])
