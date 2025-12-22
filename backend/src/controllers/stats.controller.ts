@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { statsService } from '../services/stats.service.js';
 import { streakService } from '../services/streak.service.js';
+import { xpService } from '@services/xp.service.js';
 
 interface AuthenticatedRequest extends Request {
   userId?: number;
@@ -19,11 +20,14 @@ export const checkStreak = async (req: Request, res: Response) => {
         throw new Error('Could not update streak');
     }
 
+    const xpResult = await xpService.addXP(userId, 10);
+
     return res.json({
       success: true,
       data: {
         streak: updatedStreak.currentStreak,
-        lastActiveDate: updatedStreak.lastActiveDate
+        lastActiveDate: updatedStreak.lastActiveDate,
+        xp: xpResult
       }
     });
   } catch (error) {

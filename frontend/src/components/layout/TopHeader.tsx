@@ -15,11 +15,14 @@ const TopHeader = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector(state => state.auth.user);
- const { stats, isCompletedToday } = useAppSelector(state => state.user);
+  const { stats, isCompletedToday } = useAppSelector(state => state.user);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRelaxModalOpen, setIsRelaxModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const currentExpInLevel = stats?.currentLevelExp ?? (stats?.exp || 0) % 100;
+  const progressPercent = Math.min(100, Math.max(0, currentExpInLevel));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -149,15 +152,25 @@ const TopHeader = () => {
 
         {/* Level info */}
         <div
-          className="hidden md:flex flex-col items-end cursor-pointer"
+          className="hidden md:flex flex-col items-end min-w-[120px]"
           onClick={() => navigate('/achievements')}
         >
-          <span className="text-sm font-bold text-white leading-none">
-            Level {stats?.level ?? 1}
-          </span>
-          <span className="text-[10px] font-medium text-brand-100 leading-none mt-1">
-            {stats?.exp ?? 0}/100 EXP
-          </span>
+          <div className="flex justify-between w-full items-baseline">
+             <span className="text-sm font-bold text-white leading-none">
+              Lv. {stats?.level ?? 1}
+            </span>
+             <span className="text-[10px] font-medium text-brand-100 leading-none">
+              {currentExpInLevel}/100 XP
+            </span>
+          </div>
+         
+          {/* Thanh Progress Bar */}
+          <div className="w-full h-2 bg-brand-800/50 rounded-full mt-1.5 overflow-hidden border border-brand-600/30">
+            <div 
+              className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] transition-all duration-700 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
 
         {/* Avatar + Dropdown */}

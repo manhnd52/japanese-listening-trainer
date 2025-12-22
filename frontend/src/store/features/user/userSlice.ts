@@ -4,6 +4,7 @@ export interface UserStats {
   streak: number;
   level: number;
   exp: number;
+  currentLevelExp?: number;
   lastActiveDate?: string;
 }
 
@@ -38,11 +39,29 @@ const userSlice = createSlice({
       state.stats = action.payload;
       state.isCompletedToday = checkIsToday(action.payload.lastActiveDate);
     },
-    updateUserStreak(state, action: PayloadAction<{ streak: number; lastActiveDate: string }>) {
+    updateUserStreak(state, action: PayloadAction<{ 
+      streak: number; 
+      lastActiveDate: string;
+      xp?: {
+        totalExp: number;
+        level: number;
+        currentLevelExp: number;
+        isLevelUp: boolean;
+      }
+    }>) {
       if (state.stats) {
         state.stats.streak = action.payload.streak;
         state.stats.lastActiveDate = action.payload.lastActiveDate;
         state.isCompletedToday = true; // ✅ Bật đèn sáng ngay lập tức
+      
+        if (action.payload.xp) {
+          state.stats.exp = action.payload.xp.totalExp;
+          state.stats.level = action.payload.xp.level;
+          state.stats.currentLevelExp = action.payload.xp.currentLevelExp;
+          if (action.payload.xp.isLevelUp) {
+            console.log("LEVEL UP!");
+          }
+        }
       }
     },
     addExp(state, action: PayloadAction<number>) {
