@@ -8,6 +8,9 @@ export const statsService = {
       where: { userId }
     });
     const currentStreak = streakRecord?.currentStreak || 0;
+    
+    const lastActiveDate = streakRecord?.lastActiveDate || null;
+    
     // b. Total Listened (Tổng số bài đã nghe - dựa trên lượt nghe)
     const audioStatsAgg = await prisma.audioStats.aggregate({
       where: { userId },
@@ -100,6 +103,7 @@ export const statsService = {
     // --- 4. TRẢ VỀ KẾT QUẢ KHỚP VỚI FRONTEND ---
     return {
       streak: currentStreak,
+      lastActiveDate,
       totalListened,
       totalTime: totalTimeMinutes,
       level,
