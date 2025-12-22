@@ -15,6 +15,7 @@ interface AudioState {
   loading: boolean;
   error: string | null;
   uploadProgress: number;
+  currentAudio: AudioTrack | null; // ✅ Thêm field
 }
 
 const initialState: AudioState = {
@@ -23,6 +24,7 @@ const initialState: AudioState = {
   loading: false,
   error: null,
   uploadProgress: 0,
+  currentAudio: null, // ✅ Thêm
 };
 
 // Async thunks - Sử dụng audioApi từ features
@@ -312,11 +314,19 @@ const audioSlice = createSlice({
       .addCase(moveAudio.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      // Toggle Favorite
+      // ✅ Toggle Favorite - Update in-place
       .addCase(toggleFavorite.fulfilled, (state, action) => {
-        const audio = state.audios.find(a => a.id === action.payload.id);
-        if (audio) {
-          audio.isFavorite = action.payload.isFavorite;
+        const audioId = action.payload.id;
+        
+        // Update trong audios array
+        const audioIndex = state.audios.findIndex((a) => String(a.id) === String(audioId));
+        if (audioIndex !== -1) {
+          state.audios[audioIndex].isFavorite = action.payload.isFavorite;
+        }
+        
+        // ✅ Update currentAudio in-place
+        if (state.currentAudio && String(state.currentAudio.id) === String(audioId)) {
+          state.currentAudio.isFavorite = action.payload.isFavorite;
         }
       });
   },
