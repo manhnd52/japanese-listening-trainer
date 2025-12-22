@@ -13,8 +13,8 @@ model Audio {
   folder    Folder   @relation(fields: [folderId], references: [id])
   user      User     @relation(fields: [createdBy], references: [id])
   audioStats      AudioStats[]
-  quizzes         Quiz[]
-  quizAttemptLogs QuizAttemptLog[]
+  quizzes         Quiz[]           // chỉ khai báo quan hệ, KHÔNG định nghĩa lại model Quiz
+  quizAttemptLogs QuizAttemptLog[] // chỉ khai báo quan hệ, KHÔNG định nghĩa lại model QuizAttemptLog
 
   @@index([createdBy])
   @@index([folderId])
@@ -30,7 +30,7 @@ model AudioStats {
   firstListenDone Boolean   @default(false) @map("first_listen_done")
 
   user  User  @relation(fields: [userId], references: [id])
-  audio Audio @relation(fields: [audioId], references: [id])
+  audio Audio @relation(fields: [audioId], references: [id], onDelete: Cascade) // ✅ Thêm onDelete: Cascade
 
   @@id([userId, audioId])
   @@index([audioId])

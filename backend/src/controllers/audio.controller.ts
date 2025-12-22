@@ -16,14 +16,13 @@ export const getAudioList = async (req: Request, res: Response, next: NextFuncti
     }
     
     const filter: any = {
-      createdBy: Number(userId) // Luôn filter theo userId
+      createdBy: Number(userId)
     };
     
     if (search) filter.title = { contains: search as string, mode: 'insensitive' };
     if (isSuspend !== undefined) filter.isSuspend = isSuspend === 'true';
     if (folderId !== undefined) filter.folderId = Number(folderId);
 
-    // Pass userId vào service để lấy AudioStats
     const audios = await audioService.getAllAudios(filter, Number(userId));
 
     res.json({ success: true, data: audios });
@@ -73,7 +72,6 @@ export const getAudioById = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Kiểm tra quyền sở hữu
     if (userId && audio.createdBy !== Number(userId)) {
       res.status(403).json({ success: false, message: 'Access denied' });
       return;
@@ -96,7 +94,6 @@ export const updateAudio = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // ✅ Kiểm tra quyền sở hữu
     if (existingAudio.createdBy !== Number(userId)) {
       res.status(403).json({ success: false, message: 'Access denied' });
       return;
@@ -119,7 +116,6 @@ export const deleteAudio = async (req: Request, res: Response, next: NextFunctio
     const { id } = req.params;
     const { userId } = req.query;
 
-    // ✅ Validate userId
     if (!userId) {
       res.status(400).json({ success: false, message: 'userId is required' });
       return;
@@ -131,7 +127,6 @@ export const deleteAudio = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    // ✅ Kiểm tra quyền sở hữu
     if (audio.createdBy !== Number(userId)) {
       res.status(403).json({ success: false, message: 'Access denied' });
       return;
@@ -143,6 +138,7 @@ export const deleteAudio = async (req: Request, res: Response, next: NextFunctio
       fs.unlinkSync(filePath);
     }
 
+    // ✅ Cascade delete sẽ tự động xóa audioStats, quizzes, quizAttemptLogs
     await audioService.deleteAudio(Number(id));
     res.json({ success: true, data: null, message: 'Audio deleted successfully' });
   } catch (error) {
@@ -159,7 +155,6 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    // ✅ Validate userId
     if (!userId) {
       res.status(400).json({ success: false, message: 'userId is required' });
       return;
@@ -171,7 +166,6 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
       return;
     }
 
-    // ✅ Kiểm tra quyền sở hữu
     if (audio.createdBy !== Number(userId)) {
       res.status(403).json({ success: false, message: 'Access denied' });
       return;
@@ -182,7 +176,6 @@ export const moveAudio = async (req: Request, res: Response, next: NextFunction)
   } catch (error) {
     return next(error);
   }
-  
 };
 
 export const toggleFavorite = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -207,7 +200,6 @@ export const getRecentlyListened = async (req: Request, res: Response, next: Nex
   try {
     const { userId, limit } = req.query;
 
-    // Validate userId
     if (!userId) {
       res.status(400).json({
         success: false,
@@ -225,3 +217,27 @@ export const getRecentlyListened = async (req: Request, res: Response, next: Nex
   }
 };
 
+export const incrementListenCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+      return;
+    }
+
+    const audioStats = await audioService.incrementListenCount(Number(id), Number(userId));
+
+    res.json({
+      success: true,
+      data: audioStats,
+      message: 'Listen count incremented successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

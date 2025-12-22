@@ -10,6 +10,7 @@ import {
 } from "@/features/audios/components";
 import { useAppDispatch } from "@/hooks/redux";
 import { setPlaylistArray } from "@/store/features/player/playerSlice";
+
 const LibraryPage = () => {
   const { audios, folders, loading } = useAudioList();
   const { handlePlay, handleToggleFavorite, handleDelete, handleMove } =
@@ -19,21 +20,27 @@ const LibraryPage = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(null);
   const dispatch = useAppDispatch();
+
   React.useEffect(() => {
     if (audios?.length) {
       const backend =
         process.env.NEXT_PUBLIC_ASSET_URL?.replace(/\/$/, "") ?? "";
+      
       const formatted = audios.map((a) => {
-        const raw = a.fileUrl ?? a.file_url ?? a.path ?? a.url; // fallback
+        // ✅ Chỉ dùng fileUrl - property chính thức của AudioTrack
+        const raw = a.fileUrl;
+        
         return {
           ...a,
           url: raw?.startsWith("http") ? raw : `${backend}${raw}`,
-        };
+          status: a.status || 'idle', // ✅ Đảm bảo status luôn có giá trị
+        } as AudioTrack;
       });
 
-      dispatch(setPlaylistArray(formatted));
+      dispatch(setPlaylistArray(formatted as import("@/store/features/player/playerSlice").AudioTrack[]));
     }
-  }, [audios]);
+  }, [audios, dispatch]); // ✅ Thêm dispatch vào dependencies
+
   const handleSelect = (audio: AudioTrack) => {
     handlePlay(audio);
   };

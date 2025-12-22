@@ -1,8 +1,67 @@
-import { Prisma } from '../generated/prisma/client.js';
-import { prisma } from '../prisma/index.js';
+import {prisma} from '../prisma/index.js';
 
-export class AudioService {
-  async createAudio(data: any) {
+class AudioService {
+  // Lấy tất cả audios của user
+  async getAllAudios(filter: any, userId: number) {
+    const audios = await prisma.audio.findMany({
+      where: filter,
+      include: {
+        folder: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        audioStats: {
+          where: {
+            userId: userId,
+          },
+          select: {
+            isFavorite: true,
+            listenCount: true,
+            lastListenTime: true,
+            firstListenDone: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    // Transform để làm phẳng audioStats
+    return audios.map((audio) => ({
+      ...audio,
+      isFavorite: audio.audioStats[0]?.isFavorite || false,
+      listenCount: audio.audioStats[0]?.listenCount || 0,
+      lastListenTime: audio.audioStats[0]?.lastListenTime || null,
+      firstListenDone: audio.audioStats[0]?.firstListenDone || false,
+      audioStats: undefined, // Remove array
+    }));
+  }
+
+  // Lấy audio theo ID
+  async getAudioById(id: number) {
+    return await prisma.audio.findUnique({
+      where: { id },
+      include: {
+        folder: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  // Tạo audio mới
+  async createAudio(data: {
+    title: string;
+    script?: string;
+    fileUrl: string;
+    duration: number;
+    folderId: number;
+    createdBy: number;
+  }) {
     return await prisma.audio.create({
       data: {
         title: data.title,
@@ -13,209 +72,194 @@ export class AudioService {
         createdBy: data.createdBy,
       },
       include: {
-        folder: true,
-        user: {
+        folder: {
           select: {
             id: true,
-            email: true,
-            fullname: true,
+            name: true,
           },
         },
       },
     });
   }
 
-  async getAudioById(id: number) {
-    return await prisma.audio.findUnique({
+  // Cập nhật audio
+  async updateAudio(id: number, data: any) {
+    return await prisma.audio.update({
       where: { id },
-      include: {
-        folder: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            fullname: true,
-          },
-        },
-      },
-    });
-  }
-
-  // ✅ THAY ĐỔI: Thêm userId parameter và transform data
-  async getAllAudios(filter?: Prisma.AudioWhereInput, userId?: number) {
-    const audios = await prisma.audio.findMany({
-      where: filter,
+      data,
       include: {
         folder: {
           select: {
             id: true,
             name: true,
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            email: true,
-            fullname: true,
-          },
-        },
-        // ✅ Include AudioStats của user này (nếu có userId)
-        audioStats: userId ? {
-          where: { userId },
-          select: {
-            isFavorite: true,
-            listenCount: true,
-            // completionPercentage: true, // Tạm bỏ nếu field không tồn tại
-          }
-        } : false
-      },
-      orderBy: { id: 'desc' },
-    });
-
-    // ✅ Transform data để match với frontend type
-    return audios.map(audio => {
-      const stats = audio.audioStats?.[0];
-      
-      return {
-        id: audio.id.toString(),
-        title: audio.title,
-        url: audio.fileUrl, // frontend expect 'url', backend có 'fileUrl'
-        duration: audio.duration,
-        folderId: audio.folderId.toString(),
-        folderName: audio.folder.name,
-        script: audio.script,
-        createdBy: audio.createdBy,
-        // ✅ Determine status based on listenCount (thay vì completionPercentage)
-        status: this.determineStatus(stats?.listenCount),
-        isFavorite: stats?.isFavorite || false,
-        listenCount: stats?.listenCount || 0,
-        completionPercentage: 0, // Tạm set 0
-      };
-    });
-  }
-
-  // ✅ Helper function - sửa lại logic
-  private determineStatus(listenCount?: number): 'NEW' | 'IN_PROGRESS' | 'COMPLETED' {
-    if (!listenCount || listenCount === 0) return 'NEW';
-    if (listenCount >= 3) return 'COMPLETED'; // Nghe 3 lần = completed
-    return 'IN_PROGRESS';
-  }
-
-  // NEW: Update audio
-  async updateAudio(id: number, data: { title?: string; script?: string; folderId?: number }) {
-    return await prisma.audio.update({
-      where: { id },
-      data,
-      include: {
-        folder: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            fullname: true,
           },
         },
       },
     });
   }
 
-  // NEW: Delete audio
+  // ✅ Xóa audio - Xóa thủ công theo đúng thứ tự dependency
   async deleteAudio(id: number) {
+    // 1. Lấy danh sách quiz liên quan đến audio
+    const quizzes = await prisma.quiz.findMany({
+      where: { audioId: id },
+      select: { id: true },
+    });
+
+    const quizIds = quizzes.map(q => q.id);
+
+    // 2. Xóa MistakeQuiz (phụ thuộc vào Quiz)
+    if (quizIds.length > 0) {
+      await prisma.mistakeQuiz.deleteMany({
+        where: { quizId: { in: quizIds } },
+      });
+    }
+
+    // 3. Xóa QuizStats (phụ thuộc vào Quiz)
+    if (quizIds.length > 0) {
+      await prisma.quizStats.deleteMany({
+        where: { quizId: { in: quizIds } },
+      });
+    }
+
+    // 4. Xóa QuizAttemptLog (phụ thuộc vào Quiz và Audio)
+    await prisma.quizAttemptLog.deleteMany({
+      where: { audioId: id },
+    });
+
+    // 5. Xóa Quiz (phụ thuộc vào Audio)
+    await prisma.quiz.deleteMany({
+      where: { audioId: id },
+    });
+
+    // 6. Xóa AudioStats (phụ thuộc vào Audio)
+    await prisma.audioStats.deleteMany({
+      where: { audioId: id },
+    });
+
+    // 7. Cuối cùng xóa Audio
     return await prisma.audio.delete({
       where: { id },
     });
   }
 
-  // NEW: Move audio to another folder
-  async moveAudio(id: number, folderId: number) {
+  // Di chuyển audio sang folder khác
+  async moveAudio(audioId: number, folderId: number) {
     return await prisma.audio.update({
-      where: { id },
+      where: { id: audioId },
       data: { folderId },
       include: {
-        folder: true,
-        user: {
+        folder: {
           select: {
             id: true,
-            email: true,
-            fullname: true,
+            name: true,
           },
         },
       },
     });
   }
 
+  // Toggle favorite
   async toggleFavorite(audioId: number, userId: number) {
-    const audio = await prisma.audio.findUnique({
-      where: { id: audioId }
-    });
-    if (!audio) return null;
-
-    const stats = await prisma.audioStats.findUnique({
+    // Tìm audio stats hiện tại
+    const existing = await prisma.audioStats.findUnique({
       where: {
-        userId_audioId: { userId, audioId }
-      }
-    });
-
-    if (!stats) {
-      return prisma.audioStats.create({
-        data: {
+        userId_audioId: {
           userId,
           audioId,
-          isFavorite: true
-        }
-      });
-    }
-
-    return prisma.audioStats.update({
-      where: {
-        userId_audioId: { userId, audioId }
+        },
       },
-      data: {
-        isFavorite: !stats.isFavorite
-      }
     });
+
+    // Toggle isFavorite
+    const newFavoriteStatus = !existing?.isFavorite;
+
+    // Upsert audioStats
+    const updated = await prisma.audioStats.upsert({
+      where: {
+        userId_audioId: {
+          userId,
+          audioId,
+        },
+      },
+      update: {
+        isFavorite: newFavoriteStatus,
+      },
+      create: {
+        userId,
+        audioId,
+        isFavorite: newFavoriteStatus,
+      },
+    });
+
+    return updated;
   }
 
+  // ✅ Increment listen count
+  async incrementListenCount(audioId: number, userId: number) {
+    const audioStats = await prisma.audioStats.upsert({
+      where: {
+        userId_audioId: {
+          userId,
+          audioId,
+        },
+      },
+      update: {
+        listenCount: {
+          increment: 1,
+        },
+        lastListenTime: new Date(),
+        firstListenDone: true,
+      },
+      create: {
+        userId,
+        audioId,
+        listenCount: 1,
+        lastListenTime: new Date(),
+        firstListenDone: true,
+        isFavorite: false,
+      },
+    });
 
-  /**
-   * Get recently listened audios for a user
-   * Sorted by lastListenTime in descending order
-   */
+    return audioStats;
+  }
+
+  // Lấy recently listened audios
   async getRecentlyListened(userId: number, limit: number = 10) {
-    const recentlyListened = await prisma.audioStats.findMany({
+    const audioStats = await prisma.audioStats.findMany({
       where: {
         userId,
-        lastListenTime: { not: null }
+        lastListenTime: {
+          not: null,
+        },
       },
       orderBy: {
-        lastListenTime: 'desc'
+        lastListenTime: 'desc',
       },
       take: limit,
       include: {
         audio: {
           include: {
             folder: {
-              select: { id: true, name: true }
+              select: {
+                id: true,
+                name: true,
+              },
             },
-            user: {
-              select: { id: true, email: true, fullname: true }
-            }
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
-    // nếu frontend cần audio là root
-    return recentlyListened.map(s => ({
-      ...s.audio,
-      audioStats: {
-        isFavorite: s.isFavorite,
-        listenCount: s.listenCount,
-        lastListenTime: s.lastListenTime
-      }
+    // Transform để trả về audio với stats
+    return audioStats.map((stat) => ({
+      ...stat.audio,
+      isFavorite: stat.isFavorite,
+      listenCount: stat.listenCount,
+      lastListenTime: stat.lastListenTime,
+      firstListenDone: stat.firstListenDone,
     }));
   }
-
 }
 
 export const audioService = new AudioService();
