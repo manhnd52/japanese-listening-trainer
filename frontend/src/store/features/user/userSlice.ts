@@ -78,9 +78,19 @@ const userSlice = createSlice({
     resetStreak(state) {
       state.stats.streak = 0;
     },
+    updateXP(state, action: PayloadAction<{ totalExp: number; level: number; isLevelUp?: boolean }>) {
+      if (state.stats) {
+        state.stats.exp = action.payload.totalExp;
+        state.stats.level = action.payload.level;
+        
+        if (action.payload.isLevelUp) {
+           console.log("Level Up from Quiz!");
+        }
+      }
+    },
   },
 });
 
-export const { setStats, addExp, increaseStreak, resetStreak, updateUserStreak } =
+export const { setStats, addExp, increaseStreak, resetStreak, updateUserStreak, updateXP } =
   userSlice.actions;
 export default userSlice.reducer;

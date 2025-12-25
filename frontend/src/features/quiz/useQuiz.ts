@@ -2,7 +2,10 @@
 
 import { useAppDispatch } from '@/hooks/redux';
 import { setCurrentQuiz, setAllQuizzes, openQuizModal, setLoading, setError, setMode } from '@/store/features/quiz/quizSlice';
-import { fetchQuizByAudio, getQuizzesByAudio } from './api';
+import { fetchQuizByAudio, getQuizzesByAudio, submitQuizAnswer } from './api';
+import { updateXP } from '@/store/features/user/userSlice';
+import { useCallback } from 'react';
+import { QuizOption } from './types';
 
 /**
  * Custom hook for quiz operations
@@ -29,6 +32,25 @@ export const useQuiz = () => {
       dispatch(setLoading(false));
     }
   };
+
+  const submitQuiz = useCallback(async (quizId: number, selectedOption: QuizOption) => {
+    try {
+      // Gọi API (Hàm này trong api.ts trả về data kết quả trực tiếp)
+      const result = await submitQuizAnswer({ quizId, selectedOption });
+      
+      // ✅ LOGIC CẬP NHẬT XP:
+      // Kiểm tra xem kết quả trả về có chứa thông tin XP không
+      if (result && result.xp) {
+          console.log("🔥 Updating XP:", result.xp);
+          dispatch(updateXP(result.xp));
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Failed to submit quiz:', error);
+      throw error; 
+    }
+  }, [dispatch]);
 
   /**
    * Trigger quiz modal with ALL quizzes for a specific audio
@@ -58,5 +80,6 @@ export const useQuiz = () => {
   return {
     triggerQuiz,
     triggerAllQuizzes,
+    submitQuiz,
   };
 };

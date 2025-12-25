@@ -27,6 +27,7 @@ export interface QuizAttemptResult {
   correctOption: QuizOption;
   explanation?: string | null;
   expGained?: number;
+  xp?: XPResult;
 }
 
 export interface QuizAttemptInput {
@@ -43,4 +44,13 @@ export interface QuizState {
   error: string | null;
   showModal: boolean;
   mode: 'random' | 'all'; // Quiz mode
+}
+
+export interface XPResult {
+  totalExp: number;
+  level: number;
+  xpGained: number;
+  isLevelUp: boolean;
+  currentLevelExp: number;
+  nextLevelExp: number;
 }

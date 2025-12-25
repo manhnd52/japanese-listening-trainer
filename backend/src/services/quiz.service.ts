@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/index.js';
 import { QuizOption } from '../generated/prisma/client.js';
+import { xpService } from './xp.service.js';
 
 export class QuizService {
   /**
@@ -28,17 +29,10 @@ export class QuizService {
    * 4. If wrong → insert MistakeQuiz
    * 5. Return result with feedback
    */
-  async submitQuizAnswer(data: {
-    quizId: number;
-    userId: number;
-    selectedOption: QuizOption;
-  }) {
-    const { quizId, userId, selectedOption } = data;
-
-    // 1. Fetch quiz to check correctness
+  async submitQuizAnswer(userId: number, quizId: number, selectedOption: QuizOption) {
+    // 1. Lấy thông tin Quiz từ DB
     const quiz = await prisma.quiz.findUnique({
       where: { id: quizId },
-      include: { audio: true },
     });
 
     if (!quiz) {
@@ -46,67 +40,26 @@ export class QuizService {
     }
 
     const isCorrect = quiz.correctOption === selectedOption;
-    const audioId = quiz.audioId;
 
-    // 2. Create QuizAttemptLog
+    // 4. Lưu lịch sử làm bài (QuizAttemptLog)
     await prisma.quizAttemptLog.create({
       data: {
-        quizId,
         userId,
-        audioId,
+        quizId,
+        audioId: quiz.audioId,
         selectedOption,
         isCorrect,
       },
     });
 
-    // 3. Update or create QuizStats
-    const existingStats = await prisma.quizStats.findUnique({
-      where: {
-        userId_quizId: {
-          userId,
-          quizId,
-        },
-      },
-    });
-
-    if (existingStats) {
-      await prisma.quizStats.update({
-        where: {
-          userId_quizId: {
-            userId,
-            quizId,
-          },
-        },
-        data: {
-          correctCount: isCorrect
-            ? existingStats.correctCount + 1
-            : existingStats.correctCount,
-          wrongCount: !isCorrect
-            ? existingStats.wrongCount + 1
-            : existingStats.wrongCount,
-        },
-      });
-    } else {
-      await prisma.quizStats.create({
-        data: {
-          userId,
-          quizId,
-          correctCount: isCorrect ? 1 : 0,
-          wrongCount: !isCorrect ? 1 : 0,
-        },
-      });
-    }
-
-    // 4. If wrong → insert MistakeQuiz
+    // 5. Logic MistakeQuiz (Ôn tập câu sai)
     if (!isCorrect) {
-      // Check if already exists (to avoid duplicate)
       const existingMistake = await prisma.mistakeQuiz.findFirst({
         where: {
           userId,
           quizId,
         },
       });
-
       if (!existingMistake) {
         await prisma.mistakeQuiz.create({
           data: {
@@ -116,24 +69,40 @@ export class QuizService {
         });
       }
     } else {
-      // If correct during review, remove from MistakeQuiz
+      // Nếu làm đúng thì xóa khỏi danh sách câu sai (nếu có)
       await prisma.mistakeQuiz.deleteMany({
-        where: {
-          userId,
-          quizId,
-        },
+        where: { userId, quizId },
       });
     }
 
-    // 5. Calculate EXP (simple: 10 for correct, 0 for wrong)
-    const expGained = isCorrect ? 10 : 0;
+    // 6. TÍNH ĐIỂM KINH NGHIỆM (XP)
+    let xpResult;
+    if (isCorrect) {
+      // Cộng 20 XP nếu trả lời đúng (bạn có thể chỉnh số này)
+      xpResult = await xpService.addXP(userId, 10);
+    } else {
+      const userExp = await prisma.userExp.findUnique({
+        where: { userId },
+      });
+      const currentExp = userExp?.exp || 0;
+      const level = Math.floor(currentExp / 100) + 1;
+      // Trả về thông tin XP hiện tại mà không cộng thêm
+      xpResult = {
+        totalExp: currentExp,
+        level,
+        xpGained: 0,
+        isLevelUp: false,
+        currentLevelExp: currentExp % 100,
+        nextLevelExp: 100,
+      };
+    }
 
-    // 6. Return result
+    // 7. Trả về kết quả
     return {
       isCorrect,
       correctOption: quiz.correctOption,
       explanation: quiz.explanation,
-      expGained,
+      xp: xpResult, // Frontend cần cái này để thanh XP chạy
     };
   }
 
