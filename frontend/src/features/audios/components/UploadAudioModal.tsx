@@ -4,7 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, Folder } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { uploadAudio, fetchFolders, clearError } from '@/store/features/audio/audioSlice';
-import {message} from "antd"
+import { message } from "antd";
+import { Progress } from "antd"; // ✅ import Progress
+
 interface UploadAudioModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -12,8 +14,8 @@ interface UploadAudioModalProps {
 
 const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) => {
   const dispatch = useAppDispatch();
-  const { folders, loading, error } = useAppSelector(state => state.audio);
-  const { user } = useAppSelector(state => state.auth); // ✅ Lấy user từ Redux
+  const { folders, loading, error, uploadProgress } = useAppSelector(state => state.audio); // ✅ lấy uploadProgress
+  const { user } = useAppSelector(state => state.auth);
 
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState('');
@@ -22,8 +24,8 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
   const [duration, setDuration] = useState('');
 
   useEffect(() => {
-    if (isOpen && user?.id) { // ✅ Kiểm tra user.id
-      dispatch(fetchFolders(user.id)); // ✅ Truyền userId từ Redux
+    if (isOpen && user?.id) {
+      dispatch(fetchFolders(user.id));
     }
   }, [isOpen, dispatch, user?.id]);
 
@@ -38,11 +40,9 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      // Auto-fill title from filename
       if (!title) {
         setTitle(selectedFile.name.replace(/\.[^/.]+$/, ''));
       }
-      // Get duration from audio file
       const audio = new Audio(URL.createObjectURL(selectedFile));
       audio.onloadedmetadata = () => {
         setDuration(Math.floor(audio.duration).toString());
@@ -52,7 +52,7 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!user?.id) {
       message.error('User not authenticated');
       return;
@@ -69,9 +69,8 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
     formData.append('script', script);
     formData.append('folderId', folderId);
     formData.append('duration', duration);
-    // ✅ userId sẽ được thêm trong audioSlice.uploadAudio
 
-    const result = await dispatch(uploadAudio({ formData, userId: user.id })); // ✅ Truyền userId
+    const result = await dispatch(uploadAudio({ formData, userId: user.id }));
     if (uploadAudio.fulfilled.match(result)) {
       message.success('Audio uploaded successfully!');
       handleClose();
@@ -102,6 +101,22 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Progress Bar */}
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="w-full max-w-md mx-auto my-4">
+              <Progress
+                percent={uploadProgress}
+                status={uploadProgress === 100 ? "success" : "active"}
+                showInfo
+                strokeColor="#22c55e"
+                className="!bg-brand-100 !rounded-lg"
+              />
+              <div className="text-xs text-brand-500 mt-2 text-center">
+                Uploading... {uploadProgress}%
+              </div>
+            </div>
+          )}
+
           {/* File Upload */}
           <div>
             <label className="block text-sm font-bold text-brand-900 mb-2">Audio File *</label>

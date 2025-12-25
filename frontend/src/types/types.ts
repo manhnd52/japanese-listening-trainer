@@ -1,8 +1,8 @@
 export enum AudioStatus {
   NEW = 'NEW',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  SUSPENDED = 'SUSPENDED'
+  // IN_PROGRESS = 'IN_PROGRESS',
+  // COMPLETED = 'COMPLETED',
+  // SUSPENDED = 'SUSPENDED'
 }
 
 export enum QuizType {
@@ -75,6 +75,7 @@ export interface AudioTrack {
   isSuspend?: boolean;
   script?: string;
   quizzes?: Quiz[];
+  listenCount?: number;
   // Thêm các trường khác nếu cần
 }
 

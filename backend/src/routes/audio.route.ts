@@ -7,7 +7,8 @@ import {
   deleteAudio,
   moveAudio,
   toggleFavorite,
-  getRecentlyListened
+  getRecentlyListened,
+  incrementListenCount,
 } from '../controllers/audio.controller.js';
 import { uploadMiddleware } from '../middlewares/upload.js';
 import { prisma } from '../prisma/index.js'; 
@@ -67,5 +68,6 @@ router.delete('/:id', deleteAudio);
 
 router.patch('/:id/favorite', toggleFavorite);
 
+router.post("/:id/listen", incrementListenCount); 
 
 export default router;

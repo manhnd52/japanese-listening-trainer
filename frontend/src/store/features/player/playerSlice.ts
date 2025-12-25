@@ -15,6 +15,7 @@ export interface AudioTrack {
   status: AudioStatus;
   folderName?: string;
   script?: string;
+  listenCount?: number;
   isFavorite: boolean;
   lastPlayed?: Date;
 }

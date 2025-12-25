@@ -27,15 +27,19 @@ class AudioService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Transform để làm phẳng audioStats
-    return audios.map((audio) => ({
-      ...audio,
-      isFavorite: audio.audioStats[0]?.isFavorite || false,
-      listenCount: audio.audioStats[0]?.listenCount || 0,
-      lastListenTime: audio.audioStats[0]?.lastListenTime || null,
-      firstListenDone: audio.audioStats[0]?.firstListenDone || false,
-      audioStats: undefined, // Remove array
-    }));
+    // Transform để làm phẳng audioStats và thêm status
+    return audios.map((audio) => {
+      const listenCount = audio.audioStats[0]?.listenCount || 0;
+      return {
+        ...audio,
+        isFavorite: audio.audioStats[0]?.isFavorite || false,
+        listenCount,
+        lastListenTime: audio.audioStats[0]?.lastListenTime || null,
+        firstListenDone: audio.audioStats[0]?.firstListenDone || false,
+        status: listenCount === 0 ? "NEW" : "idle", // ✅ Thêm status
+        audioStats: undefined, // Remove array
+      };
+    });
   }
 
   // Lấy audio theo ID
@@ -197,7 +201,7 @@ class AudioService {
 
   // ✅ Increment listen count
   async incrementListenCount(audioId: number, userId: number) {
-    const audioStats = await prisma.audioStats.upsert({
+    return await prisma.audioStats.upsert({
       where: {
         userId_audioId: {
           userId,
@@ -205,9 +209,7 @@ class AudioService {
         },
       },
       update: {
-        listenCount: {
-          increment: 1,
-        },
+        listenCount: { increment: 1 },
         lastListenTime: new Date(),
         firstListenDone: true,
       },
@@ -220,8 +222,6 @@ class AudioService {
         isFavorite: false,
       },
     });
-
-    return audioStats;
   }
 
   // Lấy recently listened audios
@@ -258,6 +258,7 @@ class AudioService {
       listenCount: stat.listenCount,
       lastListenTime: stat.lastListenTime,
       firstListenDone: stat.firstListenDone,
+      status: stat.listenCount === 0 ? "NEW" : "idle", // ✅ Thêm status
     }));
   }
 }
