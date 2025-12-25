@@ -1,29 +1,39 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect, type MouseEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { Source } from '@/store/features/player/playerSlice';
-import { Play, Pause, SkipForward, SkipBack, Heart, Volume2, Maximize2, X, Settings, ListMusic, HelpCircle } from 'lucide-react';
+import { useState, useRef, useEffect, type MouseEvent } from "react";
+import { useRouter } from "next/navigation";
+import { Source, setIsPlaying } from "@/store/features/player/playerSlice";
 import {
-  playPause,
+  Play,
+  Pause,
+  SkipForward,
+  SkipBack,
+  Heart,
+  Maximize2,
+  Settings,
+  HelpCircle,
+} from "lucide-react";
+
+import {
   nextTrack,
   prevTrack,
   setVolume,
   setRelaxModeSource,
   toggleEnableQuiz,
   toggleAiExplainMode,
-  toggleFavoriteOptimistic, // ✅ Thêm import
+  toggleFavoriteOptimistic,
 } from "@/store/features/player/playerSlice";
-import { toggleFavorite } from '@/store/features/audio/audioSlice';
-import { AudioTrack } from '@/store/features/player/playerSlice';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { useQuiz } from '@/features/quiz/useQuiz';
-import VolumeControl from './VolumeControl';
+import { toggleFavorite } from "@/store/features/audio/audioSlice";
+import { AudioTrack } from "@/store/features/player/playerSlice";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { useQuiz } from "@/features/quiz/useQuiz";
+import VolumeControl from "./VolumeControl";
+import { useRelaxMode } from "@/features/relax-mode/hooks";
 
 function ProgressBar({
   progress,
   duration,
-  onSeek
+  onSeek,
 }: {
   progress: number;
   duration: number;
@@ -55,57 +65,86 @@ function ProgressBar({
   );
 }
 
-function TrackInfo({ currentAudio, onExpand }: { currentAudio: AudioTrack; onExpand: () => void }) {
+function TrackInfo({
+  currentAudio,
+  onExpand,
+}: {
+  currentAudio: AudioTrack;
+  onExpand: () => void;
+}) {
+  // Luôn tính lại status dựa trên listenCount (giống AudioList)
+  const listenCount =
+    typeof currentAudio.listenCount === "number" ? currentAudio.listenCount : 0;
+  const status = listenCount === 0 ? "NEW" : "NORMAL";
+
   return (
-    <div className="flex items-center gap-4 flex-1 cursor-pointer" onClick={onExpand}>
+    <div
+      className="flex items-center gap-4 flex-1 cursor-pointer"
+      onClick={onExpand}
+    >
       <div className="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center overflow-hidden shadow-sm border border-brand-200">
         <span className="text-3xl">🎵</span>
       </div>
       <div className="flex flex-col overflow-hidden">
-        <h3 className="text-brand-900 font-bold truncate text-lg">{currentAudio.title}</h3>
-        <span className="text-brand-600 text-xs font-semibold truncate">Unit 1 • General English</span>
+        <h3 className="text-brand-900 font-bold truncate text-lg">
+          {currentAudio.title}
+        </h3>
+        <span className="text-brand-600 text-xs font-semibold truncate">
+          Unit 1 • General English
+        </span>
       </div>
-      {currentAudio.status === 'NEW' && (
-        <span className="bg-brand-500 text-white text-[10px] px-1.5 py-0.5 rounded ml-2 font-bold">NEW</span>
+      {status === "NEW" && (
+        <span className="bg-brand-500 text-white text-[10px] px-1.5 py-0.5 rounded ml-2 font-bold">
+          NEW
+        </span>
       )}
     </div>
   );
 }
 
-function SettingsPopup() {
+function SettingsPopup({ onSourceChange }: { onSourceChange: (source: Source) => void }) {
   const dispatch = useAppDispatch();
-  const relaxModeConfig = useAppSelector((state) => state.player.relaxModeConfig);
+  const relaxModeConfig = useAppSelector(
+    (state) => state.player.relaxModeConfig
+  );
+
+  const handleSourceChange = (newSource: Source) => {
+    dispatch(setRelaxModeSource(newSource));
+    onSourceChange(newSource);
+  };
 
   return (
     <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-64 bg-white border border-brand-200 rounded-xl p-4 shadow-xl text-sm">
-      <h4 className="font-bold text-brand-900 mb-2 border-b border-brand-100 pb-2">Relax Mode Config</h4>
+      <h4 className="font-bold text-brand-900 mb-2 border-b border-brand-100 pb-2">
+        Relax Mode Config
+      </h4>
       <div className="space-y-3">
         <label className="flex items-center justify-between text-brand-700">
           <span>Source</span>
-          <select 
+          <select
             className="bg-brand-50 border border-brand-200 rounded px-2 py-1 text-xs text-brand-900 outline-none"
             value={relaxModeConfig.source}
-            onChange={(e) => dispatch(setRelaxModeSource(e.target.value as Source))}
+            onChange={(e) => handleSourceChange(e.target.value as Source)}
           >
             <option value={Source.MyList}>My List</option>
             <option value={Source.Community}>Community</option>
           </select>
         </label>
         <label className="flex items-center gap-2 text-brand-700">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={relaxModeConfig.enableQuiz}
             onChange={() => dispatch(toggleEnableQuiz())}
-            className="accent-brand-500" 
+            className="accent-brand-500"
           />
           <span>Enable Quiz</span>
         </label>
         <label className="flex items-center gap-2 text-brand-700">
-          <input 
+          <input
             type="checkbox"
             checked={relaxModeConfig.aiExplainMode}
             onChange={() => dispatch(toggleAiExplainMode())}
-            className="accent-brand-500" 
+            className="accent-brand-500"
           />
           <span>AI Explain Mode</span>
         </label>
@@ -124,6 +163,7 @@ function Controls({
   showSettings,
   setShowSettings,
   onQuiz,
+  onSourceChange,
 }: {
   isPlaying: boolean;
   isFavorite: () => boolean;
@@ -134,22 +174,35 @@ function Controls({
   showSettings: boolean;
   setShowSettings: (v: boolean) => void;
   onQuiz: () => void;
+  onSourceChange: (source: Source) => void;
 }) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (settingsRef.current && !(event.target instanceof Node && settingsRef.current.contains(event.target))) {
+      if (
+        settingsRef.current &&
+        !(
+          event.target instanceof Node &&
+          settingsRef.current.contains(event.target)
+        )
+      ) {
         setShowSettings(false);
       }
     };
 
     if (showSettings) {
-      document.addEventListener('mousedown', handleClickOutside as unknown as EventListener);
+      document.addEventListener(
+        "mousedown",
+        handleClickOutside as unknown as EventListener
+      );
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside as unknown as EventListener);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside as unknown as EventListener
+      );
     };
   }, [showSettings, setShowSettings]);
 
@@ -159,16 +212,29 @@ function Controls({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            toggleFavorite(); // ✅ Gọi hàm, không await
+            toggleFavorite();
           }}
-          className={`transition-all ${isFavorite() ? 'text-rose-500 hover:text-rose-600' : 'text-brand-400 hover:text-brand-600'}`}
-          aria-label={isFavorite() ? 'Remove from favorites' : 'Add to favorites'}
+          className={`transition-all ${
+            isFavorite()
+              ? "text-rose-500 hover:text-rose-600"
+              : "text-brand-400 hover:text-brand-600"
+          }`}
+          aria-label={
+            isFavorite() ? "Remove from favorites" : "Add to favorites"
+          }
         >
-          <Heart size={22} fill={isFavorite() ? 'currentColor' : 'none'} strokeWidth={2.5} />
+          <Heart
+            size={22}
+            fill={isFavorite() ? "currentColor" : "none"}
+            strokeWidth={2.5}
+          />
         </button>
 
         <button
-          onClick={(e) => { e.stopPropagation(); onQuiz(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuiz();
+          }}
           className="text-brand-400 hover:text-brand-600 transition-all"
           aria-label="Take quiz"
           title="Take quiz"
@@ -176,41 +242,76 @@ function Controls({
           <HelpCircle size={22} strokeWidth={2.5} />
         </button>
 
-        <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="text-brand-700 hover:text-brand-900">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrev();
+          }}
+          className="text-brand-700 hover:text-brand-900"
+        >
           <SkipBack size={28} fill="currentColor" />
         </button>
 
         <button
-          onClick={(e) => { e.stopPropagation(); onPlayPause(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPlayPause();
+          }}
           className="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-brand-500/40"
         >
-          {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+          {isPlaying ? (
+            <Pause size={24} fill="currentColor" />
+          ) : (
+            <Play size={24} fill="currentColor" className="ml-1" />
+          )}
         </button>
 
-        <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="text-brand-700 hover:text-brand-900">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
+          className="text-brand-700 hover:text-brand-900"
+        >
           <SkipForward size={28} fill="currentColor" />
         </button>
 
         <div className="relative" ref={settingsRef}>
           <button
-            onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
-            className={`text-brand-400 hover:text-brand-600 ${showSettings ? 'text-brand-600' : ''}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowSettings(!showSettings);
+            }}
+            className={`text-brand-400 hover:text-brand-600 ${
+              showSettings ? "text-brand-600" : ""
+            }`}
           >
             <Settings size={22} strokeWidth={2.5} />
           </button>
 
-          {showSettings && <SettingsPopup />}
+          {showSettings && <SettingsPopup onSourceChange={onSourceChange} />}
         </div>
       </div>
     </div>
   );
 }
 
-function VolumeSection({ volume, onVolume, onExpand }: { volume: number; onVolume: (v: number) => void; onExpand: () => void }) {
+function VolumeSection({
+  volume,
+  onVolume,
+  onExpand,
+}: {
+  volume: number;
+  onVolume: (v: number) => void;
+  onExpand: () => void;
+}) {
   return (
     <div className="hidden md:flex items-center justify-end flex-1 gap-4">
       <VolumeControl volume={volume} setVolume={onVolume} />
-      <button onClick={onExpand} className="text-brand-400 hover:text-brand-600">
+      <button
+        onClick={onExpand}
+        className="text-brand-400 hover:text-brand-600"
+      >
         <Maximize2 size={20} />
       </button>
     </div>
@@ -220,26 +321,29 @@ function VolumeSection({ volume, onVolume, onExpand }: { volume: number; onVolum
 const MiniPlayer = () => {
   const router = useRouter();
   const playerState = useAppSelector((state) => state.player);
+  const user = useAppSelector((state) => state.auth.user);
   const currentAudio = playerState.currentAudio;
   const isPlaying = playerState.isPlaying;
   const volume = playerState.volume;
   const progress = playerState.progress;
-  const duration = playerState.currentAudio?.duration ? playerState.currentAudio.duration : 0;
+  const duration = playerState.currentAudio?.duration
+    ? playerState.currentAudio.duration
+    : 0;
 
   const dispatch = useAppDispatch();
   const [showSettings, setShowSettings] = useState(false);
 
-  const { user } = useAppSelector((state) => state.auth);
   const { triggerQuiz } = useQuiz();
 
-  // ✅ Sửa: Dispatch 2 actions - optimistic update + async toggle
-  const handleToggleFavorite = () => {
+  // Lấy user từ state để gọi API favorite
+  // Sử dụng hook useRelaxMode để load random audios
+  const { loadRandomAudios } = useRelaxMode();
+
+  const handleToggleFavorite = async () => {
     if (!currentAudio || !user?.id) return;
-    
-    // ✅ Optimistic update: update UI ngay
+
     dispatch(toggleFavoriteOptimistic());
-    
-    // ✅ Backend sync: gọi async thunk
+
     dispatch(
       toggleFavorite({
         id: currentAudio.id as string,
@@ -259,6 +363,17 @@ const MiniPlayer = () => {
     if (currentAudio?.id) {
       router.push(`/audios/${currentAudio.id}`);
     }
+  };
+
+  // Chỉ toggle isPlaying, không reload audio
+  const handlePlayPause = () => {
+    dispatch(setIsPlaying(!isPlaying));
+  };
+
+  const handleSourceChange = async (newSource: Source) => {
+    
+    // Load random audios from new source
+    await loadRandomAudios(newSource);
   };
 
   if (!currentAudio) return null;
@@ -283,11 +398,12 @@ const MiniPlayer = () => {
           isFavorite={() => !!currentAudio.isFavorite}
           toggleFavorite={handleToggleFavorite}
           onPrev={() => dispatch(prevTrack())}
-          onPlayPause={() => dispatch(playPause())}
+          onPlayPause={handlePlayPause}
           onNext={() => dispatch(nextTrack())}
           showSettings={showSettings}
           setShowSettings={setShowSettings}
           onQuiz={handleQuizClick}
+          onSourceChange={handleSourceChange}
         />
 
         <VolumeSection

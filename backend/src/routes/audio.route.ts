@@ -7,10 +7,15 @@ import {
   deleteAudio,
   moveAudio,
   toggleFavorite,
-  getRecentlyListened
+  getRecentlyListened,
+  incrementListenCount,
 } from '../controllers/audio.controller.js';
 import { uploadMiddleware } from '../middlewares/upload.js';
 import { prisma } from '../prisma/index.js'; 
+import {
+  getRandomAudiosFromMyList,
+  getRandomAudiosFromCommunity
+} from '../controllers/audio.controller';
 
 const router = Router();
 
@@ -19,6 +24,12 @@ router.get('/', getAudioList);
 
 // GET /api/audios/recent - Get recently listened audios
 router.get('/recent', getRecentlyListened);
+
+// GET /api/audios/random/my-list - Get random audios from user's folders (Relax mode)
+router.get('/random/my-list', getRandomAudiosFromMyList);
+
+// GET /api/audios/random/community - Get random audios from public folders (Relax mode)
+router.get('/random/community', getRandomAudiosFromCommunity);
 
 // POST /api/audios - Upload new audio
 router.post('/', uploadMiddleware.single('file'), createAudio);
@@ -67,5 +78,6 @@ router.delete('/:id', deleteAudio);
 
 router.patch('/:id/favorite', toggleFavorite);
 
+router.post("/:id/listen", incrementListenCount); 
 
 export default router;

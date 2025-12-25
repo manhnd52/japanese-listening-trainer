@@ -6,7 +6,7 @@ import fs from 'fs';
 export const getAudioList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { search, isSuspend, folderId, userId } = req.query;
-    
+
     if (!userId) {
       res.status(400).json({
         success: false,
@@ -14,11 +14,11 @@ export const getAudioList = async (req: Request, res: Response, next: NextFuncti
       });
       return;
     }
-    
+
     const filter: any = {
       createdBy: Number(userId)
     };
-    
+
     if (search) filter.title = { contains: search as string, mode: 'insensitive' };
     if (isSuspend !== undefined) filter.isSuspend = isSuspend === 'true';
     if (folderId !== undefined) filter.folderId = Number(folderId);
@@ -217,19 +217,22 @@ export const getRecentlyListened = async (req: Request, res: Response, next: Nex
   }
 };
 
+// ✅ Sửa lại controller này để nhận userId từ body, query hoặc req.userId
 export const incrementListenCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const userId = req.userId;
-
+    // Ưu tiên lấy userId từ body, sau đó query, sau đó req.userId (nếu có middleware auth)
+    const userId =
+      req.body.userId ||
+      req.query.userId ||
+      (req as any).userId;
     if (!userId) {
-      res.status(401).json({
+      res.status(400).json({
         success: false,
-        message: 'Authentication required'
+        message: 'userId is required'
       });
       return;
     }
-
     const audioStats = await audioService.incrementListenCount(Number(id), Number(userId));
 
     res.json({
@@ -241,3 +244,48 @@ export const incrementListenCount = async (req: Request, res: Response, next: Ne
     next(error);
   }
 };
+
+export const getRandomAudiosFromMyList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { userId, limit } = req.query;
+    // Validate userId
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+      return;
+    }
+
+    const limitNum = limit ? Math.min(parseInt(limit as string), 50) : 10;
+    const audios = await audioService.getRandomAudiosFromMyList(Number(userId), limitNum);
+
+    res.json({ success: true, data: audios });
+  } catch (error) {
+    next(error);
+  }
+
+};
+
+export const getRandomAudiosFromCommunity = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { userId, limit } = req.query;
+
+    // Validate userId
+    if (!userId) {
+      res.status(400).json({
+        success: false,
+        message: 'userId is required'
+      });
+      return;
+    }
+
+    const limitNum = limit ? Math.min(parseInt(limit as string), 50) : 10;
+    const audios = await audioService.getRandomAudiosFromCommunity(Number(userId), limitNum);
+
+    res.json({ success: true, data: audios });
+  } catch (error) {
+    next(error);
+  }
+};
+

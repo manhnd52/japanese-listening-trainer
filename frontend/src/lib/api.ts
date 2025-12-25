@@ -6,8 +6,7 @@ import axios from 'axios';
  */
 export const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
-    timeout: 30000, // Increase timeout to 30s
-    // Force rebuild to apply new env variables
+    timeout: 30000,
     headers: {
         'Content-Type': 'application/json'
     }
@@ -16,7 +15,6 @@ export const apiClient = axios.create({
 // Request interceptor - Add auth token
 apiClient.interceptors.request.use(
     (config) => {
-        // Get token from localStorage (if using JWT)
         if (typeof window !== 'undefined') {
             const token = localStorage.getItem('accessToken');
             console.log('[API Interceptor] Token:', token ? 'exists' : 'null');
@@ -36,14 +34,10 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        // Handle 401 Unauthorized - DON'T auto-clear token, just log
         if (error.response?.status === 401) {
             console.warn('[API Interceptor] 401 Unauthorized - token may be invalid or expired');
-            // Don't clear token here - let the auth flow handle it
-            // This was causing issues with quiz submission
         }
 
-        // Handle network errors
         if (!error.response) {
             // console.error('Network error:', error.message);
         }
@@ -56,6 +50,28 @@ export async function fetchAudios() {
   const baseURL = process.env.NEXT_PUBLIC_API_URL;
   const res = await fetch(`${baseURL}/audios`);
   const json = await res.json();
-  return json.data; // trả về mảng audio
+  return json.data;
 }
 
+
+/**
+ * Fetch random audios from user's own folders for Relax mode
+ */
+export async function fetchRandomAudiosFromMyList(userId: number, limit: number = 10) {
+  const response = await apiClient.get(`/audios/random/my-list`, {
+    params: { userId, limit }
+  });
+  return response.data.data;
+}
+
+/**
+ * Fetch random audios from all public folders for Relax mode
+ */
+export async function fetchRandomAudiosFromCommunity(userId: number, limit: number = 10) {
+  const response = await apiClient.get(`/audios/random/community`, {
+    params: { userId, limit }
+  });
+  return response.data.data;
+}
+
+export default apiClient;
