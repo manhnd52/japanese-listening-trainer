@@ -80,17 +80,17 @@ function TrackInfo({
 
   return (
     <div
-      className="flex items-center gap-4 flex-1 cursor-pointer"
+      className="flex items-center gap-2 md:gap-4 flex-1 min-w-0 cursor-pointer"
       onClick={onExpand}
     >
-      <div className="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center overflow-hidden shadow-sm border border-brand-200">
-        <span className="text-3xl">🎵</span>
+      <div className="w-10 h-10 md:w-14 md:h-14 bg-brand-100 rounded-lg md:rounded-xl flex items-center justify-center overflow-hidden shadow-sm border border-brand-200 flex-shrink-0">
+        <span className="text-xl md:text-3xl">🎵</span>
       </div>
-      <div className="flex flex-col overflow-hidden">
-        <h3 className="text-brand-900 font-bold truncate text-lg">
+      <div className="flex flex-col overflow-hidden min-w-0">
+        <h3 className="text-brand-900 font-bold truncate text-sm md:text-lg">
           {currentAudio.title}
         </h3>
-        <span className="text-brand-600 text-xs font-semibold truncate">
+        <span className="text-brand-600 text-[10px] md:text-xs font-semibold truncate">
           Unit 1 • General English
         </span>
       </div>
@@ -110,7 +110,7 @@ function SettingsPopup() {
   );
 
   return (
-    <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-64 bg-white border border-brand-200 rounded-xl p-4 shadow-xl text-sm">
+    <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-56 md:w-64 bg-white border border-brand-200 rounded-xl p-3 md:p-4 shadow-xl text-xs md:text-sm">
       <h4 className="font-bold text-brand-900 mb-2 border-b border-brand-100 pb-2">
         Relax Mode Config
       </h4>
@@ -210,7 +210,7 @@ function Controls({
             e.stopPropagation();
             toggleFavorite();
           }}
-          className={`transition-all ${
+          className={`hidden md:inline-flex transition-all ${
             isFavorite()
               ? "text-rose-500 hover:text-rose-600"
               : "text-brand-400 hover:text-brand-600"
@@ -220,7 +220,7 @@ function Controls({
           }
         >
           <Heart
-            size={22}
+            size={20}
             fill={isFavorite() ? "currentColor" : "none"}
             strokeWidth={2.5}
           />
@@ -231,7 +231,7 @@ function Controls({
             e.stopPropagation();
             onQuiz();
           }}
-          className="text-brand-400 hover:text-brand-600 transition-all"
+          className="hidden md:inline-flex text-brand-400 hover:text-brand-600 transition-all"
           aria-label="Take quiz"
           title="Take quiz"
         >
@@ -244,7 +244,7 @@ function Controls({
           }}
           className="text-brand-700 hover:text-brand-900"
         >
-          <SkipBack size={28} fill="currentColor" />
+          <SkipBack size={24} className="md:w-7 md:h-7" fill="currentColor" />
         </button>
 
         <button
@@ -252,12 +252,12 @@ function Controls({
             e.stopPropagation();
             onPlayPause();
           }}
-          className="w-12 h-12 rounded-full bg-brand-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-brand-500/40"
+          className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-brand-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-brand-500/40"
         >
           {isPlaying ? (
-            <Pause size={24} fill="currentColor" />
+            <Pause size={22} className="md:w-6 md:h-6" fill="currentColor" />
           ) : (
-            <Play size={24} fill="currentColor" className="ml-1" />
+            <Play size={22} className="md:w-6 md:h-6 ml-0.5 md:ml-1" fill="currentColor" />
           )}
         </button>
 
@@ -268,7 +268,7 @@ function Controls({
           }}
           className="text-brand-700 hover:text-brand-900"
         >
-          <SkipForward size={28} fill="currentColor" />
+          <SkipForward size={24} className="md:w-7 md:h-7" fill="currentColor" />
         </button>
 
         <div className="relative" ref={settingsRef}>
