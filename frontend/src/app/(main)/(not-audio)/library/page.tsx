@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { AudioTrack } from "@/types/types";
 import { useAudioList, useAudioActions } from "@/features/audios/hooks";
 import {
@@ -11,7 +11,7 @@ import {
 import { useAppDispatch } from "@/hooks/redux";
 import { setPlaylistArray } from "@/store/features/player/playerSlice";
 
-const LibraryPage = () => {
+function LibraryContent() {
   const { audios, folders, loading } = useAudioList();
   const { handlePlay, handleToggleFavorite, handleDelete, handleMove } =
     useAudioActions();
@@ -82,6 +82,14 @@ const LibraryPage = () => {
         audio={selectedAudio}
       />
     </>
+  );
+};
+
+const LibraryPage = () => {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <LibraryContent />
+    </Suspense>
   );
 };
 
