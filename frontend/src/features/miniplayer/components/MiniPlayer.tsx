@@ -2,17 +2,16 @@
 
 import { useState, useRef, useEffect, type MouseEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { Source } from '@/store/features/player/playerSlice';
+import { Source, setIsPlaying } from '@/store/features/player/playerSlice';
 import { Play, Pause, SkipForward, SkipBack, Heart, Volume2, Maximize2, X, Settings, ListMusic, HelpCircle } from 'lucide-react';
 import {
-  playPause,
   nextTrack,
   prevTrack,
   setVolume,
   setRelaxModeSource,
   toggleEnableQuiz,
   toggleAiExplainMode,
-  toggleFavoriteOptimistic, // ✅ Thêm import
+  toggleFavoriteOptimistic,
 } from "@/store/features/player/playerSlice";
 import { toggleFavorite } from '@/store/features/audio/audioSlice';
 import { AudioTrack } from '@/store/features/player/playerSlice';
@@ -159,7 +158,7 @@ function Controls({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            toggleFavorite(); // ✅ Gọi hàm, không await
+            toggleFavorite();
           }}
           className={`transition-all ${isFavorite() ? 'text-rose-500 hover:text-rose-600' : 'text-brand-400 hover:text-brand-600'}`}
           aria-label={isFavorite() ? 'Remove from favorites' : 'Add to favorites'}
@@ -232,14 +231,11 @@ const MiniPlayer = () => {
   const { user } = useAppSelector((state) => state.auth);
   const { triggerQuiz } = useQuiz();
 
-  // ✅ Sửa: Dispatch 2 actions - optimistic update + async toggle
   const handleToggleFavorite = () => {
     if (!currentAudio || !user?.id) return;
     
-    // ✅ Optimistic update: update UI ngay
     dispatch(toggleFavoriteOptimistic());
     
-    // ✅ Backend sync: gọi async thunk
     dispatch(
       toggleFavorite({
         id: currentAudio.id as string,
@@ -259,6 +255,11 @@ const MiniPlayer = () => {
     if (currentAudio?.id) {
       router.push(`/audios/${currentAudio.id}`);
     }
+  };
+
+  // ✅ Sửa: chỉ toggle isPlaying, không gọi lại onPlay
+  const handlePlayPause = () => {
+    dispatch(setIsPlaying(!isPlaying));
   };
 
   if (!currentAudio) return null;
@@ -283,7 +284,7 @@ const MiniPlayer = () => {
           isFavorite={() => !!currentAudio.isFavorite}
           toggleFavorite={handleToggleFavorite}
           onPrev={() => dispatch(prevTrack())}
-          onPlayPause={() => dispatch(playPause())}
+          onPlayPause={handlePlayPause}
           onNext={() => dispatch(nextTrack())}
           showSettings={showSettings}
           setShowSettings={setShowSettings}

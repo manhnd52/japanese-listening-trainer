@@ -18,38 +18,28 @@ export default function Player() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const isInitialLoadRef = useRef(true);
 
-  // Sử dụng useAppSelector với kiểu RootState
   const audioId = useAppSelector((state: RootState) => state.player.currentAudio?.id);
   const audioUrl = useAppSelector((state: RootState) => state.player.currentAudio?.url);
-
   const isPlaying = useAppSelector((state: RootState) => state.player.isPlaying);
   const volume = useAppSelector((state: RootState) => state.player.volume);
   const user = useAppSelector((state: RootState) => state.auth.user);
   const dispatch = useAppDispatch();
   const { triggerQuiz } = useQuiz();
 
-  // ✅ Xử lý khi audio kết thúc
   const handleAudioEnded = useCallback(async () => {
-    console.log("🎵 Audio finished!");
     dispatch(setIsPlaying(false));
 
-    // ✅ 1. Increment listen count
     if (audioId && user?.id) {
       try {
-        console.log("📊 Incrementing listen count for audio:", audioId);
         const res = await audioApi.incrementListenCount(Number(audioId), user.id);
-        // Lấy listenCount mới từ response, fallback = 1 nếu không có
         const newListenCount = res?.data?.listenCount ?? 1;
         dispatch(updateAudioListenCount({ id: audioId, listenCount: newListenCount }));
-        console.log("✅ Listen count incremented");
       } catch (error) {
-        console.error("❌ Failed to increment listen count:", error);
+        // handle error
       }
     }
 
-    // ✅ 2. Update streak (giữ nguyên logic cũ)
     try {
-      console.log("🔥 Updating user streak...");
       const apiClient = (await import("@/lib/api")).default;
       const res = await apiClient.post("/stats/streak");
 
@@ -60,20 +50,16 @@ export default function Player() {
             lastActiveDate: res.data.data.lastActiveDate,
           })
         );
-        console.log("✅ Streak updated");
       }
     } catch (error) {
-      console.error("❌ Failed to update streak", error);
+      // handle error
     }
 
-    // ✅ 3. Trigger quiz (giữ nguyên logic cũ)
     if (audioId) {
-      console.log("🎯 Triggering quiz for audio ID:", audioId);
       triggerQuiz(Number(audioId));
     }
   }, [dispatch, triggerQuiz, audioId, user]);
 
-  // 🔄 Restart event
   useEffect(() => {
     const handler = (ev: Event) => {
       const e = ev as CustomEvent<{ audioId?: string }>;
@@ -84,14 +70,11 @@ export default function Player() {
       const audioEl = audioRef.current;
       if (!audioEl) return;
 
-      console.log("🔄 Restarting audio:", audioId);
-
       audioEl.currentTime = 0;
 
       const playPromise = audioEl.play();
       if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.error("❌ Restart play failed:", err);
+        playPromise.catch(() => {
           dispatch(setIsPlaying(false));
         });
       }
@@ -102,7 +85,6 @@ export default function Player() {
       document.removeEventListener("player:restart", handler as EventListener);
   }, [audioId, dispatch]);
 
-  // ⏩ Seek event
   useEffect(() => {
     const handler = (ev: Event) => {
       const e = ev as CustomEvent<{ sec?: number }>;
@@ -115,8 +97,6 @@ export default function Player() {
       const duration = audioEl.duration || sec;
       const clamped = Math.max(0, Math.min(sec, duration));
 
-      console.log("⏩ Seeking to:", clamped);
-
       audioEl.currentTime = clamped;
       dispatch(updateProgress(clamped));
 
@@ -124,8 +104,7 @@ export default function Player() {
 
       const playPromise = audioEl.play();
       if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          console.error("❌ Seek play failed:", err);
+        playPromise.catch(() => {
           dispatch(setIsPlaying(false));
         });
       }
@@ -136,24 +115,30 @@ export default function Player() {
       document.removeEventListener("player:seek", handler as EventListener);
   }, [dispatch, isPlaying]);
 
-  // 🔊 Volume
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.volume = volume / 100;
   }, [volume]);
 
-  // 🎵 Load new audio
+  // Sửa: chỉ load lại audio khi đổi bài mới (audioId hoặc audioUrl đổi)
   useEffect(() => {
     if (!audioRef.current) return;
     const audioEl = audioRef.current;
 
     if (!audioUrl || !audioId) {
-      console.warn("⚠️ Invalid audio:", { audioId, audioUrl });
       if (!audioEl.paused) audioEl.pause();
       audioEl.removeAttribute("src");
       audioEl.load();
       dispatch(updateProgress(0));
       isInitialLoadRef.current = true;
+      return;
+    }
+
+    // Nếu đã đúng bài, không reset lại audio
+    if (
+      audioEl.src &&
+      (audioEl.src.endsWith(audioUrl) || audioEl.src === audioUrl)
+    ) {
       return;
     }
 
@@ -163,12 +148,6 @@ export default function Player() {
       ? audioUrl
       : `${AUDIO_BASE}${audioUrl.startsWith("/") ? "" : "/"}${audioUrl}`;
 
-    console.log("🎵 Loading new track:", {
-      id: audioId,
-      audioUrl,
-      resolvedUrl
-    });
-
     if (!audioEl.paused) audioEl.pause();
     audioEl.src = resolvedUrl;
     audioEl.currentTime = 0;
@@ -177,30 +156,24 @@ export default function Player() {
     dispatch(updateProgress(0));
     isInitialLoadRef.current = true;
 
-    audioEl.onended = handleAudioEnded; // ✅ Gán handler khi audio kết thúc
+    audioEl.onended = handleAudioEnded;
     audioEl.ontimeupdate = () => {
       dispatch(updateProgress(audioEl.currentTime || 0));
     };
 
     audioEl.onloadedmetadata = () => {
       const duration = audioEl.duration || 0;
-      console.log("⌛ Duration:", duration);
       dispatch(setDuration(duration));
     };
 
     audioEl.oncanplay = () => {
-      console.log("✅ Audio can play");
-      
       if (isInitialLoadRef.current && isPlaying) {
         isInitialLoadRef.current = false;
         const playPromise = audioEl.play();
         if (playPromise !== undefined) {
           playPromise
-            .then(() => {
-              console.log("✅ Audio started playing");
-            })
-            .catch((err) => {
-              console.error("❌ Auto-play failed:", err);
+            .then(() => {})
+            .catch(() => {
               dispatch(setIsPlaying(false));
             });
         }
@@ -208,36 +181,30 @@ export default function Player() {
     };
   }, [audioId, audioUrl, dispatch, handleAudioEnded, isPlaying]);
 
-  // ▶ Play/Pause control
   useEffect(() => {
     if (!audioRef.current || !audioUrl) return;
     const audioEl = audioRef.current;
     if (!audioEl.src) return;
 
     if (isInitialLoadRef.current) {
-      console.log("⏳ Initial load, skipping play/pause control");
       return;
     }
 
     if (audioEl.readyState === 0) {
-      console.log("⏳ Audio not ready yet, waiting...");
       return;
     }
 
     if (isPlaying) {
       if (audioEl.paused) {
-        console.log("▶️ Resuming audio...");
         const playPromise = audioEl.play();
         if (playPromise !== undefined) {
-          playPromise.catch((err) => {
-            console.error("❌ Play failed:", err);
+          playPromise.catch(() => {
             dispatch(setIsPlaying(false));
           });
         }
       }
     } else {
       if (!audioEl.paused) {
-        console.log("⏸️ Pausing audio...");
         audioEl.pause();
       }
     }
@@ -250,10 +217,7 @@ export default function Player() {
         preload="metadata"
         onError={(e) => {
           const target = e.currentTarget;
-          console.error("❌ Audio error:", {
-            src: target.src,
-            code: target.error?.code,
-          });
+          // handle error
         }}
       />
       <QuizModal />
