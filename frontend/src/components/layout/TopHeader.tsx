@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Search, Flame, User as UserIcon, LogOut, Link, Upload, Coffee } from 'lucide-react';
 import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
 import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
-import { authApi } from '@/features/auth/api'; // Đảm bảo bạn đã tạo hàm này trong api.ts
+import { authApi } from '@/features/auth/api';
 import { setStats } from '@/store/features/user/userSlice';
 
 const TopHeader = () => {
@@ -15,11 +15,14 @@ const TopHeader = () => {
   const dispatch = useAppDispatch();
 
   const user = useAppSelector(state => state.auth.user);
- const { stats, isCompletedToday } = useAppSelector(state => state.user);
+  const { stats, isCompletedToday } = useAppSelector(state => state.user);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRelaxModalOpen, setIsRelaxModalOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  const currentExpInLevel = stats?.currentLevelExp ?? (stats?.exp || 0) % 100;
+  const progressPercent = Math.min(100, Math.max(0, currentExpInLevel));
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -41,7 +44,7 @@ const TopHeader = () => {
             streak: res.data.streak,
             level: res.data.level,
             exp: res.data.exp,
-            lastActiveDate: res.data.lastActiveDate // Quan trọng để tính isCompletedToday
+            lastActiveDate: res.data.lastActiveDate
           }));
         }
       } catch (error) {
@@ -54,18 +57,12 @@ const TopHeader = () => {
   const navigate = (path: string) => router.push(path);
 
   const handleLogout = () => {
-    // Clear Redux state
     dispatch(logout());
-    
-    // Clear localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
-      
-      // Clear cookie
       document.cookie = 'accessToken=; path=/; max-age=0';
     }
-    
     router.push('/login');
   };
 
@@ -88,53 +85,49 @@ const TopHeader = () => {
         <span className="font-bold text-xl tracking-tight text-white">JLT</span>
       </div>
       
-      
-
       {/* Right section */}
       <div className="flex items-center gap-3 md:gap-6">
-        
-
-      <div
-        onClick={() => setIsRelaxModalOpen(true)}
-        className="
-          hidden md:flex items-center gap-2
-          bg-jlt-cream text-brand-600
-          px-4 py-2 rounded-full text-sm font-semibold
-          shadow-lg
-          hover:shadow-2xl
-          hover:scale-110
-          transition-all duration-300
-          cursor-pointer select-none
-          transform-gpu
-        "
-      >
-        <Coffee className="w-5 h-5 animate-bounce-slow" />
-        <span>Relax</span>
-      </div>
+        <div
+          onClick={() => setIsRelaxModalOpen(true)}
+          className="
+            hidden md:flex items-center gap-2
+            bg-jlt-cream text-brand-600
+            px-4 py-2 rounded-full text-sm font-semibold
+            shadow-lg
+            hover:shadow-2xl
+            hover:scale-110
+            transition-all duration-300
+            cursor-pointer select-none
+            transform-gpu
+          "
+        >
+          <Coffee className="w-5 h-5 animate-bounce-slow" />
+          <span>Relax</span>
+        </div>
 
         {/* Add audio */}
-           <button
-              onClick={() => navigate("/add-audio")}
-              className="
-                hidden md:flex items-center gap-2 
-                bg-jlt-peach text-brand-900 
-                px-4 py-2 rounded-full text-sm font-bold
-                shadow-sm border-b-2 border-orange-300
-                hover:translate-y-0.5 hover:shadow-md
-                transition-all
-                focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1
-              "
-            >
-              <Upload className="w-4 h-4" />
-              Add Audio
-          </button>
+        <button
+          onClick={() => navigate("/library?add=1")}
+          className="
+            hidden md:flex items-center gap-2 
+            bg-jlt-peach text-brand-900 
+            px-4 py-2 rounded-full text-sm font-bold
+            shadow-sm border-b-2 border-orange-300
+            hover:translate-y-0.5 hover:shadow-md
+            transition-all
+            focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-1
+          "
+        >
+          <Upload className="w-4 h-4" />
+          Add Audio
+        </button>
 
         {/* Streak */}
         <div 
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-all duration-300
             ${isCompletedToday 
-              ? 'bg-orange-100 border-orange-200 shadow-[0_0_10px_rgba(251,146,60,0.5)]' // Đã học: Sáng rực
-              : 'bg-brand-600/50 border-brand-400/30 opacity-70 grayscale' // Chưa học: Xám mờ
+              ? 'bg-orange-100 border-orange-200 shadow-[0_0_10px_rgba(251,146,60,0.5)]'
+              : 'bg-brand-600/50 border-brand-400/30 opacity-70 grayscale'
             }`}
           title={isCompletedToday ? "Bạn đã duy trì chuỗi hôm nay!" : "Hãy nghe 1 bài để giữ chuỗi!"}
         >
@@ -149,15 +142,25 @@ const TopHeader = () => {
 
         {/* Level info */}
         <div
-          className="hidden md:flex flex-col items-end cursor-pointer"
+          className="hidden md:flex flex-col items-end min-w-[120px]"
           onClick={() => navigate('/achievements')}
         >
-          <span className="text-sm font-bold text-white leading-none">
-            Level {stats?.level ?? 1}
-          </span>
-          <span className="text-[10px] font-medium text-brand-100 leading-none mt-1">
-            {stats?.exp ?? 0}/100 EXP
-          </span>
+          <div className="flex justify-between w-full items-baseline">
+             <span className="text-sm font-bold text-white leading-none">
+              Lv. {stats?.level ?? 1}
+            </span>
+             <span className="text-[10px] font-medium text-brand-100 leading-none">
+              {currentExpInLevel}/100 XP
+            </span>
+          </div>
+         
+          {/* Thanh Progress Bar */}
+          <div className="w-full h-2 bg-brand-800/50 rounded-full mt-1.5 overflow-hidden border border-brand-600/30">
+            <div 
+              className="h-full bg-yellow-400 shadow-[0_0_10px_rgba(250,204,21,0.6)] transition-all duration-700 ease-out"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
 
         {/* Avatar + Dropdown */}
@@ -200,7 +203,6 @@ const TopHeader = () => {
             </div>
           )}
         </div>
-
       </div>
 
       <RelaxModeModal

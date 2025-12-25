@@ -8,6 +8,7 @@ import {
   updateProgress,
   setIsPlaying,
   setDuration,
+  setCurrentAudio,
 } from "@/store/features/player/playerSlice";
 import { useQuiz } from "@/features/quiz/useQuiz";
 import QuizModal from "@/features/quiz/QuizModal";
@@ -23,8 +24,19 @@ export default function Player() {
   const isPlaying = useAppSelector((state: RootState) => state.player.isPlaying);
   const volume = useAppSelector((state: RootState) => state.player.volume);
   const user = useAppSelector((state: RootState) => state.auth.user);
+  const audios = useAppSelector((state: RootState) => state.audio.audios);
+  const currentAudio = useAppSelector((state: RootState) => state.player.currentAudio);
   const dispatch = useAppDispatch();
   const { triggerQuiz } = useQuiz();
+
+  // Đồng bộ listenCount về currentAudio khi audio kết thúc hoặc khi audios thay đổi
+  useEffect(() => {
+    if (!currentAudio) return;
+    const updated = audios.find(a => String(a.id) === String(currentAudio.id));
+    if (updated && updated.listenCount !== currentAudio.listenCount) {
+      dispatch(setCurrentAudio({ ...currentAudio, listenCount: updated.listenCount }));
+    }
+  }, [audios, currentAudio, dispatch]);
 
   const handleAudioEnded = useCallback(async () => {
     dispatch(setIsPlaying(false));
@@ -34,8 +46,13 @@ export default function Player() {
         const res = await audioApi.incrementListenCount(Number(audioId), user.id);
         const newListenCount = res?.data?.listenCount ?? 1;
         dispatch(updateAudioListenCount({ id: audioId, listenCount: newListenCount }));
-      } catch (error) {
-        // handle error
+
+        // Cập nhật currentAudio.listenCount ngay khi nghe xong
+        if (currentAudio) {
+          dispatch(setCurrentAudio({ ...currentAudio, listenCount: newListenCount }));
+        }
+      } catch {
+        // ignore
       }
     }
 
@@ -51,14 +68,14 @@ export default function Player() {
           })
         );
       }
-    } catch (error) {
-      // handle error
+    } catch {
+      // ignore
     }
 
     if (audioId) {
       triggerQuiz(Number(audioId));
     }
-  }, [dispatch, triggerQuiz, audioId, user]);
+  }, [dispatch, triggerQuiz, audioId, user, currentAudio]);
 
   useEffect(() => {
     const handler = (ev: Event) => {
@@ -120,7 +137,7 @@ export default function Player() {
     audioRef.current.volume = volume / 100;
   }, [volume]);
 
-  // Sửa: chỉ load lại audio khi đổi bài mới (audioId hoặc audioUrl đổi)
+  // Chỉ load lại audio khi đổi bài mới (audioId hoặc audioUrl đổi)
   useEffect(() => {
     if (!audioRef.current) return;
     const audioEl = audioRef.current;
@@ -134,19 +151,27 @@ export default function Player() {
       return;
     }
 
-    // Nếu đã đúng bài, không reset lại audio
-    if (
-      audioEl.src &&
-      (audioEl.src.endsWith(audioUrl) || audioEl.src === audioUrl)
-    ) {
-      return;
-    }
-
+    // So sánh src chỉ bằng pathname, tránh reload khi chỉ pause/play hoặc chỉnh volume
     const AUDIO_BASE =
       process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
     const resolvedUrl = audioUrl.startsWith("http")
       ? audioUrl
       : `${AUDIO_BASE}${audioUrl.startsWith("/") ? "" : "/"}${audioUrl}`;
+
+    const currentSrc = audioEl.src;
+    let srcPath = "";
+    let resolvedPath = "";
+    try {
+      srcPath = new URL(currentSrc).pathname;
+      resolvedPath = new URL(resolvedUrl).pathname;
+    } catch {
+      srcPath = currentSrc;
+      resolvedPath = resolvedUrl;
+    }
+
+    if (srcPath === resolvedPath) {
+      return;
+    }
 
     if (!audioEl.paused) audioEl.pause();
     audioEl.src = resolvedUrl;
@@ -215,9 +240,8 @@ export default function Player() {
       <audio
         ref={audioRef}
         preload="metadata"
-        onError={(e) => {
-          const target = e.currentTarget;
-          // handle error
+        onError={() => {
+          // handle error if needed
         }}
       />
       <QuizModal />

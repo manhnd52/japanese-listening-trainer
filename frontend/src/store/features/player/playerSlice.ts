@@ -255,6 +255,11 @@ const playerSlice = createSlice({
     updateRelaxModeConfig(state, action: PayloadAction<Partial<RelaxModeConfig>>) {
       state.relaxModeConfig = { ...state.relaxModeConfig, ...action.payload };
     },
+
+    // 🟢 Thêm reducer này để cập nhật currentAudio từ bên ngoài
+    setCurrentAudio(state, action: PayloadAction<AudioTrack>) {
+      state.currentAudio = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(toggleFavorite.fulfilled, (state, action) => {
@@ -298,7 +303,8 @@ export const {
   setRelaxModeSource,
   toggleEnableQuiz,
   toggleAiExplainMode,
-  updateRelaxModeConfig
+  updateRelaxModeConfig,
+  setCurrentAudio // <-- export reducer này!
 } = playerSlice.actions;
 
 export const playerSelector = (state: RootState) => state.player;

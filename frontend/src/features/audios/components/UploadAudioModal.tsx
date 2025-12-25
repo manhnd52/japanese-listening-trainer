@@ -89,7 +89,7 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in" onClick={handleClose}>
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in" onClick={handleClose}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl m-4 border border-brand-200 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-brand-200 sticky top-0 bg-white z-10">

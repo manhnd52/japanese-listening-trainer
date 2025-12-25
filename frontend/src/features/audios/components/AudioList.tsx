@@ -16,7 +16,9 @@ import {
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { setIsPlaying } from "@/store/features/player/playerSlice";
-import { updateAudioListenCount } from "@/store/features/audio/audioSlice"; // ✅ import action
+import { updateAudioListenCount } from "@/store/features/audio/audioSlice";
+import { useSearchParams, useRouter } from "next/navigation";
+import UploadAudioModal from "./UploadAudioModal";
 
 interface AudioListProps {
   audios: AudioTrack[];
@@ -54,7 +56,32 @@ const AudioList: React.FC<AudioListProps> = ({
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [audioToMove, setAudioToMove] = useState<AudioTrack | null>(null);
 
-  //  LẤY currentAudio từ Redux để biết đang phát bài nào
+  // Modal upload audio
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("add") === "1") {
+      setShowUploadModal(true);
+    }
+  }, [searchParams]);
+
+  const handleOpenUpload = () => {
+    setShowUploadModal(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("add", "1");
+    router.replace(`/library?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseUpload = () => {
+    setShowUploadModal(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    router.replace(`/library?${params.toString()}`, { scroll: false });
+  };
+
+  // LẤY currentAudio từ Redux để biết đang phát bài nào
   const currentAudio = useAppSelector((state) => state.player.currentAudio);
   const dispatch = useAppDispatch();
 
@@ -206,7 +233,7 @@ const AudioList: React.FC<AudioListProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold text-brand-900">Library</h1>
           <button
-            onClick={onAddAudio}
+            onClick={handleOpenUpload}
             className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -367,6 +394,8 @@ const AudioList: React.FC<AudioListProps> = ({
             ))
           )}
         </div>
+        {/* Upload Audio Modal */}
+        <UploadAudioModal isOpen={showUploadModal} onClose={handleCloseUpload} />
       </div>
     </div>
   );
