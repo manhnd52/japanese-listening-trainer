@@ -1,10 +1,24 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { AudioTrack, AudioStatus, Folder as FolderType } from '@/types/types';
-import { Search, Play, MoreVertical, Plus, Folder, Heart, Pencil, FolderInput, Trash2, X } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { setIsPlaying } from '@/store/features/player/playerSlice';
+import React, { useState, useMemo, useEffect } from "react";
+import { AudioTrack, AudioStatus, Folder as FolderType } from "@/types/types";
+import {
+  Search,
+  Play,
+  MoreVertical,
+  Plus,
+  Folder,
+  Heart,
+  Pencil,
+  FolderInput,
+  Trash2,
+  X,
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { setIsPlaying } from "@/store/features/player/playerSlice";
+import { updateAudioListenCount } from "@/store/features/audio/audioSlice";
+import { useSearchParams, useRouter } from "next/navigation";
+import UploadAudioModal from "./UploadAudioModal";
 
 interface AudioListProps {
   audios: AudioTrack[];
@@ -19,10 +33,10 @@ interface AudioListProps {
 }
 
 const FILTERS = [
-  { label: 'All', value: 'ALL' },
-  { label: 'New', value: 'NEW' },
-  { label: 'Favorites', value: 'FAV' },
-  { label: 'Suspended', value: 'SUSPENDED' },
+  { label: "All", value: "ALL" },
+  { label: "New", value: "NEW" },
+  { label: "Favorites", value: "FAV" },
+  { label: "Suspended", value: "SUSPENDED" },
 ];
 
 const AudioList: React.FC<AudioListProps> = ({
@@ -36,35 +50,82 @@ const AudioList: React.FC<AudioListProps> = ({
   onEdit,
   onToggleFavorite,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [audioToMove, setAudioToMove] = useState<AudioTrack | null>(null);
 
-  // 🟢 LẤY currentAudio từ Redux để biết đang phát bài nào
+  // Modal upload audio
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (searchParams.get("add") === "1") {
+      setShowUploadModal(true);
+    }
+  }, [searchParams]);
+
+  const handleOpenUpload = () => {
+    setShowUploadModal(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("add", "1");
+    router.replace(`/library?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseUpload = () => {
+    setShowUploadModal(false);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    router.replace(`/library?${params.toString()}`, { scroll: false });
+  };
+
+  // LẤY currentAudio từ Redux để biết đang phát bài nào
   const currentAudio = useAppSelector((state) => state.player.currentAudio);
   const dispatch = useAppDispatch();
 
   // Filter and search
   const filteredAudios = useMemo(() => {
-    return audios.filter(audio => {
-      const matchesSearch = audio.title.toLowerCase().includes(searchTerm.toLowerCase());
-      let matchesFilter = true;
-      if (filterStatus === 'NEW') matchesFilter = audio.status === AudioStatus.NEW;
-      else if (filterStatus === 'FAV') matchesFilter = !!audio.isFavorite;
-      else if (filterStatus === 'SUSPENDED') matchesFilter = !!audio.isSuspend;
-      return matchesSearch && matchesFilter;
-    });
+    return audios
+      .map((audio) => {
+        // Đảm bảo listenCount luôn là số
+        const listenCount =
+          typeof audio.listenCount === "number" ? audio.listenCount : 0;
+        // Đảm bảo status đúng kiểu enum
+        const status: AudioStatus | undefined = audio.status
+          ? audio.status
+          : listenCount === 0
+          ? AudioStatus.NEW
+          : undefined;
+
+        return {
+          ...audio,
+          listenCount,
+          status,
+        };
+      })
+      .filter((audio) => {
+        const matchesSearch = audio.title
+          .toLowerCase()
+          .includes(searchTerm.toLowerCase());
+        let matchesFilter = true;
+        if (filterStatus === "NEW")
+          matchesFilter = audio.status === AudioStatus.NEW;
+        else if (filterStatus === "FAV") matchesFilter = !!audio.isFavorite;
+        else if (filterStatus === "SUSPENDED")
+          matchesFilter = !!audio.isSuspend;
+        return matchesSearch && matchesFilter;
+      });
   }, [audios, searchTerm, filterStatus]);
 
   // Close menu on click outside
   useEffect(() => {
     const handleClickOutside = () => setActiveMenuId(null);
     if (activeMenuId) {
-      window.addEventListener('click', handleClickOutside);
+      window.addEventListener("click", handleClickOutside);
     }
-    return () => window.removeEventListener('click', handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
   }, [activeMenuId]);
 
   const handleContextMenu = (e: React.MouseEvent, audioId: string) => {
@@ -73,7 +134,10 @@ const AudioList: React.FC<AudioListProps> = ({
     setActiveMenuId(audioId);
   };
 
-  const handleActionClick = async (e: React.MouseEvent, action: () => void | Promise<void>) => {
+  const handleActionClick = async (
+    e: React.MouseEvent,
+    action: () => void | Promise<void>
+  ) => {
     e.stopPropagation();
     await action();
     setActiveMenuId(null);
@@ -88,18 +152,22 @@ const AudioList: React.FC<AudioListProps> = ({
   const handlePlayClick = (audio: AudioTrack) => {
     // Nếu đang phát đúng bài này → restart tại chỗ, không đổi track
     if (currentAudio && String(currentAudio.id) === String(audio.id)) {
-      console.log('[AudioList] Restart same track from list:', audio.id);
       document.dispatchEvent(
-        new CustomEvent('player:restart', {
+        new CustomEvent("player:restart", {
           detail: { audioId: String(audio.id) },
         })
       );
       dispatch(setIsPlaying(true));
       return;
     }
-
     // Nếu là bài khác → gọi onPlay như cũ
     onPlay(audio);
+  };
+
+  // 🟢 Hàm này sẽ được gọi sau khi nghe xong audio (ví dụ từ Player component)
+  // Bạn cần truyền vào id và listenCount mới (hoặc tự tăng lên 1 nếu chắc chắn)
+  const handleAudioEnded = (audioId: string, newListenCount: number) => {
+    dispatch(updateAudioListenCount({ id: audioId, listenCount: newListenCount }));
   };
 
   return (
@@ -113,7 +181,7 @@ const AudioList: React.FC<AudioListProps> = ({
           >
             <div
               className="bg-white p-6 rounded-2xl shadow-2xl w-full max-w-md m-4 border border-brand-200"
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-lg text-brand-900">
@@ -127,7 +195,7 @@ const AudioList: React.FC<AudioListProps> = ({
                 </button>
               </div>
               <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                {folders.map(f => (
+                {folders.map((f) => (
                   <button
                     key={f.id}
                     onClick={() => {
@@ -137,15 +205,15 @@ const AudioList: React.FC<AudioListProps> = ({
                     disabled={f.id === audioToMove.folderId}
                     className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-colors ${
                       f.id === audioToMove.folderId
-                        ? 'bg-brand-50 text-brand-300 cursor-default'
-                        : 'hover:bg-brand-50 text-brand-700 hover:text-brand-900'
+                        ? "bg-brand-50 text-brand-300 cursor-default"
+                        : "hover:bg-brand-50 text-brand-700 hover:text-brand-900"
                     }`}
                   >
                     <div
                       className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                         f.id === audioToMove.folderId
-                          ? 'bg-brand-100'
-                          : 'bg-brand-100 text-brand-600'
+                          ? "bg-brand-100"
+                          : "bg-brand-100 text-brand-600"
                       }`}
                     >
                       <Folder size={20} fill="currentColor" />
@@ -165,7 +233,7 @@ const AudioList: React.FC<AudioListProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold text-brand-900">Library</h1>
           <button
-            onClick={onAddAudio}
+            onClick={handleOpenUpload}
             className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -184,19 +252,19 @@ const AudioList: React.FC<AudioListProps> = ({
               type="text"
               placeholder="Search audio..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-white border border-brand-200 rounded-lg py-2 pl-10 pr-4 text-brand-900 placeholder-brand-300 focus:outline-none focus:border-brand-500 transition-colors shadow-sm"
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
-            {FILTERS.map(f => (
+            {FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => setFilterStatus(f.value)}
                 className={`px-4 py-2 rounded-lg text-sm font-bold whitespace-nowrap transition-colors border ${
                   filterStatus === f.value
-                    ? 'bg-brand-500 text-white border-brand-500'
-                    : 'bg-white border-brand-200 text-brand-500 hover:bg-brand-50'
+                    ? "bg-brand-500 text-white border-brand-500"
+                    : "bg-white border-brand-200 text-brand-500 hover:bg-brand-50"
                 }`}
               >
                 {f.label}
@@ -212,10 +280,10 @@ const AudioList: React.FC<AudioListProps> = ({
               <p>No audios found matching your criteria.</p>
             </div>
           ) : (
-            filteredAudios.map(audio => (
+            filteredAudios.map((audio) => (
               <div
                 key={audio.id}
-                onContextMenu={e => handleContextMenu(e, audio.id)}
+                onContextMenu={(e) => handleContextMenu(e, audio.id)}
                 className="group bg-jlt-sage hover:bg-brand-200/70 rounded-xl p-3 transition-all flex items-center gap-4 shadow-sm border border-transparent hover:border-brand-300 relative"
               >
                 {/* Icon/Image */}
@@ -242,15 +310,17 @@ const AudioList: React.FC<AudioListProps> = ({
                   <div className="flex items-center gap-2 text-xs text-brand-600 font-medium mt-0.5">
                     <span className="flex items-center gap-1">
                       <Folder size={12} />
-                      {folders.find(f => String(f.id) === String(audio.folderId))?.name ||
-                        'Uncategorized'}
+                      {folders.find(
+                        (f) => String(f.id) === String(audio.folderId)
+                      )?.name || "Uncategorized"}
                     </span>
                   </div>
                 </div>
 
                 {/* Status Badges & Actions */}
                 <div className="flex items-center gap-2">
-                  {audio.status === AudioStatus.NEW && (
+                  {(audio.status === AudioStatus.NEW ||
+                    audio.listenCount === 0) && (
                     <span className="bg-brand-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold shadow-sm hidden md:inline-block">
                       NEW
                     </span>
@@ -261,13 +331,13 @@ const AudioList: React.FC<AudioListProps> = ({
                     onClick={() => onToggleFavorite(audio)}
                     className={`${
                       audio.isFavorite
-                        ? 'text-brand-600'
-                        : 'text-brand-400 hover:text-brand-600'
+                        ? "text-brand-600"
+                        : "text-brand-400 hover:text-brand-600"
                     }`}
                   >
                     <Heart
                       size={20}
-                      fill={audio.isFavorite ? 'currentColor' : 'none'}
+                      fill={audio.isFavorite ? "currentColor" : "none"}
                       strokeWidth={2.5}
                     />
                   </button>
@@ -275,7 +345,7 @@ const AudioList: React.FC<AudioListProps> = ({
                   {/* Dropdown Menu Trigger */}
                   <div className="relative">
                     <button
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation();
                         setActiveMenuId(
                           activeMenuId === audio.id ? null : audio.id
@@ -290,13 +360,15 @@ const AudioList: React.FC<AudioListProps> = ({
                     {activeMenuId === audio.id && (
                       <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-xl border border-brand-100 z-20 overflow-hidden animate-fade-in">
                         <button
-                          onClick={e => handleActionClick(e, () => onEdit(audio))}
+                          onClick={(e) =>
+                            handleActionClick(e, () => onEdit(audio))
+                          }
                           className="w-full px-4 py-3 text-left text-brand-700 hover:bg-brand-50 hover:text-brand-900 flex items-center gap-3 font-bold text-sm"
                         >
                           <Pencil size={16} /> Edit Audio
                         </button>
                         <button
-                          onClick={e =>
+                          onClick={(e) =>
                             handleActionClick(e, () => openMoveModal(audio))
                           }
                           className="w-full px-4 py-3 text-left text-brand-700 hover:bg-brand-50 hover:text-brand-900 flex items-center gap-3 font-bold text-sm"
@@ -305,7 +377,7 @@ const AudioList: React.FC<AudioListProps> = ({
                         </button>
                         <div className="h-px bg-brand-100 mx-2"></div>
                         <button
-                          onClick={e =>
+                          onClick={(e) =>
                             handleActionClick(e, () => {
                               onDelete(audio.id);
                             })
@@ -322,6 +394,8 @@ const AudioList: React.FC<AudioListProps> = ({
             ))
           )}
         </div>
+        {/* Upload Audio Modal */}
+        <UploadAudioModal isOpen={showUploadModal} onClose={handleCloseUpload} />
       </div>
     </div>
   );

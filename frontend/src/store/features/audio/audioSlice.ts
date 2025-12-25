@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { AudioTrack, Folder } from '@/types/types';
+import { AudioTrack, Folder, AudioStatus } from '@/types/types';
 import { audioApi } from '@/features/audios/api';
 import { AxiosError } from 'axios';
 
@@ -15,7 +15,7 @@ interface AudioState {
   loading: boolean;
   error: string | null;
   uploadProgress: number;
-  currentAudio: AudioTrack | null; // ✅ Thêm field
+  currentAudio: AudioTrack | null;
 }
 
 const initialState: AudioState = {
@@ -24,10 +24,10 @@ const initialState: AudioState = {
   loading: false,
   error: null,
   uploadProgress: 0,
-  currentAudio: null, // ✅ Thêm
+  currentAudio: null,
 };
 
-// Async thunks - Sử dụng audioApi từ features
+// Async thunks
 export const fetchAudios = createAsyncThunk(
   'audio/fetchAudios',
   async ({ userId }: { userId: number }, { rejectWithValue }) => {
@@ -38,10 +38,10 @@ export const fetchAudios = createAsyncThunk(
       }
       return data.data;
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
@@ -56,42 +56,50 @@ export const fetchFolders = createAsyncThunk(
       }
       return data.data;
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
 
 export const uploadAudio = createAsyncThunk(
   'audio/uploadAudio',
-  async ({ formData, userId }: { formData: FormData; userId: number }, { rejectWithValue }) => {
+  async ({ formData, userId }: { formData: FormData; userId: number }, { dispatch, rejectWithValue }) => {
     try {
-      const data = await audioApi.uploadAudio({ formData, userId });
+      const data = await audioApi.uploadAudio({
+        formData,
+        userId,
+        onProgress: (percent: number) => {
+          dispatch(setUploadProgress(percent));
+        }
+      });
+      dispatch(setUploadProgress(0)); // Reset khi xong
       if (!data.success) {
         return rejectWithValue(data.message || 'Upload failed');
       }
       return data.data;
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      dispatch(setUploadProgress(0)); // Reset khi lỗi
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
 
 export const updateAudio = createAsyncThunk(
   'audio/updateAudio',
-  async ({ 
-    id, 
-    data, 
-    userId 
-  }: { 
-    id: string; 
-    data: { title?: string; script?: string; folderId?: string }; 
-    userId: number 
+  async ({
+    id,
+    data,
+    userId
+  }: {
+    id: string;
+    data: { title?: string; script?: string; folderId?: string };
+    userId: number
   }, { rejectWithValue }) => {
     try {
       const result = await audioApi.updateAudio({ id, ...data, userId });
@@ -100,10 +108,10 @@ export const updateAudio = createAsyncThunk(
       }
       return result.data;
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
@@ -118,24 +126,24 @@ export const deleteAudio = createAsyncThunk(
       }
       return id;
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
 
 export const moveAudio = createAsyncThunk(
   'audio/moveAudio',
-  async ({ 
-    id, 
-    folderId, 
-    userId 
-  }: { 
-    id: string; 
-    folderId: string; 
-    userId: number 
+  async ({
+    id,
+    folderId,
+    userId
+  }: {
+    id: string;
+    folderId: string;
+    userId: number
   }, { rejectWithValue }) => {
     try {
       const data = await audioApi.moveAudio({ id, folderId, userId });
@@ -144,10 +152,10 @@ export const moveAudio = createAsyncThunk(
       }
       return data.data;
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
@@ -162,14 +170,15 @@ export const toggleFavorite = createAsyncThunk(
       }
       return { id, isFavorite };
     } catch (error) {
-        if (error instanceof AxiosError) {
-          return rejectWithValue(error.response?.data?.message || 'Upload failed');
-        }    
-        return rejectWithValue('Upload failed');
+      if (error instanceof AxiosError) {
+        return rejectWithValue(error.response?.data?.message || 'Upload failed');
+      }
+      return rejectWithValue('Upload failed');
     }
   }
 );
 
+// ✅ Action cập nhật listenCount và status khi nghe xong
 const audioSlice = createSlice({
   name: 'audio',
   initialState,
@@ -180,37 +189,55 @@ const audioSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    // Merge recently listened audios vào store (tránh lặp)
     mergeRecentlyListened: (state, action: PayloadAction<AudioTrack[]>) => {
       const newAudios = action.payload;
       const existingIds = new Set(state.audios.map(a => a.id));
-      
-      // Chỉ thêm các audio chưa tồn tại
       newAudios.forEach(audio => {
         if (!existingIds.has(audio.id)) {
           state.audios.push(audio);
         }
       });
     },
+    updateAudioListenCount: (
+      state,
+      action: PayloadAction<{ id: string; listenCount: number }>
+    ) => {
+      const { id, listenCount } = action.payload;
+      const audio = state.audios.find(a => String(a.id) === String(id));
+      if (audio) {
+        audio.listenCount = listenCount;
+        if (listenCount > 0) {
+          audio.status = undefined;
+        }
+      }
+      if (state.currentAudio && String(state.currentAudio.id) === String(id)) {
+        state.currentAudio.listenCount = listenCount;
+        if (listenCount > 0) {
+          state.currentAudio.status = undefined;
+        }
+      }
+    },
+    setCurrentAudio: (state, action: PayloadAction<AudioTrack | null>) => {
+      state.currentAudio = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Audios
       .addCase(fetchAudios.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchAudios.fulfilled, (state, action) => {
         state.loading = false;
-        state.audios = action.payload;
-        
-        // Tính số lượng audio cho mỗi folder
-        const folderCounts = action.payload.reduce((acc: Record<string, number>, audio: AudioTrack) => {
+        state.audios = action.payload.map((audio: AudioTrack) => ({
+          ...audio,
+          listenCount: typeof audio.listenCount === "number" ? audio.listenCount : 0,
+          status: audio.status || (audio.listenCount === 0 ? AudioStatus.NEW : undefined),
+        }));
+        const folderCounts = state.audios.reduce((acc: Record<string, number>, audio: AudioTrack) => {
           const fId = audio.folderId || '';
           acc[fId] = (acc[fId] || 0) + 1;
           return acc;
         }, {});
-        
-        // Cập nhật count cho folders
         state.folders = state.folders.map(folder => ({
           ...folder,
           _count: { audios: folderCounts[folder.id] || 0 }
@@ -220,18 +247,14 @@ const audioSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string || 'Failed to fetch audios';
       })
-      // Fetch Folders
       .addCase(fetchFolders.fulfilled, (state, action) => {
         state.folders = action.payload;
-        
-        // Nếu đã có audios, tính lại count
         if (state.audios.length > 0) {
           const folderCounts = state.audios.reduce((acc: Record<string, number>, audio: AudioTrack) => {
             const fId = audio.folderId || '';
             acc[fId] = (acc[fId] || 0) + 1;
             return acc;
           }, {});
-          
           state.folders = state.folders.map(folder => ({
             ...folder,
             _count: { audios: folderCounts[folder.id] || 0 }
@@ -241,18 +264,20 @@ const audioSlice = createSlice({
       .addCase(fetchFolders.rejected, (state, action) => {
         state.error = action.payload as string || 'Failed to fetch folders';
       })
-      // Upload Audio
       .addCase(uploadAudio.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(uploadAudio.fulfilled, (state, action) => {
         state.loading = false;
-        state.audios.unshift(action.payload);
+        const newAudio = {
+          ...action.payload,
+          listenCount: typeof action.payload.listenCount === "number" ? action.payload.listenCount : 0,
+          status: action.payload.status || (action.payload.listenCount === 0 ? AudioStatus.NEW : undefined),
+        };
+        state.audios.unshift(newAudio);
         state.uploadProgress = 0;
-        
-        // Cập nhật count cho folder
-        const folder = state.folders.find(f => f.id === action.payload.folderId);
+        const folder = state.folders.find(f => f.id === newAudio.folderId);
         if (folder && folder._count) {
           folder._count.audios += 1;
         }
@@ -262,17 +287,19 @@ const audioSlice = createSlice({
         state.error = action.payload as string;
         state.uploadProgress = 0;
       })
-      // Update Audio
       .addCase(updateAudio.fulfilled, (state, action) => {
         const index = state.audios.findIndex(a => a.id === action.payload.id);
         if (index !== -1) {
-          state.audios[index] = action.payload;
+          state.audios[index] = {
+            ...action.payload,
+            listenCount: typeof action.payload.listenCount === "number" ? action.payload.listenCount : 0,
+            status: action.payload.status || (action.payload.listenCount === 0 ? AudioStatus.NEW : undefined),
+          };
         }
       })
       .addCase(updateAudio.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      // Delete Audio
       .addCase(deleteAudio.pending, (state) => {
         state.loading = true;
       })
@@ -280,7 +307,6 @@ const audioSlice = createSlice({
         state.loading = false;
         const audioToDelete = state.audios.find(a => a.id === action.payload);
         if (audioToDelete) {
-          // Giảm count của folder
           const folder = state.folders.find(f => f.id === audioToDelete.folderId);
           if (folder && folder._count) {
             folder._count.audios -= 1;
@@ -292,17 +318,17 @@ const audioSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      // Move Audio
       .addCase(moveAudio.fulfilled, (state, action) => {
         const index = state.audios.findIndex(a => a.id === action.payload.id);
         if (index !== -1) {
           const oldFolderId = state.audios[index].folderId;
-          state.audios[index] = action.payload;
-          
-          // Cập nhật count: giảm folder cũ, tăng folder mới
+          state.audios[index] = {
+            ...action.payload,
+            listenCount: typeof action.payload.listenCount === "number" ? action.payload.listenCount : 0,
+            status: action.payload.status || (action.payload.listenCount === 0 ? AudioStatus.NEW : undefined),
+          };
           const oldFolder = state.folders.find(f => f.id === oldFolderId);
           const newFolder = state.folders.find(f => f.id === action.payload.folderId);
-          
           if (oldFolder && oldFolder._count) {
             oldFolder._count.audios -= 1;
           }
@@ -314,17 +340,12 @@ const audioSlice = createSlice({
       .addCase(moveAudio.rejected, (state, action) => {
         state.error = action.payload as string;
       })
-      // ✅ Toggle Favorite - Update in-place
       .addCase(toggleFavorite.fulfilled, (state, action) => {
         const audioId = action.payload.id;
-        
-        // Update trong audios array
         const audioIndex = state.audios.findIndex((a) => String(a.id) === String(audioId));
         if (audioIndex !== -1) {
           state.audios[audioIndex].isFavorite = action.payload.isFavorite;
         }
-        
-        // ✅ Update currentAudio in-place
         if (state.currentAudio && String(state.currentAudio.id) === String(audioId)) {
           state.currentAudio.isFavorite = action.payload.isFavorite;
         }
@@ -332,5 +353,11 @@ const audioSlice = createSlice({
   },
 });
 
-export const { setUploadProgress, clearError, mergeRecentlyListened } = audioSlice.actions;
+export const {
+  setUploadProgress,
+  clearError,
+  mergeRecentlyListened,
+  updateAudioListenCount,
+  setCurrentAudio,
+} = audioSlice.actions;
 export default audioSlice.reducer;
