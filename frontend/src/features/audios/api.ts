@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/api'; 
-import { FetchAudiosParams,UploadAudioParams,UpdateAudioParams,MoveAudioParams,DeleteAudioParams,ToggleFavoriteParams } from './types';
+import { FetchAudiosParams, UploadAudioParams, UpdateAudioParams, MoveAudioParams, DeleteAudioParams, ToggleFavoriteParams } from './types';
+
 export const audioApi = {
   // Fetch all audios
   fetchAudios: async ({ userId }: FetchAudiosParams) => {
@@ -48,11 +49,17 @@ export const audioApi = {
     return response.data;
   },
 
-  // Upload audio
-  uploadAudio: async ({ formData, userId }: UploadAudioParams) => {
+  // ✅ Upload audio with progress callback
+  uploadAudio: async ({ formData, userId, onProgress }: UploadAudioParams & { onProgress?: (percent: number) => void }) => {
     formData.append('userId', userId.toString());
     const response = await apiClient.post('/audios', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent: import('axios').AxiosProgressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      }
     });
     return response.data;
   },
@@ -61,5 +68,11 @@ export const audioApi = {
   getRecentlyListened: async (userId: number, limit: number) => {
     const response = await apiClient.get(`/audios/recent?userId=${userId}&limit=${limit}`);
     return response.data;
-  }
+  },
+
+  // ✅ Increment listen count when audio finishes playing
+  incrementListenCount: async (audioId: number, userId: number) => {
+    const response = await apiClient.post(`/audios/${audioId}/listen`, { userId });
+    return response.data;
+  },
 };

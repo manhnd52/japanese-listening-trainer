@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { statsService } from '../services/stats.service.js';
 import { streakService } from '../services/streak.service.js';
-import { xpService } from '@services/xp.service.js';
+import { xpService } from '../services/xp.service.js';
 
 interface AuthenticatedRequest extends Request {
   userId?: number;
