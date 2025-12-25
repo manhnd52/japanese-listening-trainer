@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { Suspense, useState } from "react";
 import { AudioTrack } from "@/types/types";
 import { useAudioList, useAudioActions } from "@/features/audios/hooks";
 import {
@@ -58,6 +58,7 @@ const LibraryPage = () => {
 
   return (
     <>
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
       <AudioList
         audios={audios}
         folders={folders}
@@ -69,6 +70,7 @@ const LibraryPage = () => {
         onEdit={handleEdit}
         onToggleFavorite={handleToggleFavorite}
       />
+    </Suspense>
       <UploadAudioModal
         isOpen={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
