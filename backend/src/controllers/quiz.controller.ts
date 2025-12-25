@@ -61,48 +61,41 @@ export const submitQuizAnswer = async (
 ) => {
   try {
     const { quizId, selectedOption } = req.body;
-
-    // req.userId is set by auth middleware
     const userId = req.userId;
 
     if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'User not authenticated',
-      });
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
 
     if (!quizId || !selectedOption) {
       return res.status(400).json({
         success: false,
-        message: 'quizId and selectedOption are required',
+        message: 'Missing quizId or selectedOption',
       });
     }
-
-    // Validate selectedOption is valid enum
-    if (!Object.values(QuizOption).includes(selectedOption)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid selectedOption. Must be A, B, C, or D',
+    const validOptions = ['A', 'B', 'C', 'D'];
+    if (!validOptions.includes(selectedOption)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid option' 
       });
     }
-
-    const result = await quizService.submitQuizAnswer({
-      quizId: Number(quizId),
+    // 3. GỌI HÀM SERVICE VỪA SỬA
+    const result = await quizService.submitQuizAnswer(
       userId,
-      selectedOption,
-    });
+      Number(quizId),
+      selectedOption
+    );
 
+    // 4. Trả kết quả về cho Client
     res.json({
       success: true,
       data: result,
     });
+
   } catch (error: any) {
     if (error.message === 'Quiz not found') {
-      return res.status(404).json({
-        success: false,
-        message: error.message,
-      });
+      return res.status(404).json({ success: false, message: error.message });
     }
     next(error);
   }

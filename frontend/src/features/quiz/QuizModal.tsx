@@ -5,8 +5,9 @@ import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { closeQuizModal, nextQuiz, setLoading, setQuizResult, setError } from '@/store/features/quiz/quizSlice';
 import { nextTrack } from '@/store/features/player/playerSlice'; // ✅ Thêm import
 import { QuizOption } from './types';
-import { submitQuizAnswer } from './api';
+//import { submitQuizAnswer } from './api';
 import { X, CheckCircle, XCircle, ArrowRight, HelpCircle, Sparkles, Zap } from 'lucide-react';
+import { useQuiz } from './useQuiz';
 
 export default function QuizModal() {
   const dispatch = useAppDispatch();
@@ -15,6 +16,7 @@ export default function QuizModal() {
   const [selectedOption, setSelectedOption] = useState<QuizOption | null>(null);
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [showExpAnimation, setShowExpAnimation] = useState(false);
+  const { submitQuiz } = useQuiz();
 
   // Reset local state when currentQuiz changes (for "all quizzes" mode)
   useEffect(() => {
@@ -47,10 +49,7 @@ export default function QuizModal() {
     dispatch(setLoading(true));
 
     try {
-      const submitResult = await submitQuizAnswer({
-        quizId: currentQuiz.id,
-        selectedOption: option,
-      });
+      const submitResult = await submitQuiz(currentQuiz.id, option);
       dispatch(setQuizResult(submitResult));
     } catch (error: any) {
       dispatch(setError(error.response?.data?.message || 'Failed to submit answer'));
