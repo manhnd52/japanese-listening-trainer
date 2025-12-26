@@ -64,15 +64,20 @@ export const fetchFolders = createAsyncThunk(
   }
 );
 
+// SỬA ĐOẠN NÀY: Cho phép truyền callback onProgress vào thunk
 export const uploadAudio = createAsyncThunk(
   'audio/uploadAudio',
-  async ({ formData, userId }: { formData: FormData; userId: number }, { dispatch, rejectWithValue }) => {
+  async (
+    { formData, userId, onProgress }: { formData: FormData; userId: number; onProgress?: (percent: number) => void },
+    { dispatch, rejectWithValue }
+  ) => {
     try {
       const data = await audioApi.uploadAudio({
         formData,
         userId,
         onProgress: (percent: number) => {
           dispatch(setUploadProgress(percent));
+          if (onProgress) onProgress(percent);
         }
       });
       dispatch(setUploadProgress(0)); // Reset khi xong
@@ -178,7 +183,6 @@ export const toggleFavorite = createAsyncThunk(
   }
 );
 
-// ✅ Action cập nhật listenCount và status khi nghe xong
 const audioSlice = createSlice({
   name: 'audio',
   initialState,

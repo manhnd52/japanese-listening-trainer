@@ -1,15 +1,19 @@
-'use client';
+"use client";
 
-import { ChevronDown, Pencil, PlusCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { playPause, setTrack, toggleFavoriteOptimistic } from '@/store/features/player/playerSlice';
-import { useAudioDetail } from '../hooks';
-import { useQuiz } from '@/features/quiz/useQuiz'; // Use global quiz system (same as MiniPlayer)
-import { AudioStatus } from '@/types/types';
-import AudioDetailInfo from './AudioDetailInfo';
-import AudioScript from './AudioScript';
-import { AudioTrack } from '@/types/types';
+import { ChevronDown, Pencil, PlusCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import {
+  playPause,
+  setTrack,
+  toggleFavoriteOptimistic,
+} from "@/store/features/player/playerSlice";
+import { useAudioDetail } from "../hooks";
+import { useQuiz } from "@/features/quiz/useQuiz"; // Use global quiz system (same as MiniPlayer)
+import { AudioStatus } from "@/types/types";
+import AudioDetailInfo from "./AudioDetailInfo";
+import AudioScript from "./AudioScript";
+import { AudioTrack } from "@/types/types";
 
 interface AudioDetailContainerProps {
   audioId: string;
@@ -18,36 +22,41 @@ interface AudioDetailContainerProps {
 
 /**
  * AudioDetailContainer Component
- * 
+ *
  * Main container that orchestrates all audio detail functionality
  * Integrates with Redux for playback control and state management
  */
 
-export default function AudioDetailContainer({ audioId, onBack }: AudioDetailContainerProps) {
+export default function AudioDetailContainer({
+  audioId,
+  onBack,
+}: AudioDetailContainerProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  
+
   // Redux state
   const { currentAudio, isPlaying } = useAppSelector((state) => state.player);
-  
+
   // Fetch audio details
   const { audio, loading, error } = useAudioDetail(audioId);
-  
+
   // Global quiz hook - same as MiniPlayer uses
   const { triggerAllQuizzes } = useQuiz();
 
   const handlePlay = () => {
     if (audio && currentAudio?.id !== audio.id) {
       // Set new track if different
-      dispatch(setTrack({
-        id: audio.id,
-        title: audio.title,
-        url: audio.fileUrl,
-        duration: audio.duration,
-        folderId: audio.folderId,
-        status: (audio.status || AudioStatus.NEW) as AudioStatus,
-        isFavorite: audio.isFavorite || false,
-      }));
+      dispatch(
+        setTrack({
+          id: audio.id,
+          title: audio.title,
+          url: audio.fileUrl,
+          duration: audio.duration,
+          folderId: audio.folderId,
+          status: (audio.status || AudioStatus.NEW) as AudioStatus,
+          isFavorite: audio.isFavorite || false,
+        })
+      );
     } else if (!isPlaying) {
       // Resume playback
       dispatch(playPause());
@@ -76,13 +85,12 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   };
 
   const handleEditAudio = () => {
-    // TODO: Navigate to audio edit page or open modal
-    console.log('Edit audio clicked');
+    router.push(`/library?edit=${audioId}`);
   };
 
   const handleUpdateAudio = (updatedAudio: AudioTrack) => {
     // TODO: Persist audio updates to backend
-    console.log('Update audio:', updatedAudio);
+    console.log("Update audio:", updatedAudio);
   };
 
   // Loading state
@@ -104,7 +112,9 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
         <div className="text-center space-y-4 p-8">
           <div className="text-6xl">😔</div>
           <h2 className="text-2xl font-bold text-brand-900">Audio Not Found</h2>
-          <p className="text-brand-500">{error || 'Could not load audio details'}</p>
+          <p className="text-brand-500">
+            {error || "Could not load audio details"}
+          </p>
           <button
             onClick={onBack}
             className="bg-brand-500 hover:bg-brand-600 text-white px-6 py-3 rounded-xl font-bold"
@@ -117,7 +127,10 @@ export default function AudioDetailContainer({ audioId, onBack }: AudioDetailCon
   }
 
   // Use current audio from Redux if it matches, otherwise use fetched audio
-  const displayAudio = currentAudio?.id === audio.id ? { ...audio, isFavorite: currentAudio.isFavorite } : audio;
+  const displayAudio =
+    currentAudio?.id === audio.id
+      ? { ...audio, isFavorite: currentAudio.isFavorite }
+      : audio;
 
   return (
     <div className="flex flex-col bg-jlt-cream animate-fade-in">
