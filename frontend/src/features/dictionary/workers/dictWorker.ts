@@ -100,6 +100,8 @@ async function loadDictionary(dictPath : string): Promise<void> {
             // Fetch from network
             console.log('[DictWorker] No valid cache found, fetching from network...');
             if (dictPath == "") dictPath = "https://pub-494af1f931884f64b78688230a3db6e5.r2.dev/jmdict-eng-3.6.1.json";
+
+            console.log(dictPath);
             const response = await fetch(dictPath);
 
             if (!response.ok) {
