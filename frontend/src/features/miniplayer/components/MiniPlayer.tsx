@@ -9,13 +9,11 @@ import {
   SkipForward,
   SkipBack,
   Heart,
-  Volume2,
   Maximize2,
-  X,
   Settings,
-  ListMusic,
   HelpCircle,
 } from "lucide-react";
+
 import {
   nextTrack,
   prevTrack,
@@ -30,6 +28,8 @@ import { AudioTrack } from "@/store/features/player/playerSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useQuiz } from "@/features/quiz/useQuiz";
 import VolumeControl from "./VolumeControl";
+import { useRelaxMode } from "@/features/relax-mode/hooks";
+import { message } from "antd";
 
 function ProgressBar({
   progress,
@@ -103,11 +103,16 @@ function TrackInfo({
   );
 }
 
-function SettingsPopup() {
+function SettingsPopup({ onSourceChange }: { onSourceChange: (source: Source) => void }) {
   const dispatch = useAppDispatch();
   const relaxModeConfig = useAppSelector(
     (state) => state.player.relaxModeConfig
   );
+
+  const handleSourceChange = (newSource: Source) => {
+    dispatch(setRelaxModeSource(newSource));
+    onSourceChange(newSource);
+  };
 
   return (
     <div className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 w-56 md:w-64 bg-white border border-brand-200 rounded-xl p-3 md:p-4 shadow-xl text-xs md:text-sm">
@@ -120,9 +125,7 @@ function SettingsPopup() {
           <select
             className="bg-brand-50 border border-brand-200 rounded px-2 py-1 text-xs text-brand-900 outline-none"
             value={relaxModeConfig.source}
-            onChange={(e) =>
-              dispatch(setRelaxModeSource(e.target.value as Source))
-            }
+            onChange={(e) => handleSourceChange(e.target.value as Source)}
           >
             <option value={Source.MyList}>My List</option>
             <option value={Source.Community}>Community</option>
@@ -136,15 +139,6 @@ function SettingsPopup() {
             className="accent-brand-500"
           />
           <span>Enable Quiz</span>
-        </label>
-        <label className="flex items-center gap-2 text-brand-700">
-          <input
-            type="checkbox"
-            checked={relaxModeConfig.aiExplainMode}
-            onChange={() => dispatch(toggleAiExplainMode())}
-            className="accent-brand-500"
-          />
-          <span>AI Explain Mode</span>
         </label>
       </div>
     </div>
@@ -161,6 +155,7 @@ function Controls({
   showSettings,
   setShowSettings,
   onQuiz,
+  onSourceChange,
 }: {
   isPlaying: boolean;
   isFavorite: () => boolean;
@@ -171,6 +166,7 @@ function Controls({
   showSettings: boolean;
   setShowSettings: (v: boolean) => void;
   onQuiz: () => void;
+  onSourceChange: (source: Source) => void;
 }) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -284,7 +280,7 @@ function Controls({
             <Settings size={20} strokeWidth={2.5} />
           </button>
 
-          {showSettings && <SettingsPopup />}
+          {showSettings && <SettingsPopup onSourceChange={onSourceChange} />}
         </div>
       </div>
     </div>
@@ -316,6 +312,7 @@ function VolumeSection({
 const MiniPlayer = () => {
   const router = useRouter();
   const playerState = useAppSelector((state) => state.player);
+  const user = useAppSelector((state) => state.auth.user);
   const currentAudio = playerState.currentAudio;
   const isPlaying = playerState.isPlaying;
   const volume = playerState.volume;
@@ -327,10 +324,13 @@ const MiniPlayer = () => {
   const dispatch = useAppDispatch();
   const [showSettings, setShowSettings] = useState(false);
 
-  const { user } = useAppSelector((state) => state.auth);
   const { triggerQuiz } = useQuiz();
 
-  const handleToggleFavorite = () => {
+  // Lấy user từ state để gọi API favorite
+  // Sử dụng hook useRelaxMode để load random audios
+  const { loadRandomAudios } = useRelaxMode();
+
+  const handleToggleFavorite = async () => {
     if (!currentAudio || !user?.id) return;
 
     dispatch(toggleFavoriteOptimistic());
@@ -344,9 +344,12 @@ const MiniPlayer = () => {
     );
   };
 
-  const handleQuizClick = () => {
+  const handleQuizClick = async () => {
     if (currentAudio?.id) {
-      triggerQuiz(Number(currentAudio.id));
+      const hasQuiz = await triggerQuiz(Number(currentAudio.id));
+      if (!hasQuiz) {
+        message.info('No quiz available for this audio.');
+      }
     }
   };
 
@@ -359,6 +362,12 @@ const MiniPlayer = () => {
   // Chỉ toggle isPlaying, không reload audio
   const handlePlayPause = () => {
     dispatch(setIsPlaying(!isPlaying));
+  };
+
+  const handleSourceChange = async (newSource: Source) => {
+    
+    // Load random audios from new source
+    await loadRandomAudios(newSource);
   };
 
   if (!currentAudio) return null;
@@ -388,6 +397,7 @@ const MiniPlayer = () => {
           showSettings={showSettings}
           setShowSettings={setShowSettings}
           onQuiz={handleQuizClick}
+          onSourceChange={handleSourceChange}
         />
 
         <VolumeSection

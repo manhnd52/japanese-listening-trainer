@@ -6,7 +6,6 @@ import { authApi } from '../api';
 import { LoginInput } from '../types';
 import { useAppDispatch } from '@/hooks/redux';
 import { setCredentials } from '@/store/features/auth/authSlice';
-import { fetchFolders, fetchAudios } from '@/store/features/audio/audioSlice';
 
 export const useLogin = () => {
   const [isLoading, setIsLoading] = useState(false);

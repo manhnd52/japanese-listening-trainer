@@ -1,10 +1,17 @@
 'use client';
 
-import { useAppDispatch } from '@/hooks/redux';
-import { setCurrentQuiz, setAllQuizzes, openQuizModal, setLoading, setError, setMode } from '@/store/features/quiz/quizSlice';
+import { useCallback, useEffect, useRef } from 'react';
+import { useAppDispatch, useAppSelector } from '@/hooks/redux';
+import {
+  setCurrentQuiz,
+  setAllQuizzes,
+  openQuizModal,
+  setLoading,
+  setError,
+  setMode,
+} from '@/store/features/quiz/quizSlice';
 import { fetchQuizByAudio, getQuizzesByAudio, submitQuizAnswer } from './api';
 import { updateXP } from '@/store/features/user/userSlice';
-import { useCallback } from 'react';
 import { QuizOption } from './types';
 
 /**
@@ -12,45 +19,68 @@ import { QuizOption } from './types';
  */
 export const useQuiz = () => {
   const dispatch = useAppDispatch();
+  const showModal = useAppSelector((state) => state.quiz.showModal);
+  const closeResolverRef = useRef<(() => void) | null>(null);
+  const wasOpenRef = useRef(showModal);
+
+  useEffect(() => {
+    if (wasOpenRef.current && !showModal && closeResolverRef.current) {
+      closeResolverRef.current();
+      closeResolverRef.current = null;
+    }
+    wasOpenRef.current = showModal;
+  }, [showModal]);
 
   /**
    * Trigger quiz modal with a random quiz for a specific audio
    */
-  const triggerQuiz = async (audioId: number) => {
+  const triggerQuiz = async (audioId: number): Promise<boolean> => {
     dispatch(setLoading(true));
     dispatch(setMode('random'));
-    
+
     try {
       const quiz = await fetchQuizByAudio(audioId);
+
+      if (!quiz) {
+        return false;
+      }
+
       dispatch(setCurrentQuiz(quiz));
       dispatch(openQuizModal());
+      dispatch(setLoading(false));
+
+      return await new Promise<boolean>((resolve) => {
+        closeResolverRef.current = () => {
+          resolve(true);
+          closeResolverRef.current = null;
+        };
+      });
     } catch (error: any) {
       const message = error.response?.data?.message || 'No quiz available for this audio';
       dispatch(setError(message));
       console.error('Failed to fetch quiz:', error);
-    } finally {
       dispatch(setLoading(false));
+      closeResolverRef.current = null;
+      return false;
     }
   };
 
-  const submitQuiz = useCallback(async (quizId: number, selectedOption: QuizOption) => {
-    try {
-      // Gọi API (Hàm này trong api.ts trả về data kết quả trực tiếp)
-      const result = await submitQuizAnswer({ quizId, selectedOption });
-      
-      // ✅ LOGIC CẬP NHẬT XP:
-      // Kiểm tra xem kết quả trả về có chứa thông tin XP không
-      if (result && result.xp) {
-          console.log("🔥 Updating XP:", result.xp);
+  const submitQuiz = useCallback(
+    async (quizId: number, selectedOption: QuizOption) => {
+      try {
+        const result = await submitQuizAnswer({ quizId, selectedOption });
+        if (result && result.xp) {
+          console.log('🔥 Updating XP:', result.xp);
           dispatch(updateXP(result.xp));
+        }
+        return result;
+      } catch (error) {
+        console.error('Failed to submit quiz:', error);
+        throw error;
       }
-
-      return result;
-    } catch (error) {
-      console.error('Failed to submit quiz:', error);
-      throw error; 
-    }
-  }, [dispatch]);
+    },
+    [dispatch]
+  );
 
   /**
    * Trigger quiz modal with ALL quizzes for a specific audio
@@ -59,7 +89,7 @@ export const useQuiz = () => {
   const triggerAllQuizzes = async (audioId: number) => {
     dispatch(setLoading(true));
     dispatch(setMode('all'));
-    
+
     try {
       const quizzes = await getQuizzesByAudio(audioId);
       if (quizzes.length === 0) {
