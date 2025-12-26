@@ -13,7 +13,7 @@ export class QuizService {
     });
 
     if (quizzes.length === 0) {
-      throw new Error('No quiz available for this audio');
+      return null;
     }
 
     // Randomly select one quiz

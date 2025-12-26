@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { closeQuizModal, nextQuiz, setLoading, setQuizResult, setError } from '@/store/features/quiz/quizSlice';
-import { nextTrack } from '@/store/features/player/playerSlice'; // ✅ Thêm import
 import { QuizOption } from './types';
 //import { submitQuizAnswer } from './api';
 import { X, CheckCircle, XCircle, ArrowRight, HelpCircle, Sparkles, Zap } from 'lucide-react';
@@ -23,6 +22,7 @@ export default function QuizModal() {
     setSelectedOption(null);
     setHasSubmitted(false);
     setShowExpAnimation(false);
+    setLoading(false);
   }, [currentQuiz?.id]);
 
   // Show EXP animation when correct
@@ -67,9 +67,6 @@ export default function QuizModal() {
     dispatch(closeQuizModal());
     setSelectedOption(null);
     setHasSubmitted(false);
-    
-    // ✅ Thêm: Tự động phát bài tiếp theo sau khi đóng quiz
-    dispatch(nextTrack());
   };
 
   const options: { label: QuizOption; text: string }[] = [

@@ -50,6 +50,14 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
     }
   };
 
+  const handleScriptFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    const text = await selectedFile.text();
+    setScript(text);
+    e.target.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -155,7 +163,24 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
 
           {/* Script */}
           <div>
-            <label className="block text-sm font-bold text-brand-900 mb-2">Script / Transcript</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-bold text-brand-900">Script / Transcript</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept=".txt,.md"
+                  onChange={handleScriptFileChange}
+                  className="hidden"
+                  id="script-file"
+                />
+                <label
+                  htmlFor="script-file"
+                  className="text-xs font-bold text-brand-600 hover:text-brand-700 cursor-pointer"
+                >
+                  Choose file
+                </label>
+              </div>
+            </div>
             <textarea
               value={script}
               onChange={e => setScript(e.target.value)}
@@ -193,6 +218,7 @@ const UploadAudioModal: React.FC<UploadAudioModalProps> = ({ isOpen, onClose }) 
               className="w-full bg-brand-50 border border-brand-200 rounded-lg px-4 py-3 text-brand-900 focus:border-brand-500 focus:outline-none focus:bg-white transition-colors"
               placeholder="Auto-detected from file"
               required
+              disabled
             />
           </div>
 

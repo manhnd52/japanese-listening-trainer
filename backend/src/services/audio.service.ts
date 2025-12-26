@@ -101,6 +101,13 @@ class AudioService {
       },
     });
   }
+  
+  // ✅ Helper function - sửa lại logic
+  private determineStatus(listenCount?: number): 'NEW' | 'IN_PROGRESS' | 'COMPLETED' {
+    if (!listenCount || listenCount === 0) return 'NEW';
+    if (listenCount >= 3) return 'COMPLETED'; // Nghe 3 lần = completed
+    return 'IN_PROGRESS';
+  }
 
   // ✅ Xóa audio - Xóa thủ công theo đúng thứ tự dependency
   async deleteAudio(id: number) {
@@ -261,6 +268,132 @@ class AudioService {
       status: stat.listenCount === 0 ? "NEW" : "idle", // ✅ Thêm status
     }));
   }
+
+  /**
+   * Get random audios from user's own folders for Relax mode
+   */
+  async getRandomAudiosFromMyList(userId: number, limit: number = 10) {
+    // Get all audios from user's folders
+    const audios = await prisma.audio.findMany({
+      where: {
+        createdBy: userId,
+        isSuspend: false
+      },
+      include: {
+        folder: {
+          select: {
+            id: true,
+            name: true,
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullname: true,
+          },
+        },
+        audioStats: {
+          where: { userId },
+          select: {
+            isFavorite: true,
+            listenCount: true,
+          }
+        }
+      }
+    });
+
+    // Shuffle the array randomly
+    const shuffled = audios.sort(() => 0.5 - Math.random());
+    
+    // Get first N items
+    const selected = shuffled.slice(0, limit);
+
+    // Transform to match frontend format
+    return selected.map(audio => {
+      const stats = audio.audioStats?.[0];
+      
+      return {
+        id: audio.id.toString(),
+        title: audio.title,
+        url: audio.fileUrl,
+        duration: audio.duration,
+        folderId: audio.folderId.toString(),
+        folderName: audio.folder.name,
+        script: audio.script,
+        createdBy: audio.createdBy,
+        status: this.determineStatus(stats?.listenCount),
+        isFavorite: stats?.isFavorite || false,
+        listenCount: stats?.listenCount || 0,
+        completionPercentage: 0,
+      };
+    });
+  }
+
+  /**
+   * Get random audios from all public folders for Relax mode
+   */
+  async getRandomAudiosFromCommunity(userId: number, limit: number = 10) {
+    // Get all audios from public folders
+    const audios = await prisma.audio.findMany({
+      where: {
+        isSuspend: false,
+        folder: {
+          isPublic: true
+        }
+      },
+      include: {
+        folder: {
+          select: {
+            id: true,
+            name: true,
+            isPublic: true,
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            email: true,
+            fullname: true,
+          },
+        },
+        audioStats: {
+          where: { userId },
+          select: {
+            isFavorite: true,
+            listenCount: true,
+          }
+        }
+      }
+    });
+
+    // Shuffle the array randomly
+    const shuffled = audios.sort(() => 0.5 - Math.random());
+    
+    // Get first N items
+    const selected = shuffled.slice(0, limit);
+
+    // Transform to match frontend format
+    return selected.map(audio => {
+      const stats = audio.audioStats?.[0];
+      
+      return {
+        id: audio.id.toString(),
+        title: audio.title,
+        url: audio.fileUrl,
+        duration: audio.duration,
+        folderId: audio.folderId.toString(),
+        folderName: audio.folder.name,
+        script: audio.script,
+        createdBy: audio.createdBy,
+        status: this.determineStatus(stats?.listenCount),
+        isFavorite: stats?.isFavorite || false,
+        listenCount: stats?.listenCount || 0,
+        completionPercentage: 0,
+      };
+    });
+  }
+
 }
 
 export const audioService = new AudioService();

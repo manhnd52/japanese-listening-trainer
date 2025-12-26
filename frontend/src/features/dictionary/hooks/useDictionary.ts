@@ -112,6 +112,8 @@ export function initializeDictionary(): Promise<void> {
         };
 
         worker.postMessage({ type: 'load' , dictPath: process.env.NEXT_PUBLIC_DICTIONARY_PATH || ''});
+
+        console.log('[Dictionary] Loading dictionary... from:', process.env.NEXT_PUBLIC_DICTIONARY_PATH);
     });
 
     return initPromise;

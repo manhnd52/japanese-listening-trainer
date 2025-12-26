@@ -11,6 +11,8 @@ import { AudioTrack } from '@/types/types';
 import { useAudioActions } from '@/features/audios/hooks';
 import { Heart } from 'lucide-react';
 import Link from 'next/link';
+import RelaxModeModal from '@/features/relax-mode/components/RelaxModeModal';
+import { setRelaxModeSource, Source } from '@/store/features/player/playerSlice';
 
 interface UserStats {
   streak: number;
@@ -39,6 +41,7 @@ export default function HomePage() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRelaxModalOpen, setIsRelaxModalOpen] = useState(false);
 
   // Fetch stats and recent audios
   useEffect(() => {
@@ -69,6 +72,11 @@ export default function HomePage() {
       fetchData();
     }
   }, [user, dispatch]);
+
+  const handleRelaxModalSelect = (option: Source) => {
+    dispatch(setRelaxModeSource(option));
+    setIsRelaxModalOpen(false);
+  };
 
   if (loading) {
     return (
@@ -189,7 +197,7 @@ export default function HomePage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Relax Mode */}
         <button
-          onClick={() => router.push('/relax-mode')}
+          onClick={() => setIsRelaxModalOpen(true)}
           className="group bg-gradient-to-br from-amber-50 to-amber-100/50 border border-amber-200 rounded-2xl p-6 hover:from-amber-100 hover:to-amber-200/50 transition-all duration-300 text-left shadow-sm"
         >
           <div className="flex items-start justify-between mb-4">
@@ -305,6 +313,11 @@ export default function HomePage() {
           </div>
         )}
       </div>
+      <RelaxModeModal
+        isOpen={isRelaxModalOpen}
+        onClose={() => setIsRelaxModalOpen(false)}
+        onSelectOption={handleRelaxModalSelect}
+      />
     </div>
   );
 }
