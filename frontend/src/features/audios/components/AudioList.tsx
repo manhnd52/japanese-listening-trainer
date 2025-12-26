@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, Suspense } from "react";
 import { AudioTrack, AudioStatus, Folder as FolderType } from "@/types/types";
 import {
   Search,
@@ -32,6 +32,35 @@ interface AudioListProps {
   onToggleFavorite: (audio: AudioTrack) => void;
 }
 
+// Component wrapper để handle useSearchParams với Suspense
+function AudioListWithParams(props: AudioListProps) {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const addParam = searchParams.get("add");
+  const showUploadModal = addParam === "1";
+
+  const handleOpenUpload = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("add", "1");
+    router.replace(`/library?${params.toString()}`, { scroll: false });
+  };
+
+  const handleCloseUpload = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    router.replace(`/library?${params.toString()}`, { scroll: false });
+  };
+
+  return (
+    <AudioListContent 
+      {...props} 
+      showUploadModal={showUploadModal}
+      onOpenUpload={handleOpenUpload}
+      onCloseUpload={handleCloseUpload}
+    />
+  );
+}
+
 const FILTERS = [
   { label: "All", value: "ALL" },
   { label: "New", value: "NEW" },
@@ -39,7 +68,13 @@ const FILTERS = [
   { label: "Suspended", value: "SUSPENDED" },
 ];
 
-const AudioList: React.FC<AudioListProps> = ({
+interface AudioListContentProps extends AudioListProps {
+  showUploadModal: boolean;
+  onOpenUpload: () => void;
+  onCloseUpload: () => void;
+}
+
+const AudioListContent: React.FC<AudioListContentProps> = ({
   audios = [],
   folders = [],
   onPlay,
@@ -49,37 +84,15 @@ const AudioList: React.FC<AudioListProps> = ({
   onMove,
   onEdit,
   onToggleFavorite,
+  showUploadModal,
+  onOpenUpload,
+  onCloseUpload,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [moveModalOpen, setMoveModalOpen] = useState(false);
   const [audioToMove, setAudioToMove] = useState<AudioTrack | null>(null);
-
-  // Modal upload audio
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (searchParams.get("add") === "1") {
-      setShowUploadModal(true);
-    }
-  }, [searchParams]);
-
-  const handleOpenUpload = () => {
-    setShowUploadModal(true);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("add", "1");
-    router.replace(`/library?${params.toString()}`, { scroll: false });
-  };
-
-  const handleCloseUpload = () => {
-    setShowUploadModal(false);
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("add");
-    router.replace(`/library?${params.toString()}`, { scroll: false });
-  };
 
   // LẤY currentAudio từ Redux để biết đang phát bài nào
   const currentAudio = useAppSelector((state) => state.player.currentAudio);
@@ -233,7 +246,7 @@ const AudioList: React.FC<AudioListProps> = ({
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-extrabold text-brand-900">Library</h1>
           <button
-            onClick={handleOpenUpload}
+            onClick={onOpenUpload}
             className="bg-brand-500 hover:bg-brand-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold transition-colors shadow-sm"
           >
             <Plus size={18} />
@@ -395,9 +408,18 @@ const AudioList: React.FC<AudioListProps> = ({
           )}
         </div>
         {/* Upload Audio Modal */}
-        <UploadAudioModal isOpen={showUploadModal} onClose={handleCloseUpload} />
+        <UploadAudioModal isOpen={showUploadModal} onClose={onCloseUpload} />
       </div>
     </div>
+  );
+};
+
+// Main export với Suspense wrapper
+const AudioList: React.FC<AudioListProps> = (props) => {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <AudioListWithParams {...props} />
+    </Suspense>
   );
 };
 
