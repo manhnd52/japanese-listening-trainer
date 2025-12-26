@@ -29,6 +29,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useQuiz } from "@/features/quiz/useQuiz";
 import VolumeControl from "./VolumeControl";
 import { useRelaxMode } from "@/features/relax-mode/hooks";
+import { message } from "antd";
 
 function ProgressBar({
   progress,
@@ -138,15 +139,6 @@ function SettingsPopup({ onSourceChange }: { onSourceChange: (source: Source) =>
             className="accent-brand-500"
           />
           <span>Enable Quiz</span>
-        </label>
-        <label className="flex items-center gap-2 text-brand-700">
-          <input
-            type="checkbox"
-            checked={relaxModeConfig.aiExplainMode}
-            onChange={() => dispatch(toggleAiExplainMode())}
-            className="accent-brand-500"
-          />
-          <span>AI Explain Mode</span>
         </label>
       </div>
     </div>
@@ -352,9 +344,12 @@ const MiniPlayer = () => {
     );
   };
 
-  const handleQuizClick = () => {
+  const handleQuizClick = async () => {
     if (currentAudio?.id) {
-      triggerQuiz(Number(currentAudio.id));
+      const hasQuiz = await triggerQuiz(Number(currentAudio.id));
+      if (!hasQuiz) {
+        message.info('No quiz available for this audio.');
+      }
     }
   };
 

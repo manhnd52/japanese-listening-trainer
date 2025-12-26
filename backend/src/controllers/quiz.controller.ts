@@ -17,35 +17,25 @@ export const getRandomQuiz = async (
   console.log('[Quiz Controller] Query params:', req.query);
   console.log('[Quiz Controller] Full URL:', req.originalUrl);
   
-  try {
-    const { audioId } = req.query;
+  const { audioId } = req.query;
 
-    if (!audioId) {
-      console.log('[Quiz Controller] audioId is missing');
-      return res.status(400).json({
-        success: false,
-        message: 'audioId is required',
-      });
-    }
-
-    console.log('[Quiz Controller] Fetching quiz for audioId:', audioId);
-    const quiz = await quizService.getRandomQuizByAudio(Number(audioId));
-    console.log('[Quiz Controller] Quiz found:', quiz?.id);
-
-    res.json({
-      success: true,
-      data: quiz,
+  if (!audioId) {
+    console.log('[Quiz Controller] audioId is missing');
+    return res.status(400).json({
+      success: false,
+      message: 'audioId is required',
     });
-  } catch (error: any) {
-    console.error('[Quiz Controller] Error:', error.message);
-    if (error.message === 'No quiz available for this audio') {
-      return res.status(404).json({
-        success: false,
-        message: error.message,
-      });
-    }
-    next(error);
   }
+
+  console.log('[Quiz Controller] Fetching quiz for audioId:', audioId);
+  const quiz = await quizService.getRandomQuizByAudio(Number(audioId));
+  console.log('[Quiz Controller] Quiz found:', quiz?.id);
+
+  res.json({
+    success: true,
+    data: quiz,
+  });
+
 };
 
 /**

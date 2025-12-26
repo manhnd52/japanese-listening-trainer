@@ -9,6 +9,7 @@ import {
   setIsPlaying,
   setDuration,
   setCurrentAudio,
+  nextTrack,
 } from "@/store/features/player/playerSlice";
 import { useQuiz } from "@/features/quiz/useQuiz";
 import QuizModal from "@/features/quiz/QuizModal";
@@ -26,6 +27,7 @@ export default function Player() {
   const user = useAppSelector((state: RootState) => state.auth.user);
   const audios = useAppSelector((state: RootState) => state.audio.audios);
   const currentAudio = useAppSelector((state: RootState) => state.player.currentAudio);
+  const isQuizMode = useAppSelector((state: RootState) => state.player.relaxModeConfig.enableQuiz);
   const dispatch = useAppDispatch();
   const { triggerQuiz } = useQuiz();
 
@@ -72,10 +74,12 @@ export default function Player() {
       // ignore
     }
 
-    if (audioId) {
-      triggerQuiz(Number(audioId));
+    if (audioId && isQuizMode) {
+      await triggerQuiz(Number(audioId));
     }
-  }, [dispatch, triggerQuiz, audioId, user, currentAudio]);
+
+    dispatch(nextTrack());
+  }, [dispatch, triggerQuiz, audioId, user, currentAudio, isQuizMode]);
 
   useEffect(() => {
     const handler = (ev: Event) => {
