@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { audioService } from '../services/audio.service.js';
 import path from 'path';
 import fs from 'fs';
+import {prisma} from '../prisma'; // Thêm dòng này để dùng prisma trực tiếp
 
 export const getAudioList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -217,7 +218,7 @@ export const getRecentlyListened = async (req: Request, res: Response, next: Nex
   }
 };
 
-// ✅ Sửa lại controller này để nhận userId từ body, query hoặc req.userId
+// ✅ Sửa lại controller này để cập nhật totalListenTime khi nghe xong
 export const incrementListenCount = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
@@ -235,12 +236,46 @@ export const incrementListenCount = async (req: Request, res: Response, next: Ne
       return;
     }
 
+    // Lấy audio để lấy duration
+    const audio = await audioService.getAudioById(Number(id));
+    if (!audio) {
+      res.status(404).json({ success: false, message: 'Audio not found' });
+      return;
+    }
+
+    // Tăng listenCount
     const audioStats = await audioService.incrementListenCount(Number(id), Number(userId));
+
+    // Cập nhật UserDailyActivity: cộng thêm duration vào totalListenTime
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    await prisma.userDailyActivity.upsert({
+      where: {
+        userId_date: {
+          userId: Number(userId),
+          date: today,
+        },
+      },
+      update: {
+        totalListenTime: {
+          increment: audio.duration || 0,
+        },
+        didListen: true,
+      },
+      create: {
+        userId: Number(userId),
+        date: today,
+        totalListenTime: audio.duration || 0,
+        didListen: true,
+        didQuiz: false,
+      },
+    });
 
     res.json({
       success: true,
       data: audioStats,
-      message: 'Listen count incremented successfully'
+      message: 'Listen count incremented and totalListenTime updated'
     });
   } catch (error) {
     next(error);
