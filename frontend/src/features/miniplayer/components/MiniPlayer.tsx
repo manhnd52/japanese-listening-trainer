@@ -23,11 +23,13 @@ import {
   toggleAiExplainMode,
   toggleFavoriteOptimistic,
 } from "@/store/features/player/playerSlice";
+
 import { toggleFavorite } from "@/store/features/audio/audioSlice";
 import { AudioTrack } from "@/store/features/player/playerSlice";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useQuiz } from "@/features/quiz/useQuiz";
 import VolumeControl from "./VolumeControl";
+import MiniPlayerMenu from "./MiniPlayerMenu";
 import { useRelaxMode } from "@/features/relax-mode/hooks";
 import { message } from "antd";
 
@@ -87,10 +89,20 @@ function TrackInfo({
         <span className="text-xl md:text-3xl">🎵</span>
       </div>
       <div className="flex flex-col overflow-hidden min-w-0">
-        <h3 className="text-brand-900 font-bold truncate text-sm md:text-lg">
-          {currentAudio.title}
-        </h3>
-        <span className="text-brand-600 text-[10px] md:text-xs font-semibold truncate">
+        <div className="hidden md:block">
+          <h3 className="text-brand-900 font-bold truncate text-sm md:text-lg">
+            {currentAudio.title}
+          </h3>
+        </div>
+
+        <div className="md:hidden relative w-full overflow-hidden">
+          <div className="flex min-w-full gap-6 animate-marquee text-brand-900 font-bold text-sm">
+            <span className="whitespace-nowrap">{currentAudio.title}</span>
+            <span className="whitespace-nowrap">{currentAudio.title}</span>
+          </div>
+        </div>
+
+        <span className="text-brand-600 text-[10px] md:text-xs font-semibold truncate hidden md:block">
           Unit 1 • General English
         </span>
       </div>
@@ -156,6 +168,7 @@ function Controls({
   setShowSettings,
   onQuiz,
   onSourceChange,
+  onExpand,
 }: {
   isPlaying: boolean;
   isFavorite: () => boolean;
@@ -167,6 +180,7 @@ function Controls({
   setShowSettings: (v: boolean) => void;
   onQuiz: () => void;
   onSourceChange: (source: Source) => void;
+  onExpand: () => void;
 }) {
   const settingsRef = useRef<HTMLDivElement>(null);
 
@@ -198,87 +212,129 @@ function Controls({
     };
   }, [showSettings, setShowSettings]);
 
+  const menuItems = [
+    {
+      label: isFavorite() ? "Remove from favorites" : "Add to favorites",
+      icon: (
+        <Heart
+          className="w-4 md:w-5 h-4 md:h-5"
+          fill={isFavorite() ? "currentColor" : "none"}
+          strokeWidth={2.5}
+        />
+      ),
+      onClick: toggleFavorite,
+    },
+    {
+      label: "Take quiz",
+      icon: <HelpCircle className="w-4 md:w-5 h-4 md:h-5" strokeWidth={2.5} />,
+      onClick: onQuiz,
+    },
+    {
+      label: "Settings",
+      icon: <Settings className="w-4 md:w-5 h-4 md:h-5" strokeWidth={2.5} />,
+      onClick: () => setShowSettings(true),
+    },
+    {
+      label: "Open details",
+      icon: <Maximize2 className="w-4 md:w-5 h-4 md:h-5" />,
+      onClick: onExpand,
+    },
+  ];
+
   return (
     <div className="flex flex-col items-center flex-1">
-      <div className="flex items-center gap-2 md:gap-4 lg:gap-8">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleFavorite();
-          }}
-          className={`hidden md:inline-flex transition-all ${
-            isFavorite()
-              ? "text-rose-500 hover:text-rose-600"
-              : "text-brand-400 hover:text-brand-600"
-          }`}
-          aria-label={
-            isFavorite() ? "Remove from favorites" : "Add to favorites"
-          }
-        >
-          <Heart
-            size={20}
-            fill={isFavorite() ? "currentColor" : "none"}
-            strokeWidth={2.5}
-          />
-        </button>
+      <div className="flex w-full items-center gap-2 md:gap-4 lg:gap-8">
+        <div className="hidden md:flex items-center gap-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleFavorite();
+            }}
+            className={`inline-flex transition-all ${
+              isFavorite()
+                ? "text-rose-500 hover:text-rose-600"
+                : "text-brand-400 hover:text-brand-600"
+            }`}
+            aria-label={
+              isFavorite() ? "Remove from favorites" : "Add to favorites"
+            }
+          >
+            <Heart
+              className="w-5 md:w-6 h-5 md:h-6"
+              fill={isFavorite() ? "currentColor" : "none"}
+              strokeWidth={2.5}
+            />
+          </button>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onQuiz();
-          }}
-          className="hidden md:inline-flex text-brand-400 hover:text-brand-600 transition-all"
-          aria-label="Take quiz"
-          title="Take quiz"
-        >
-          <HelpCircle size={20} strokeWidth={2.5} />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onPrev();
-          }}
-          className="text-brand-700 hover:text-brand-900"
-        >
-          <SkipBack size={24} className="md:w-7 md:h-7" fill="currentColor" />
-        </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuiz();
+            }}
+            className="text-brand-400 hover:text-brand-600 transition-all"
+            aria-label="Take quiz"
+            title="Take quiz"
+          >
+            <HelpCircle className="w-5 md:w-6 h-5 md:h-6" strokeWidth={2.5} />
+          </button>
+        </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onPlayPause();
-          }}
-          className="w-11 h-11 md:w-12 md:h-12 rounded-full bg-brand-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-brand-500/40"
-        >
-          {isPlaying ? (
-            <Pause size={22} className="md:w-6 md:h-6" fill="currentColor" />
-          ) : (
-            <Play size={22} className="md:w-6 md:h-6 ml-0.5 md:ml-1" fill="currentColor" />
-          )}
-        </button>
+        <div className="flex items-center gap-2 md:gap-4 flex-1 justify-center">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrev();
+            }}
+            className="text-brand-700 hover:text-brand-900"
+          >
+            <SkipBack className="w-5 md:w-7 h-5 md:h-7" fill="currentColor" />
+          </button>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onNext();
-          }}
-          className="text-brand-700 hover:text-brand-900"
-        >
-          <SkipForward size={24} className="md:w-7 md:h-7" fill="currentColor" />
-        </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPlayPause();
+            }}
+            className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-brand-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-brand-500/40"
+          >
+              {isPlaying ? (
+                <Pause className="w-5 md:w-6 h-5 md:h-6" fill="currentColor" />
+              ) : (
+                <Play
+                  className="w-5 md:w-6 h-5 md:h-6 ml-0.5 md:ml-1"
+                  fill="currentColor"
+                />
+              )}
+          </button>
 
-        <div className="relative" ref={settingsRef}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="text-brand-700 hover:text-brand-900"
+          >
+            <SkipForward className="w-5 md:w-7 h-5 md:h-7" fill="currentColor" />
+          </button>
+        </div>
+
+        <div className="relative flex items-center gap-2" ref={settingsRef}>
           <button
             onClick={(e) => {
               e.stopPropagation();
               setShowSettings(!showSettings);
             }}
-            className={`text-brand-400 hover:text-brand-600 ${
+            className={`hidden md:inline-flex text-brand-400 hover:text-brand-600 transition-colors ${
               showSettings ? "text-brand-600" : ""
             }`}
+            aria-label="Open relax mode settings"
           >
-            <Settings size={20} strokeWidth={2.5} />
+            <Settings className="w-5 md:w-6 h-5 md:h-6" strokeWidth={2.5} />
           </button>
+
+          <div className="md:hidden">
+            <MiniPlayerMenu items={menuItems} />
+          </div>
 
           {showSettings && <SettingsPopup onSourceChange={onSourceChange} />}
         </div>
@@ -303,7 +359,7 @@ function VolumeSection({
         onClick={onExpand}
         className="text-brand-400 hover:text-brand-600"
       >
-        <Maximize2 size={20} />
+        <Maximize2 className="w-4 md:w-5 h-4 md:h-5" />
       </button>
     </div>
   );
@@ -398,6 +454,7 @@ const MiniPlayer = () => {
           setShowSettings={setShowSettings}
           onQuiz={handleQuizClick}
           onSourceChange={handleSourceChange}
+          onExpand={handleExpand}
         />
 
         <VolumeSection
