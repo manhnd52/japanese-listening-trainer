@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { audioService } from '../services/audio.service.js';
 import path from 'path';
 import fs from 'fs';
-import {prisma} from '../prisma'; // Thêm dòng này để dùng prisma trực tiếp
+import {prisma} from '../prisma/index.js'; // Thêm dòng này để dùng prisma trực tiếp
 
 export const getAudioList = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
