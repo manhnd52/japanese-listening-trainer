@@ -2,24 +2,33 @@ import { prisma } from '../prisma/index.js';
 import { sendStreakReminderEmail } from './email.service.js';
 
 export const processDailyReminders = async () => {
-    console.log('⏰ [Cron] Starting daily reminder job...');
     const now = new Date();
-    const VN_OFFSET = 7 * 60 * 60 * 1000; // Vietnam is UTC+7
-    const vnTime = new Date(now.getTime() + VN_OFFSET);
-    vnTime.setUTCHours(0, 0, 0, 0);
-    const startOfTodayInUTC = new Date(vnTime.getTime() - VN_OFFSET);
-    console.log(`[Cron] Querying activities from: ${startOfTodayInUTC.toISOString()} (VN Start of Day)`);
+    const vnTime = new Date(now.getTime() + 7 * 60 * 60 * 1000); // UTC+7
+    const currentHour = vnTime.getUTCHours().toString().padStart(2, '0');
+    const currentMinute = vnTime.getUTCMinutes().toString().padStart(2, '0');
+
+    const timeString = `${currentHour}:${currentMinute}`;
+    console.log(`Checking users scheduled for: ${timeString}`);
+
+    const startOfTodayInUTC = new Date(vnTime.getTime() - 7 * 60 * 60 * 1000); 
+    startOfTodayInUTC.setUTCHours(0, 0, 0, 0); // Reset về 0h sáng nay (theo giờ VN quy ra UTC)
     try {
     const usersToRemind = await prisma.user.findMany({
         where: {
-        userDailyActivities: {
-            none: {
-            date: {
-                gte: startOfTodayInUTC, 
+            userSetting: {
+                allowEmailNotification: true,
+                reminderTimes: {
+                has: timeString 
+                }
             },
-            didListen: true,
+            userDailyActivities: {
+                none: {
+                    date: {
+                        gte: startOfTodayInUTC, 
+                    },
+                    didListen: true,
+                },
             },
-        },
         },
         select: {
         email: true,
