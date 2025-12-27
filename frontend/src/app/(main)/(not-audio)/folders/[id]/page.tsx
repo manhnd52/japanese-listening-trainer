@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { fetchSharedFolders } from "@/store/features/sharring/sharringSlice";
 
 import {
   ArrowLeft,
@@ -60,12 +59,6 @@ const FolderDetailPage = () => {
       dispatch({ type: "folder/setCurrentFolder", payload: null });
     };
   }, [folderId, user, dispatch]);
-
-  useEffect(() => {
-  if (isOpen) {
-    dispatch(fetchSharedFolders());
-  }
-}, [isOpen, dispatch]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
