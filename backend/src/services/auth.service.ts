@@ -116,15 +116,27 @@ class AuthService {
     async getUserById(userId: number) {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: {
-                id: true,
-                fullname: true,
-                email: true,
-                avatarUrl: true,
+            include: {
+                userSetting: true, 
             }
         });
-
         return user;
+    }
+    async updateSettings(userId: number, data: { allowEmailNotification?: boolean, reminderTimes?: string[] }) {
+        const { allowEmailNotification, reminderTimes } = data;
+
+        return await prisma.userSetting.upsert({
+            where: { userId: userId },
+            create: {
+                userId,
+                allowEmailNotification: allowEmailNotification ?? true,
+                reminderTimes: reminderTimes ?? ["20:00"]
+            },
+            update: {
+                ...(allowEmailNotification !== undefined && { allowEmailNotification }),
+                ...(reminderTimes !== undefined && { reminderTimes }),
+            }
+        });
     }
 
     async updateProfile(data: UpdateProfileInput) {
