@@ -1,27 +1,25 @@
 model User {
-  id        Int     @id @default(autoincrement())
-  fullname  String
-  email     String  @unique
-  password  String
-  avatarUrl String? @map("avatar_url")
-
-  refreshTokens       RefreshToken[]
-  audios              Audio[]
+  id                  Int                 @id @default(autoincrement())
+  fullname            String
+  email               String              @unique
+  password            String
+  avatarUrl           String?             @map("avatar_url")
   audioStats          AudioStats[]
-  folders             Folder[]
+  audios              Audio[]
   folderShares        FolderShare[]
-  reminders           Reminder[]
-  userSetting         UserSetting?
-  userDailyActivities UserDailyActivity[]
-  userExp             UserExp?
-  streak              Streak?
+  folders             Folder[]
   leaderboardPoint    LeaderboardPoint?
-  userAchievements    UserAchievement[]
-  quizzes             Quiz[]
   quizAttemptLogs     QuizAttemptLog[]
   quizStats           QuizStats[]
+  userExp             UserExp[]
   mistakeQuizs        MistakeQuiz[]
-
+  streaks             Streak[]
+  userAchievements    UserAchievement[]
+  quizzes             Quiz[]
+  refreshTokens       RefreshToken[]
+  reminders           Reminder[]
+  userSettings        UserSetting[]
+  userDailyActivities UserDailyActivity[]
   @@map("users")
 }
 
@@ -32,8 +30,7 @@ model RefreshToken {
   revoked    Boolean  @default(false)
   userId     Int      @map("user_id")
   createdAt  DateTime @default(now()) @map("created_at")
-
-  user User @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@map("refresh_tokens")
@@ -43,8 +40,7 @@ model Reminder {
   id     Int      @id @default(autoincrement())
   userId Int      @map("user_id")
   time   DateTime
-
-  user User @relation(fields: [userId], references: [id])
+  user   User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@map("reminders")
@@ -65,9 +61,8 @@ model UserDailyActivity {
   date            DateTime @map("date")
   didListen       Boolean  @default(false) @map("did_listen")
   didQuiz         Boolean  @default(false) @map("did_quiz")
-  totalListenTime Int      @default(0) @map("total_listen_time") // seconds
-
-  user User @relation(fields: [userId], references: [id])
+  totalListenTime Int      @default(0) @map("total_listen_time")
+  user            User     @relation(fields: [userId], references: [id])
 
   @@id([userId, date])
   @@index([date])

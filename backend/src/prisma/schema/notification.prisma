@@ -1,7 +1,3 @@
-enum NotificationType {
-  reminder
-}
-
 model Notification {
   id      Int              @id @default(autoincrement())
   type    NotificationType
@@ -9,4 +5,8 @@ model Notification {
   message String
 
   @@map("notifications")
+}
+
+enum NotificationType {
+  reminder
 }
