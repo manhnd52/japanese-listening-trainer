@@ -31,6 +31,9 @@ export const authApi = {
     const response = await apiClient.put<UpdateProfileResponse>('/auth/profile', data);
     return response.data;
   },
+  updateSettings: (data: { allowEmailNotification: boolean; reminderTimes: string[] }) => {
+    return apiClient.put('/auth/settings', data);
+  },
   getUserStats: async (): Promise<UserStatsResponse> => {
     // Gọi đúng đường dẫn bạn đã khai báo ở backend (ví dụ: /stats hoặc /users/stats)
     const response = await apiClient.get<UserStatsResponse>('/stats'); 

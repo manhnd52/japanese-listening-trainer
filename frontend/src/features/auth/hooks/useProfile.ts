@@ -37,14 +37,12 @@ export const useProfile = () => {
         const response = await authApi.getMe();
         console.log("👉 [useProfile] Kết quả API:", response);
 
-        if (response.success) {
+        if (response.data) {
           // Backend AuthController trả về: { success: true, data: { user: {...} } }
           // authApi trả về: response.data (tức là object trên)
           
           // Kiểm tra kỹ cấu trúc response để lấy đúng object User
-          // Trường hợp 1: response.data.user (Theo format chuẩn bạn gửi)
-          // Trường hợp 2: response.data (Nếu data chính là user)
-          const userData = response.data.user || response.data;
+          const userData = response.data;
           
           console.log("👉 [useProfile] Dữ liệu User sẽ lưu vào Redux:", userData);
           dispatch(updateUser(userData as any));
@@ -61,6 +59,26 @@ export const useProfile = () => {
 
     fetchMe();
   }, [user, dispatch, router]);
+
+  const saveSettings = async (settings: { allowEmailNotification: boolean; reminderTimes: string[] }) => {
+      setIsLoading(true);
+      try {
+        const response = await authApi.updateSettings(settings);
+        
+        if (response.data?.success) {
+          dispatch(updateUser({
+              settings: response.data.data
+          })); 
+      }
+        
+        return { success: true };
+      } catch (error: any) {
+        console.error(error);
+        return { success: false, error: error.response?.data?.message || 'Update failed' };
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
   const handleUpdateProfile = async (data: UpdateProfileInput) => {
     setIsLoading(true);
@@ -89,5 +107,6 @@ export const useProfile = () => {
     error,
     successMessage,
     updateProfile: handleUpdateProfile,
+    saveSettings,
   };
 };

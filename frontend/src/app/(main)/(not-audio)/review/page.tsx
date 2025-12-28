@@ -16,7 +16,7 @@ import { ArrowLeft, CheckCircle, XCircle, RotateCcw, Loader2, ArrowRight, Trophy
  * 3. Click to answer - if correct, remove from MistakeQuiz
  * 4. Continue until all reviewed
  */
-export default function ReviewPage() {
+export default function ReviewPage(className?: string) {
   const router = useRouter();
   
   const [mistakeQuizzes, setMistakeQuizzes] = useState<Quiz[]>([]);
@@ -128,7 +128,7 @@ export default function ReviewPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-jlt-cream flex items-center justify-center">
+      <div className={className + `min-h-[calc(100vh-10rem)] bg-jlt-cream flex items-center justify-center pb-10`}>
         <div className="text-center">
           <Loader2 className="animate-spin text-brand-500 mx-auto mb-4" size={48} />
           <p className="text-brand-500">Loading your mistakes to review...</p>
@@ -140,7 +140,7 @@ export default function ReviewPage() {
   // No mistakes - all caught up!
   if (mistakeQuizzes.length === 0) {
     return (
-      <div className="min-h-screen bg-jlt-cream flex items-center justify-center p-8">
+      <div className={className + `min-h-[calc(100vh-10rem)] bg-jlt-cream flex items-center justify-center p-8 pb-10`}>
         <div className="text-center max-w-md animate-in fade-in duration-300">
           <div className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-200">
             <CheckCircle className="text-green-600" size={64} />
@@ -165,7 +165,7 @@ export default function ReviewPage() {
     const accuracy = Math.round((stats.correct / (stats.correct + stats.wrong)) * 100) || 0;
     
     return (
-      <div className="min-h-screen bg-jlt-cream flex items-center justify-center p-8">
+      <div className={className + `bg-jlt-cream flex items-center justify-center p-8 pb-10`}>
         <div className="text-center max-w-md animate-in fade-in duration-300">
           <div className="w-32 h-32 bg-jlt-peach rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-200">
             <Trophy className="text-orange-600" size={64} />
@@ -214,7 +214,7 @@ export default function ReviewPage() {
 
   // Main review interface (matching reference design)
   return (
-    <div className="min-h-screen bg-jlt-cream p-4 md:p-8 pb-40 animate-in fade-in duration-300">
+    <div className={`bg-jlt-cream p-4 md:p-8 pb-10 animate-in fade-in duration-300`}>
       <div className="max-w-3xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">

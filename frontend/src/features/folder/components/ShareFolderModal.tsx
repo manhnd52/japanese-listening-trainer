@@ -6,6 +6,7 @@ import {
   shareFolder,
   removeShare,
 } from '@/store/features/sharring/sharringSlice';
+import type { FolderShare } from '@/store/features/sharring/sharringSlice';
 
 interface ShareFolderModalProps {
   folderId: number;
@@ -19,25 +20,36 @@ export default function ShareFolderModal({
   onClose,
 }: ShareFolderModalProps) {
   const dispatch = useAppDispatch();
-  const { shares, loading, error } = useAppSelector(
-    (state) => state.sharing
-  );
+  const folder = useAppSelector((state) => state.folder.currentFolder);
 
+  const [shares, setShares] = useState<FolderShare[]>([]);
   const [email, setEmail] = useState('');
   const [shareLoading, setShareLoading] = useState(false);
   const [unsharingUserId, setUnsharingUserId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (folder && folder.id === folderId && Array.isArray(folder.folderShares)) {
+      setShares(folder.folderShares as FolderShare[]);
+    }
+  }, [folder, folderId]);
 
   const handleShare = async () => {
     if (!email) return;
 
     setShareLoading(true);
+    setError(null);
     try {
-      await dispatch(
+      const newShare = await dispatch(
         shareFolder({ folderId, email })
       ).unwrap();
+      setShares((prev) => [...prev, newShare as FolderShare]);
       setEmail('');
     } catch (err) {
       console.error('Failed to share folder:', err);
+      setError(
+        typeof err === 'string' ? err : 'Failed to share folder'
+      );
     } finally {
       setShareLoading(false);
     }
@@ -51,15 +63,19 @@ export default function ShareFolderModal({
       ).unwrap();
     } catch (err) {
       console.error('Failed to unshare:', err);
+      setError(
+        typeof err === 'string' ? err : 'Failed to unshare'
+      );
     } finally {
       setUnsharingUserId(null);
+      setShares((prev) => prev.filter((s) => s.userId !== userId));
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">Share Folder</h2>
 
@@ -88,34 +104,30 @@ export default function ShareFolderModal({
         <div>
           <h3 className="font-semibold mb-2">Shared with:</h3>
 
-          {loading ? (
-            <div>Loading...</div>
-          ) : (
-            <ul>
-              {shares.map((s) => (
-                <li
-                  key={s.id}
-                  className="flex items-center justify-between py-1"
+          <ul>
+            {shares.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center justify-between py-1"
+              >
+                <span>
+                  {s.user.fullname} ({s.user.email})
+                </span>
+                <button
+                  onClick={() => handleUnshare(s.user.id)}
+                  disabled={unsharingUserId === s.user.id}
+                  className="text-red-500 hover:underline text-sm disabled:opacity-50"
                 >
-                  <span>
-                    {s.user.fullname} ({s.user.email})
-                  </span>
-                  <button
-                    onClick={() => handleUnshare(s.user.id)}
-                    disabled={unsharingUserId === s.user.id}
-                    className="text-red-500 hover:underline text-sm disabled:opacity-50"
-                  >
-                    {unsharingUserId === s.user.id
-                      ? 'Removing...'
-                      : 'Remove'}
-                  </button>
-                </li>
-              ))}
-              {shares.length === 0 && (
-                <li className="text-gray-500">No shares yet</li>
-              )}
-            </ul>
-          )}
+                  {unsharingUserId === s.user.id
+                    ? 'Removing...'
+                    : 'Remove'}
+                </button>
+              </li>
+            ))}
+            {shares.length === 0 && (
+              <li className="text-gray-500">No shares yet</li>
+            )}
+          </ul>
         </div>
 
         <button

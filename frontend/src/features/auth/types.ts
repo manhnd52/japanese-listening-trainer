@@ -22,6 +22,10 @@ export interface User {
   fullname: string;
   email: string;
   avatarUrl: string | null;
+  settings?: {
+      allowEmailNotification: boolean;
+      reminderTimes: string[];
+  };
 }
 
 export interface LoginInput {
