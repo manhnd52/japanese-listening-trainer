@@ -9,6 +9,11 @@ interface EnvConfig {
     jwtSecret: string;
     jwtExpiresIn: string;
     corsOrigin: string;
+    smtpHost: string;
+    smtpPort: number;
+    smtpUser: string;
+    smtpPass: string;
+    smtpFrom: string;
 }
 
 const getEnvVar = (key: string, defaultValue?: string): string => {
@@ -26,4 +31,9 @@ export const config: EnvConfig = {
     jwtSecret: getEnvVar('JWT_SECRET'),
     jwtExpiresIn: getEnvVar('JWT_EXPIRES_IN', '7d'),
     corsOrigin: getEnvVar('CORS_ORIGIN', 'https://jltedu.io.vn'),
+    smtpHost: getEnvVar('SMTP_HOST'),
+    smtpPort: parseInt(getEnvVar('SMTP_PORT', '587'), 10),
+    smtpUser: getEnvVar('SMTP_USER'),
+    smtpPass: getEnvVar('SMTP_PASS'),
+    smtpFrom: getEnvVar('SMTP_FROM', 'JLT Support <no-reply@jltapp.com>'),
 };

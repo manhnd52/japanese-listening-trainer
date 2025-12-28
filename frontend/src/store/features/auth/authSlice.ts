@@ -41,10 +41,15 @@ const authSlice = createSlice({
       }
     },
     // Action: Cập nhật thông tin người dùng
-    updateUser: (state, action: PayloadAction<User>) => {
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        const newData = { ...state.user, ...action.payload };
+
+        if (action.payload.fullname) {
+          newData.fullname = action.payload.fullname;
+        }
+
+        state.user = newData;
       }
     },
   },

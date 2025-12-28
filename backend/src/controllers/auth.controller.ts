@@ -6,6 +6,8 @@ class AuthController {
         this.register = this.register.bind(this);
         this.login = this.login.bind(this);
         this.getCurrentUser = this.getCurrentUser.bind(this);
+        this.updateProfile = this.updateProfile.bind(this);
+        this.updateSettings = this.updateSettings.bind(this);
     }
 
     /**
@@ -66,6 +68,7 @@ class AuthController {
             }
 
             const result = await authService.login({ email, password });
+            const userWithSettings = await authService.getUserById(result.user.id);
 
             // ✅ Map lại response cho đúng format
             res.status(200).json({
@@ -76,6 +79,10 @@ class AuthController {
                         email: result.user.email,
                         name: result.user.fullname, // fullname -> name
                         // ✅ Xóa role - không tồn tại trong schema
+                        settings: userWithSettings?.userSetting ? {
+                             allowEmailNotification: userWithSettings.userSetting.allowEmailNotification,
+                             reminderTimes: userWithSettings.userSetting.reminderTimes
+                        } : null
                     },
                     token: result.accessToken, // accessToken -> token
                     refreshToken: result.refreshToken,
@@ -124,8 +131,39 @@ class AuthController {
                     id: user.id.toString(),
                     email: user.email,
                     name: user.fullname,
-                    avatarUrl: user.avatarUrl || ''
+                    avatarUrl: user.avatarUrl || '',
+                    settings: user.userSetting ? {
+                        allowEmailNotification: user.userSetting.allowEmailNotification,
+                        reminderTimes: user.userSetting.reminderTimes
+                    } : null
                 }
+            });
+        } catch (error: any) {
+            return next(error);
+        }
+    }
+    /**
+     * @route PUT /api/auth/settings (Hàm mới)
+     */
+    async updateSettings(req: Request, res: Response, next: NextFunction) {
+        try {
+            const userId = req.userId;
+            if (!userId) {
+                res.status(401).json({ success: false, error: { message: 'Unauthorized' } });
+                return;
+            }
+
+            const { allowEmailNotification, reminderTimes } = req.body;
+
+            const updatedSettings = await authService.updateSettings(userId, {
+                allowEmailNotification,
+                reminderTimes
+            });
+
+            res.status(200).json({
+                success: true,
+                data: updatedSettings,
+                message: 'Settings updated successfully'
             });
         } catch (error: any) {
             return next(error);

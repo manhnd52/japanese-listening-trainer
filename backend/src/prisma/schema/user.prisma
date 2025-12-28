@@ -51,10 +51,11 @@ model Reminder {
 }
 
 model UserSetting {
-  userId                 Int     @id @map("user_id")
-  allowEmailNotification Boolean @default(true) @map("allow_email_notification")
+  userId                 Int      @id @map("user_id")
+  allowEmailNotification Boolean  @default(true) @map("allow_email_notification")
 
-  user User @relation(fields: [userId], references: [id])
+  user                   User     @relation(fields: [userId], references: [id])
+  reminderTimes          String[] @default(["20:00"])
 
   @@map("user_settings")
 }
