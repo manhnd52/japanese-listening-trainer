@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, FolderOpen, Music, User, Settings, BarChart2, RotateCcw, Menu, X } from 'lucide-react';
+import { Home, FolderOpen, Music, BarChart2, RotateCcw, Menu, X } from 'lucide-react';
+import {message} from 'antd'; 
 
 const menuItems = [
   { icon: Home, label: 'Home', path: '/' },
@@ -11,8 +12,6 @@ const menuItems = [
   { icon: Music, label: 'Library', path: '/library' },
   { icon: RotateCcw, label: 'Review', path: '/review' },
   { icon: BarChart2, label: 'Stats', path: '/stats' },
-  { icon: User, label: 'Profile', path: '/profile' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
 ];
 
 export default function Sidebar() {

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useProfile } from '../hooks/useProfile';
 import { Plus, Trash2, Bell, Clock, Save } from 'lucide-react';
+import {message} from 'antd'; 
 
 export default function ReminderSettings() {
   const { user, saveSettings, isLoading } = useProfile();
@@ -40,9 +41,9 @@ export default function ReminderSettings() {
     });
 
     if (result.success) {
-      alert('Cài đặt nhắc nhở đã được lưu!');
+      message.success('Notification is setted!');
     } else {
-      alert(`Lỗi: ${result.error}`);
+      message.error(`Error: ${result.error}`);
     }
   };
 
