@@ -6,6 +6,7 @@ import { useQuiz } from '@/features/quiz/useQuiz';
 import QuizModal from '@/features/quiz/QuizModal';
 import { Quiz, QuizOption } from '@/features/quiz/types';
 import { getQuizzesByAudio, createQuiz, deleteQuiz } from '@/features/quiz/api';
+import { useAudioDetail } from '@/features/audio-detail/hooks/useAudioDetail';
 import { generateQuizFromScript } from '@/features/quiz/geminiService';
 import { Trash2, Plus, X, Loader2, Sparkles, CheckCircle, Save, HelpCircle, ArrowLeft, FileText } from 'lucide-react';
 import Link from 'next/link';
@@ -41,6 +42,15 @@ function QuizContent() {
   const [showScriptInput, setShowScriptInput] = useState(false);
   const [scriptText, setScriptText] = useState('');
   const [aiQuizCount, setAiQuizCount] = useState(3);
+  // Audio detail for script
+  const { audio, loading: audioLoading, error: audioError, refetch } = useAudioDetail(String(manageAudioId));
+  if (showScriptInput) {
+    // Simple debug log for audio fetch
+    // eslint-disable-next-line no-console
+    console.log('[AI Quiz Generator] manageAudioId:', manageAudioId, '| audio:', audio, '| error:', audioError);
+  }
+  const [scriptInput, setScriptInput] = useState('');
+  const [showScriptWarning, setShowScriptWarning] = useState(false);
 
   // Auto-load quizzes if audioId is provided in URL
   useEffect(() => {
@@ -83,20 +93,19 @@ function QuizContent() {
 
   // AI Generate Quiz from Script
   const handleGenerateAIQuiz = async () => {
-    if (!scriptText.trim()) {
-      alert('Please enter a script/transcript to generate quizzes from.');
+    const scriptToUse = audio?.script?.trim() ? audio.script : scriptInput;
+    if (!scriptToUse || !scriptToUse.trim()) {
+      setShowScriptWarning(true);
       return;
     }
-    
+    setShowScriptWarning(false);
     setIsGeneratingQuiz(true);
     try {
-      const generatedQuizzes = await generateQuizFromScript(scriptText, aiQuizCount);
-      
+      const generatedQuizzes = await generateQuizFromScript(scriptToUse, aiQuizCount);
       if (generatedQuizzes.length === 0) {
         alert('No quizzes were generated. Please try with different text.');
         return;
       }
-      
       // Map index to QuizOption enum
       const optionMap: Record<number, QuizOption> = {
         0: QuizOption.A,
@@ -104,7 +113,6 @@ function QuizContent() {
         2: QuizOption.C,
         3: QuizOption.D,
       };
-      
       // Create each quiz via API
       for (const aiQuiz of generatedQuizzes) {
         try {
@@ -123,9 +131,7 @@ function QuizContent() {
           console.error('Failed to create AI quiz:', err);
         }
       }
-      
-      // Clear script input after success
-      setScriptText('');
+      setScriptInput('');
       setShowScriptInput(false);
       alert(`Successfully generated ${generatedQuizzes.length} quizzes!`);
     } catch (error) {
@@ -235,42 +241,6 @@ function QuizContent() {
       </div>
 
       <div className="max-w-6xl mx-auto p-6 pb-32">
-        {/* Quiz Time Panel */}
-        <div className="bg-gradient-to-br from-jlt-peach to-orange-100 rounded-3xl p-8 border border-orange-200 shadow-sm mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="bg-white/80 text-orange-600 p-3 rounded-xl shadow-sm">
-              <HelpCircle size={28}/>
-            </span>
-            <div>
-              <h2 className="text-2xl font-extrabold text-orange-800">Quiz Time</h2>
-              <p className="text-sm text-orange-600/80">
-                Test your listening comprehension with interactive quizzes
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-orange-700 mb-2">
-                Audio ID
-              </label>
-              <input
-                type="number"
-                value={quizTimeAudioId}
-                onChange={(e) => setQuizTimeAudioId(Number(e.target.value))}
-                className="w-full px-4 py-3 bg-white text-brand-900 rounded-xl border border-orange-200 focus:border-orange-500 focus:outline-none shadow-sm"
-                placeholder="Enter audio ID"
-              />
-            </div>
-            <button
-              onClick={handleStartQuizTime}
-              className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 transform hover:-translate-y-0.5 active:scale-95"
-            >
-              <HelpCircle size={20} />
-              Start Quiz Time
-            </button>
-          </div>
-        </div>
 
         {/* Quiz Management Section */}
         <div className="bg-white rounded-3xl border border-brand-200 shadow-sm overflow-hidden">
@@ -357,26 +327,33 @@ function QuizContent() {
                       <X size={20}/>
                     </button>
                   </div>
-                  
                   <div className="space-y-4">
                     {/* Script/Transcript Input */}
-                    <div>
-                      <label className="block text-sm font-medium text-purple-700 mb-2">
-                        <FileText size={14} className="inline mr-1" />
-                        Script / Transcript
-                      </label>
-                      <textarea
-                        className="w-full p-4 rounded-xl border border-purple-200 bg-white text-brand-900 focus:border-purple-500 outline-none resize-none"
-                        placeholder="Paste the audio transcript or script here... The AI will generate quiz questions based on this text."
-                        value={scriptText}
-                        onChange={(e) => setScriptText(e.target.value)}
-                        rows={6}
-                      />
-                      <p className="text-xs text-purple-500 mt-1">
-                        Tip: Longer and more detailed scripts produce better quizzes.
-                      </p>
-                    </div>
-                    
+                    {audioLoading ? (
+                      <div className="text-sm text-purple-500">Đang tải thông tin audio...</div>
+                    ) : audioError ? (
+                      <div className="text-sm text-red-500">Lỗi: {audioError}</div>
+                    ) : audio?.script?.trim() ? (
+                      <div className="bg-white border border-purple-200 rounded-xl p-4 text-brand-900">
+                        <div className="font-bold mb-2 text-purple-700">Script từ audio:</div>
+                        <div className="whitespace-pre-line text-sm">{audio.script}</div>
+                      </div>
+                    ) : (
+                      <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-4">
+                        <div className="font-bold text-yellow-700 mb-2">Audio chưa có script</div>
+                        <div className="text-yellow-700 text-sm mb-2">Hãy điền script cho audio để AI tạo quiz.</div>
+                        <textarea
+                          className="w-full p-3 rounded-xl border border-yellow-300 bg-white text-brand-900 focus:border-yellow-500 outline-none resize-none"
+                          placeholder="Nhập script cho audio..."
+                          value={scriptInput}
+                          onChange={e => setScriptInput(e.target.value)}
+                          rows={5}
+                        />
+                      </div>
+                    )}
+                    {showScriptWarning && (
+                      <div className="text-red-500 text-sm font-bold">Vui lòng nhập script để tạo quiz!</div>
+                    )}
                     {/* Quiz Count */}
                     <div className="flex items-center gap-4">
                       <label className="text-sm font-medium text-purple-700">
@@ -393,12 +370,11 @@ function QuizContent() {
                         <option value={5}>5 quizzes</option>
                       </select>
                     </div>
-                    
                     {/* Generate Button */}
                     <div className="flex justify-end pt-2">
                       <button 
                         onClick={handleGenerateAIQuiz}
-                        disabled={isGeneratingQuiz || !scriptText.trim()}
+                        disabled={isGeneratingQuiz || (audio && !audio.script && !scriptInput.trim())}
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-brand-300 disabled:to-brand-400 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
                       >
                         {isGeneratingQuiz ? (

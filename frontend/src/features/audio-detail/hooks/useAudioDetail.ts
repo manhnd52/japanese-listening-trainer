@@ -17,9 +17,16 @@ export function useAudioDetail(audioId: string) {
         setLoading(true);
         setError(null);
         const response = await apiClient.get(`/audios/${audioId}`);
-        setAudio(response.data.data);
+        const audioData = response.data.data;
+        setAudio(audioData);
+        if (!audioData) {
+          setError('Audio not found');
+        } else {
+          setError(null);
+        }
       } catch (err) {
         const error = err as { response?: { data?: { message?: string } } };
+        setAudio(null);
         setError(error.response?.data?.message || 'Failed to load audio details');
         console.error('Error fetching audio detail:', err);
       } finally {
@@ -37,10 +44,16 @@ export function useAudioDetail(audioId: string) {
     try {
       setLoading(true);
       const response = await apiClient.get(`/audios/${audioId}`);
-      setAudio(response.data.data);
-      setError(null);
+      const audioData = response.data.data;
+      setAudio(audioData);
+      if (!audioData) {
+        setError('Audio not found');
+      } else {
+        setError(null);
+      }
     } catch (err) {
       const error = err as { response?: { data?: { message?: string } } };
+      setAudio(null);
       setError(error.response?.data?.message || 'Failed to load audio details');
     } finally {
       setLoading(false);

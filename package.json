@@ -1,4 +1,7 @@
 {
+  "dependencies": {
+    "antd": "^6.1.2",
+    "axios": "^1.13.2"
   "devDependencies": {
     "@types/nodemailer": "^7.0.4"
   }
