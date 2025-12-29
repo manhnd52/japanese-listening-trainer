@@ -374,7 +374,7 @@ function QuizContent() {
                     <div className="flex justify-end pt-2">
                       <button 
                         onClick={handleGenerateAIQuiz}
-                        disabled={isGeneratingQuiz || (audio && !audio.script && !scriptInput.trim())}
+                        disabled={isGeneratingQuiz || (!!audio && !audio.script && !scriptInput.trim())}
                         className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 disabled:from-brand-300 disabled:to-brand-400 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg flex items-center gap-2"
                       >
                         {isGeneratingQuiz ? (
