@@ -147,7 +147,7 @@ export default function ReviewPage(className?: string) {
           </div>
           <h1 className="text-3xl font-extrabold text-brand-900 mb-3">All Caught Up!</h1>
           <p className="text-brand-500 text-lg mb-8">
-            You've reviewed all your mistakes. Great job!
+            Youve reviewed all your mistakes. Great job!
           </p>
           <button
             onClick={() => router.push('/')}

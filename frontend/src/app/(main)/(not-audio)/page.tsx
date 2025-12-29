@@ -125,7 +125,7 @@ export default function HomePage() {
       {/* Welcome Section */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-          Welcome back, {user?.fullname || 'User'} 👋
+          Xin chào cả lớp ạ {user?.fullname || 'User'} 👋
         </h1>
         <p className="text-gray-600">Ready for your daily session?</p>
       </div>
