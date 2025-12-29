@@ -17,14 +17,15 @@ export interface AIGeneratedQuiz {
 
 export async function generateQuizFromScript(script: string, count: number = 3): Promise<AIGeneratedQuiz[]> {
   const prompt = `Generate ${count} multiple-choice quiz questions based on the following Japanese audio transcript or text.\n\nThe questions should test listening comprehension and understanding of the content.\nEach question should have exactly 4 options (A, B, C, D).\nMake the questions varied: some about main ideas, some about details, some about vocabulary or expressions used.\n\nText: "${script.substring(0, 3000)}${script.length > 3000 ? '...' : ''}"\n\nGenerate the quiz in the same language as the text (if Japanese, questions in Japanese).\n\nReturn ONLY a valid JSON array with this exact structure (no markdown, no explanation):\n[\n  {\n    "question": "Your question here",\n    "options": ["Option A", "Option B", "Option C", "Option D"],\n    "correctAnswer": 0,\n    "explanation": "Brief explanation"\n  }\n]`;
-
+  console.log("GEMINI_API_KEY: " + GEMINI_API_KEY);
   const body = {
     contents: [{ role: 'user', parts: [{ text: prompt }] }],
     generationConfig: { responseMimeType: 'application/json' },
   };
 
   try {
-    const response = await axios.post(
+    let response : any ;
+    response = await axios.post(
       `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
       body,
       { headers: { 'Content-Type': 'application/json' } }
