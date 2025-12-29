@@ -115,7 +115,11 @@ function TrackInfo({
   );
 }
 
-function SettingsPopup({ onSourceChange }: { onSourceChange: (source: Source) => void }) {
+function SettingsPopup({
+  onSourceChange,
+}: {
+  onSourceChange: (source: Source) => void;
+}) {
   const dispatch = useAppDispatch();
   const relaxModeConfig = useAppSelector(
     (state) => state.player.relaxModeConfig
@@ -297,14 +301,14 @@ function Controls({
             }}
             className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-brand-500 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg shadow-brand-500/40"
           >
-              {isPlaying ? (
-                <Pause className="w-5 md:w-6 h-5 md:h-6" fill="currentColor" />
-              ) : (
-                <Play
-                  className="w-5 md:w-6 h-5 md:h-6 ml-0.5 md:ml-1"
-                  fill="currentColor"
-                />
-              )}
+            {isPlaying ? (
+              <Pause className="w-5 md:w-6 h-5 md:h-6" fill="currentColor" />
+            ) : (
+              <Play
+                className="w-5 md:w-6 h-5 md:h-6 ml-0.5 md:ml-1"
+                fill="currentColor"
+              />
+            )}
           </button>
 
           <button
@@ -314,7 +318,10 @@ function Controls({
             }}
             className="text-brand-700 hover:text-brand-900"
           >
-            <SkipForward className="w-5 md:w-7 h-5 md:h-7" fill="currentColor" />
+            <SkipForward
+              className="w-5 md:w-7 h-5 md:h-7"
+              fill="currentColor"
+            />
           </button>
         </div>
 
@@ -404,7 +411,7 @@ const MiniPlayer = () => {
     if (currentAudio?.id) {
       const hasQuiz = await triggerQuiz(Number(currentAudio.id));
       if (!hasQuiz) {
-        message.info('No quiz available for this audio.');
+        message.info("No quiz available for this audio.");
       }
     }
   };
@@ -421,7 +428,6 @@ const MiniPlayer = () => {
   };
 
   const handleSourceChange = async (newSource: Source) => {
-    
     // Load random audios from new source
     await loadRandomAudios(newSource);
   };

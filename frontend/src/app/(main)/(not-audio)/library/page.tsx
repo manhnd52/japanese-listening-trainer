@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense,useEffect } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import { AudioTrack } from "@/types/types";
 import { useAudioList, useAudioActions } from "@/features/audios/hooks";
 import {
@@ -54,8 +54,10 @@ function LibraryContent() {
     if (editId && audios?.length) {
       const found = audios.find((a) => String(a.id) === String(editId));
       if (found) {
-        setSelectedAudio(found);
-        setEditModalOpen(true);
+        Promise.resolve().then(() => {
+          setSelectedAudio(found);
+          setEditModalOpen(true);
+        });
       }
     }
   }, [searchParams, audios]);
@@ -90,19 +92,19 @@ function LibraryContent() {
 
   return (
     <>
-    <Suspense fallback={<div className="p-8">Loading...</div>}>
-      <AudioList
-        audios={audios}
-        folders={folders}
-        onPlay={handlePlay}
-        onSelect={handleSelect}
-        onAddAudio={handleAddAudio}
-        onDelete={handleDelete}
-        onMove={handleMove}
-        onEdit={handleEdit}
-        onToggleFavorite={handleToggleFavorite}
-      />
-    </Suspense>
+      <Suspense fallback={<div className="p-8">Loading...</div>}>
+        <AudioList
+          audios={audios}
+          folders={folders}
+          onPlay={handlePlay}
+          onSelect={handleSelect}
+          onAddAudio={handleAddAudio}
+          onDelete={handleDelete}
+          onMove={handleMove}
+          onEdit={handleEdit}
+          onToggleFavorite={handleToggleFavorite}
+        />
+      </Suspense>
       <UploadAudioModal
         isOpen={uploadModalOpen}
         onClose={() => setUploadModalOpen(false)}
