@@ -1,4 +1,4 @@
-import { prisma } from '../prisma/index.js';
+import { prisma } from "../prisma/index.js";
 
 class AudioService {
   // Lấy tất cả audios của user
@@ -17,7 +17,7 @@ class AudioService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     // Làm phẳng audioStats và thêm status
@@ -83,11 +83,16 @@ class AudioService {
   // Xóa audio và các phụ thuộc
   async deleteAudio(id: number) {
     // Xóa các quiz liên quan
-    const quizzes = await prisma.quiz.findMany({ where: { audioId: id }, select: { id: true } });
-    const quizIds = quizzes.map(q => q.id);
+    const quizzes = await prisma.quiz.findMany({
+      where: { audioId: id },
+      select: { id: true },
+    });
+    const quizIds = quizzes.map((q) => q.id);
 
     if (quizIds.length > 0) {
-      await prisma.mistakeQuiz.deleteMany({ where: { quizId: { in: quizIds } } });
+      await prisma.mistakeQuiz.deleteMany({
+        where: { quizId: { in: quizIds } },
+      });
       await prisma.quizStats.deleteMany({ where: { quizId: { in: quizIds } } });
     }
     await prisma.quizAttemptLog.deleteMany({ where: { audioId: id } });
@@ -173,7 +178,7 @@ class AudioService {
         userId,
         lastListenTime: { not: null },
       },
-      orderBy: { lastListenTime: 'desc' },
+      orderBy: { lastListenTime: "desc" },
       take: limit,
       include: {
         audio: {
@@ -209,7 +214,7 @@ class AudioService {
     const shuffled = audios.sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, limit);
 
-    return selected.map(audio => {
+    return selected.map((audio) => {
       const stats = audio.audioStats?.[0];
       return {
         id: audio.id.toString(),
@@ -248,7 +253,7 @@ class AudioService {
     const shuffled = audios.sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, limit);
 
-    return selected.map(audio => {
+    return selected.map((audio) => {
       const stats = audio.audioStats?.[0];
       return {
         id: audio.id.toString(),
@@ -268,10 +273,12 @@ class AudioService {
   }
 
   // Xác định trạng thái nghe
-  private determineStatus(listenCount?: number): 'NEW' | 'IN_PROGRESS' | 'COMPLETED' | 'idle' {
-    if (!listenCount || listenCount === 0) return 'NEW';
-    if (listenCount >= 3) return 'COMPLETED';
-    return 'IN_PROGRESS';
+  private determineStatus(
+    listenCount?: number
+  ): "NEW" | "IN_PROGRESS" | "COMPLETED" | "idle" {
+    if (!listenCount || listenCount === 0) return "NEW";
+    if (listenCount >= 3) return "COMPLETED";
+    return "IN_PROGRESS";
   }
 }
 

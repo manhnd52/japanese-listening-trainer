@@ -52,8 +52,8 @@ function AudioListWithParams(props: AudioListProps) {
   };
 
   return (
-    <AudioListContent 
-      {...props} 
+    <AudioListContent
+      {...props}
       showUploadModal={showUploadModal}
       onOpenUpload={handleOpenUpload}
       onCloseUpload={handleCloseUpload}
@@ -180,7 +180,9 @@ const AudioListContent: React.FC<AudioListContentProps> = ({
   // 🟢 Hàm này sẽ được gọi sau khi nghe xong audio (ví dụ từ Player component)
   // Bạn cần truyền vào id và listenCount mới (hoặc tự tăng lên 1 nếu chắc chắn)
   const handleAudioEnded = (audioId: string, newListenCount: number) => {
-    dispatch(updateAudioListenCount({ id: audioId, listenCount: newListenCount }));
+    dispatch(
+      updateAudioListenCount({ id: audioId, listenCount: newListenCount })
+    );
   };
 
   return (

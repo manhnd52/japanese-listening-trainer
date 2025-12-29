@@ -20,23 +20,37 @@ export default function Player() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const isInitialLoadRef = useRef(true);
 
-  const audioId = useAppSelector((state: RootState) => state.player.currentAudio?.id);
-  const audioUrl = useAppSelector((state: RootState) => state.player.currentAudio?.url);
-  const isPlaying = useAppSelector((state: RootState) => state.player.isPlaying);
+  const audioId = useAppSelector(
+    (state: RootState) => state.player.currentAudio?.id
+  );
+  const audioUrl = useAppSelector(
+    (state: RootState) => state.player.currentAudio?.url
+  );
+  const isPlaying = useAppSelector(
+    (state: RootState) => state.player.isPlaying
+  );
   const volume = useAppSelector((state: RootState) => state.player.volume);
   const user = useAppSelector((state: RootState) => state.auth.user);
   const audios = useAppSelector((state: RootState) => state.audio.audios);
-  const currentAudio = useAppSelector((state: RootState) => state.player.currentAudio);
-  const isQuizMode = useAppSelector((state: RootState) => state.player.relaxModeConfig.enableQuiz);
+  const currentAudio = useAppSelector(
+    (state: RootState) => state.player.currentAudio
+  );
+  const isQuizMode = useAppSelector(
+    (state: RootState) => state.player.relaxModeConfig.enableQuiz
+  );
   const dispatch = useAppDispatch();
   const { triggerQuiz } = useQuiz();
 
   // Đồng bộ listenCount về currentAudio khi audio kết thúc hoặc khi audios thay đổi
   useEffect(() => {
     if (!currentAudio) return;
-    const updated = audios.find(a => String(a.id) === String(currentAudio.id));
+    const updated = audios.find(
+      (a) => String(a.id) === String(currentAudio.id)
+    );
     if (updated && updated.listenCount !== currentAudio.listenCount) {
-      dispatch(setCurrentAudio({ ...currentAudio, listenCount: updated.listenCount }));
+      dispatch(
+        setCurrentAudio({ ...currentAudio, listenCount: updated.listenCount })
+      );
     }
   }, [audios, currentAudio, dispatch]);
 
@@ -45,13 +59,20 @@ export default function Player() {
 
     if (audioId && user?.id) {
       try {
-        const res = await audioApi.incrementListenCount(Number(audioId), user.id);
+        const res = await audioApi.incrementListenCount(
+          Number(audioId),
+          user.id
+        );
         const newListenCount = res?.data?.listenCount ?? 1;
-        dispatch(updateAudioListenCount({ id: audioId, listenCount: newListenCount }));
+        dispatch(
+          updateAudioListenCount({ id: audioId, listenCount: newListenCount })
+        );
 
         // Cập nhật currentAudio.listenCount ngay khi nghe xong
         if (currentAudio) {
-          dispatch(setCurrentAudio({ ...currentAudio, listenCount: newListenCount }));
+          dispatch(
+            setCurrentAudio({ ...currentAudio, listenCount: newListenCount })
+          );
         }
       } catch {
         // ignore
@@ -157,7 +178,8 @@ export default function Player() {
 
     // So sánh src chỉ bằng pathname, tránh reload khi chỉ pause/play hoặc chỉnh volume
     const AUDIO_BASE =
-      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") || "http://localhost:5000";
+      process.env.NEXT_PUBLIC_API_URL?.replace("/api", "") ||
+      "http://localhost:5000";
     const resolvedUrl = audioUrl.startsWith("http")
       ? audioUrl
       : `${AUDIO_BASE}${audioUrl.startsWith("/") ? "" : "/"}${audioUrl}`;
